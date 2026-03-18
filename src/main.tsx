@@ -6,7 +6,10 @@ import { getRouter } from "#/router";
 const auth = createAuthContext();
 const router = getRouter(auth);
 
-const rootElement = document.getElementById("app")!;
+const rootElement = document.getElementById("app");
+if (!rootElement) {
+	throw new Error("Root element not found");
+}
 
 if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);

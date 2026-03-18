@@ -36,13 +36,19 @@ function ProjectsRoute() {
 
 	return (
 		<section className="flex flex-col gap-4">
-			<div>
-				<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-					Projects
-				</p>
-				<h3 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
-					Current Portfolio
-				</h3>
+			<div className="flex flex-wrap items-end justify-between gap-3">
+				<div>
+					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+						Projects
+					</p>
+					<h3 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
+						Current Portfolio
+					</h3>
+				</div>
+
+				<Button asChild size="sm">
+					<Link to="/app/projects/new">New Project</Link>
+				</Button>
 			</div>
 
 			<div className="flex flex-wrap gap-2">

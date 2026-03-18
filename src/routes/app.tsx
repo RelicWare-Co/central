@@ -76,6 +76,7 @@ function AppRoute() {
 		select: (state) => state.location.pathname,
 	});
 	const currentView = getCurrentView(pathname);
+	const primaryAction = getPrimaryAction(pathname);
 
 	async function handleLogout() {
 		auth.logout();
@@ -106,9 +107,9 @@ function AppRoute() {
 
 					<div className="py-4">
 						<Button asChild className="w-full justify-start" size="lg">
-							<Link to="/app/tasks/new">
+							<Link to={primaryAction.to}>
 								<PlusIcon data-icon="inline-start" />
-								New Task
+								{primaryAction.label}
 							</Link>
 						</Button>
 					</div>
@@ -158,9 +159,9 @@ function AppRoute() {
 									className="hidden shrink-0 md:inline-flex"
 									size="lg"
 								>
-									<Link to="/app/tasks/new">
+									<Link to={primaryAction.to}>
 										<PlusIcon data-icon="inline-start" />
-										New Task
+										{primaryAction.label}
 									</Link>
 								</Button>
 							</div>
@@ -237,6 +238,10 @@ function NavLink({
 }
 
 function getCurrentView(pathname: string) {
+	if (pathname.startsWith("/app/projects/new")) {
+		return { label: "New Project" };
+	}
+
 	if (pathname.startsWith("/app/projects/")) {
 		return { label: "Project Detail" };
 	}
@@ -256,4 +261,18 @@ function getCurrentView(pathname: string) {
 				pathname.startsWith(`${item.matchPrefix}/`),
 		) ?? { label: "Workspace" }
 	);
+}
+
+function getPrimaryAction(pathname: string) {
+	if (pathname === "/app/projects") {
+		return {
+			label: "New Project",
+			to: "/app/projects/new" as const,
+		};
+	}
+
+	return {
+		label: "New Task",
+		to: "/app/tasks/new" as const,
+	};
 }

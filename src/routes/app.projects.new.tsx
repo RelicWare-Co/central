@@ -1,5 +1,10 @@
-import { useBlocker } from "@tanstack/react-router";
-import { type FormEvent, type ReactNode, useEffect, useState } from "react";
+import {
+	createFileRoute,
+	Link,
+	useNavigate,
+	useRouter,
+} from "@tanstack/react-router";
+import { type FormEvent, useState } from "react";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -16,61 +21,51 @@ import {
 	NativeSelectOption,
 } from "#/components/ui/native-select";
 import { Textarea } from "#/components/ui/textarea";
-import type { TaskFormOptions, TaskFormValues } from "#/lib/tasks";
+import {
+	createProject,
+	getDefaultProjectFormValues,
+	getProjectFormOptions,
+	type ProjectFormValues,
+} from "#/lib/projects";
 
-type TaskEditorFormProps = {
-	cancelAction: ReactNode;
-	children?: ReactNode;
-	description: string;
-	eyebrow: string;
-	initialValues: TaskFormValues;
-	onSubmit: (values: TaskFormValues) => Promise<void>;
-	options: TaskFormOptions;
-	submitLabel: string;
-	title: string;
-};
+export const Route = createFileRoute("/app/projects/new")({
+	loader: async ({ context }) => {
+		const options = await getProjectFormOptions(
+			context.auth,
+			"/app/projects/new",
+		);
 
-export function TaskEditorForm({
-	cancelAction,
-	children,
-	description,
-	eyebrow,
-	initialValues,
-	onSubmit,
-	options,
-	submitLabel,
-	title,
-}: TaskEditorFormProps) {
-	const [values, setValues] = useState(initialValues);
+		return {
+			defaults: getDefaultProjectFormValues(options.currentUserId),
+			options,
+		};
+	},
+	component: NewProjectRoute,
+});
+
+function NewProjectRoute() {
+	const navigate = useNavigate({ from: Route.fullPath });
+	const router = useRouter();
+	const { defaults, options } = Route.useLoaderData();
+	const [values, setValues] = useState<ProjectFormValues>(defaults);
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
-
-	useEffect(() => {
-		setValues(initialValues);
-		setError(null);
-		setIsSubmitting(false);
-	}, [initialValues]);
-
-	useBlocker({
-		enableBeforeUnload: isDirty && !isSubmitting,
-		shouldBlockFn: () => {
-			if (!isDirty || isSubmitting) {
-				return false;
-			}
-
-			return !window.confirm("Discard unsaved changes?");
-		},
-	});
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-
 		setError(null);
 		setIsSubmitting(true);
 
 		try {
-			await onSubmit(values);
+			const project = await createProject(values);
+
+			await router.invalidate();
+			await navigate({
+				params: {
+					projectId: project.id,
+				},
+				to: "/app/projects/$projectId",
+			});
 		} catch (caughtError) {
 			setError(getErrorMessage(caughtError));
 			setIsSubmitting(false);
@@ -83,17 +78,22 @@ export function TaskEditorForm({
 				<CardHeader className="border-b border-border/70">
 					<div>
 						<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-							{eyebrow}
+							New Project
 						</p>
 						<CardTitle className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
-							{title}
+							Create Project
 						</CardTitle>
 						<CardDescription className="mt-2 max-w-3xl text-sm text-muted-foreground">
-							{description}
+							Set ownership, scope and explicit status so the team can track
+							work with low friction.
 						</CardDescription>
 					</div>
 
-					<CardAction>{cancelAction}</CardAction>
+					<CardAction>
+						<Button asChild size="sm" variant="outline">
+							<Link to="/app/projects">Cancel</Link>
+						</Button>
+					</CardAction>
 				</CardHeader>
 			</Card>
 
@@ -106,58 +106,52 @@ export function TaskEditorForm({
 					>
 						<FieldGroup className="grid gap-4 lg:grid-cols-2">
 							<Field className="lg:col-span-2">
-								<FieldLabel htmlFor="title">Task Title</FieldLabel>
+								<FieldLabel htmlFor="name">Project Name</FieldLabel>
 								<Input
 									autoComplete="off"
 									autoFocus
-									id="title"
-									name="title"
-									placeholder="Define the next concrete piece of work"
+									id="name"
+									name="name"
+									placeholder="Name the initiative"
 									required
-									value={values.title}
+									value={values.name}
 									onChange={(event) =>
 										setValues((current) => ({
 											...current,
-											title: event.target.value,
+											name: event.target.value,
 										}))
 									}
 								/>
 							</Field>
 
 							<Field>
-								<FieldLabel htmlFor="project">Project</FieldLabel>
-								<NativeSelect
-									className="w-full"
-									id="project"
-									name="project"
-									value={values.project}
+								<FieldLabel htmlFor="slug">Slug</FieldLabel>
+								<Input
+									autoComplete="off"
+									id="slug"
+									name="slug"
+									placeholder="product-ops"
+									value={values.slug}
 									onChange={(event) =>
 										setValues((current) => ({
 											...current,
-											project: event.target.value,
+											slug: event.target.value,
 										}))
 									}
-								>
-									<NativeSelectOption value="">Inbox</NativeSelectOption>
-									{options.projects.map((project) => (
-										<NativeSelectOption key={project.id} value={project.id}>
-											{project.name} · {project.slug}
-										</NativeSelectOption>
-									))}
-								</NativeSelect>
+								/>
 							</Field>
 
 							<Field>
-								<FieldLabel htmlFor="assignee">Assignee</FieldLabel>
+								<FieldLabel htmlFor="owner">Owner</FieldLabel>
 								<NativeSelect
 									className="w-full"
-									id="assignee"
-									name="assignee"
-									value={values.assignee}
+									id="owner"
+									name="owner"
+									value={values.owner}
 									onChange={(event) =>
 										setValues((current) => ({
 											...current,
-											assignee: event.target.value,
+											owner: event.target.value,
 										}))
 									}
 								>
@@ -180,50 +174,18 @@ export function TaskEditorForm({
 									onChange={(event) =>
 										setValues((current) => ({
 											...current,
-											blockedReason:
-												event.target.value === "blocked"
-													? current.blockedReason
-													: "",
-											status: event.target.value as TaskFormValues["status"],
+											status: event.target.value as ProjectFormValues["status"],
 										}))
 									}
 								>
-									<NativeSelectOption value="pending">
-										Pending
-									</NativeSelectOption>
-									<NativeSelectOption value="in_progress">
-										In Progress
-									</NativeSelectOption>
+									<NativeSelectOption value="active">Active</NativeSelectOption>
+									<NativeSelectOption value="paused">Paused</NativeSelectOption>
 									<NativeSelectOption value="blocked">
 										Blocked
 									</NativeSelectOption>
 									<NativeSelectOption value="completed">
 										Completed
 									</NativeSelectOption>
-									<NativeSelectOption value="canceled">
-										Canceled
-									</NativeSelectOption>
-								</NativeSelect>
-							</Field>
-
-							<Field>
-								<FieldLabel htmlFor="priority">Priority</FieldLabel>
-								<NativeSelect
-									className="w-full"
-									id="priority"
-									name="priority"
-									value={values.priority}
-									onChange={(event) =>
-										setValues((current) => ({
-											...current,
-											priority: event.target
-												.value as TaskFormValues["priority"],
-										}))
-									}
-								>
-									<NativeSelectOption value="low">Low</NativeSelectOption>
-									<NativeSelectOption value="medium">Medium</NativeSelectOption>
-									<NativeSelectOption value="high">High</NativeSelectOption>
 								</NativeSelect>
 							</Field>
 
@@ -259,34 +221,13 @@ export function TaskEditorForm({
 								/>
 							</Field>
 
-							{values.status === "blocked" ? (
-								<Field className="lg:col-span-2">
-									<FieldLabel htmlFor="blockedReason">
-										Blocked Reason
-									</FieldLabel>
-									<Input
-										id="blockedReason"
-										name="blockedReason"
-										placeholder="Describe the blocker so the team can act on it"
-										required
-										value={values.blockedReason}
-										onChange={(event) =>
-											setValues((current) => ({
-												...current,
-												blockedReason: event.target.value,
-											}))
-										}
-									/>
-								</Field>
-							) : null}
-
 							<Field className="lg:col-span-2">
 								<FieldLabel htmlFor="description">Description</FieldLabel>
 								<Textarea
 									className="min-h-40"
 									id="description"
 									name="description"
-									placeholder="Add context, expected outcome or follow-up notes"
+									placeholder="Add scope, expected outcome and boundaries"
 									value={values.description}
 									onChange={(event) =>
 										setValues((current) => ({
@@ -305,21 +246,14 @@ export function TaskEditorForm({
 							{error ? error : null}
 						</div>
 
-						<div className="flex flex-col gap-3 border-t border-border/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
-							<p className="text-sm text-muted-foreground">
-								Inbox stays available by leaving Project empty. Blocked tasks
-								should always include a visible reason.
-							</p>
-
+						<div className="flex justify-end border-t border-border/70 pt-4">
 							<Button disabled={isSubmitting} size="lg" type="submit">
-								{isSubmitting ? "Saving…" : submitLabel}
+								{isSubmitting ? "Creating…" : "Create Project"}
 							</Button>
 						</div>
 					</form>
 				</CardContent>
 			</Card>
-
-			{children}
 		</div>
 	);
 }
@@ -334,5 +268,5 @@ function getErrorMessage(error: unknown) {
 		return error.message;
 	}
 
-	return "Task save failed. Verify the fields and try again.";
+	return "Project creation failed. Verify the fields and try again.";
 }
