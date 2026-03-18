@@ -7,13 +7,6 @@ import {
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "#/components/ui/card";
-import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
@@ -42,104 +35,94 @@ function ProjectsRoute() {
 	}
 
 	return (
-		<Card className="border border-border/70 bg-card/70 ring-0">
-			<CardHeader className="border-b border-border/70">
-				<div>
-					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-						Projects
-					</p>
-					<CardTitle className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
-						Current Portfolio
-					</CardTitle>
-					<CardDescription className="mt-2 max-w-3xl text-sm text-muted-foreground">
-						Active projects stay visible with ownership, status and deadline in
-						one compact list.
-					</CardDescription>
-				</div>
-			</CardHeader>
+		<section className="flex flex-col gap-4">
+			<div>
+				<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+					Projects
+				</p>
+				<h3 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
+					Current Portfolio
+				</h3>
+			</div>
 
-			<CardContent className="px-0 pb-0">
-				<div className="flex flex-wrap gap-2 border-b border-border/70 px-4 py-4">
-					<SummaryBadge label="Portfolio" value={summary.total} />
-					<SummaryBadge label="Active" value={summary.active} />
-					<SummaryBadge label="Blocked" value={summary.blocked} />
-					<SummaryBadge label="Completed" value={summary.completed} />
-				</div>
+			<div className="flex flex-wrap gap-2">
+				<SummaryBadge label="Portfolio" value={summary.total} />
+				<SummaryBadge label="Active" value={summary.active} />
+				<SummaryBadge label="Blocked" value={summary.blocked} />
+				<SummaryBadge label="Completed" value={summary.completed} />
+			</div>
 
-				{items.length === 0 ? (
-					<div className="px-4 py-8">
-						<Empty className="min-h-[240px] border-border/70 bg-background/60">
-							<EmptyHeader>
-								<EmptyTitle className="text-sm font-medium text-foreground">
-									No active projects
-								</EmptyTitle>
-								<EmptyDescription className="max-w-md text-sm text-muted-foreground">
-									When projects are created in PocketBase, this view will
-									surface their status, owner and deadline.
-								</EmptyDescription>
-							</EmptyHeader>
-						</Empty>
-					</div>
-				) : (
-					<div>
-						{items.map((project) => (
-							<article
-								key={project.id}
-								className="border-b border-border/70 px-4 py-4 last:border-b-0"
-							>
-								<div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.8fr)_auto_auto] lg:items-start">
-									<div className="min-w-0">
-										<p className="text-xs text-muted-foreground">
-											{project.slug}
-										</p>
-										<h3 className="mt-1 text-base font-medium text-foreground">
-											<Link
-												className="transition-colors hover:text-primary"
-												params={{
-													projectId: project.id,
-												}}
-												to="/app/projects/$projectId"
-											>
-												{project.name}
-											</Link>
-										</h3>
-										<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-											{project.description?.trim() ||
-												"No description yet. This project is ready for tasks, ownership and status tracking."}
-										</p>
-									</div>
-
-									<div className="flex flex-wrap gap-2 lg:justify-end">
-										<StatusBadge status={project.status} />
-									</div>
-
-									<div className="flex flex-col gap-3 lg:items-end">
-										<dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-1">
-											<MetaItem label="Owner" value={getOwnerLabel(project)} />
-											<MetaItem
-												label="Deadline"
-												value={formatDueDateLabel(project.dueDate)}
-											/>
-										</dl>
-
-										<Button asChild size="sm" variant="outline">
-											<Link
-												params={{
-													projectId: project.id,
-												}}
-												to="/app/projects/$projectId"
-											>
-												Open Project
-											</Link>
-										</Button>
-									</div>
+			{items.length === 0 ? (
+				<Empty className="min-h-[240px] border-border/70 bg-background/35">
+					<EmptyHeader>
+						<EmptyTitle className="text-sm font-medium text-foreground">
+							No active projects
+						</EmptyTitle>
+						<EmptyDescription className="max-w-md text-sm text-muted-foreground">
+							When projects are created in PocketBase, this view will surface
+							their status, owner and deadline.
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
+			) : (
+				<div className="overflow-hidden rounded-sm border border-border/70 bg-background/20">
+					{items.map((project) => (
+						<article
+							key={project.id}
+							className="border-b border-border/70 px-4 py-4 last:border-b-0"
+						>
+							<div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.8fr)_auto_auto] lg:items-start">
+								<div className="min-w-0">
+									<p className="text-xs text-muted-foreground">
+										{project.slug}
+									</p>
+									<h3 className="mt-1 text-base font-medium text-foreground">
+										<Link
+											className="transition-colors hover:text-primary"
+											params={{
+												projectId: project.id,
+											}}
+											to="/app/projects/$projectId"
+										>
+											{project.name}
+										</Link>
+									</h3>
+									<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+										{project.description?.trim() ||
+											"No description yet. This project is ready for tasks, ownership and status tracking."}
+									</p>
 								</div>
-							</article>
-						))}
-					</div>
-				)}
-			</CardContent>
-		</Card>
+
+								<div className="flex flex-wrap gap-2 lg:justify-end">
+									<StatusBadge status={project.status} />
+								</div>
+
+								<div className="flex flex-col gap-3 lg:items-end">
+									<dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-1">
+										<MetaItem label="Owner" value={getOwnerLabel(project)} />
+										<MetaItem
+											label="Deadline"
+											value={formatDueDateLabel(project.dueDate)}
+										/>
+									</dl>
+
+									<Button asChild size="sm" variant="outline">
+										<Link
+											params={{
+												projectId: project.id,
+											}}
+											to="/app/projects/$projectId"
+										>
+											Open Project
+										</Link>
+									</Button>
+								</div>
+							</div>
+						</article>
+					))}
+				</div>
+			)}
+		</section>
 	);
 }
 

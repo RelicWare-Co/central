@@ -1,14 +1,6 @@
 import type { ReactNode } from "react";
 import { Badge } from "#/components/ui/badge";
 import {
-	Card,
-	CardAction,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "#/components/ui/card";
-import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
@@ -23,7 +15,7 @@ import type {
 } from "#/lib/tasks";
 
 type TaskCollectionViewProps = {
-	description: string;
+	description?: string;
 	emptyDescription: string;
 	emptyTitle: string;
 	eyebrow: string;
@@ -46,104 +38,102 @@ export function TaskCollectionView({
 	title,
 }: TaskCollectionViewProps) {
 	return (
-		<Card className="border border-border/70 bg-card/70 ring-0">
-			<CardHeader className="border-b border-border/70">
-				<div>
+		<section className="flex flex-col gap-4">
+			<div className="flex flex-wrap items-start justify-between gap-3">
+				<div className="min-w-0">
 					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
 						{eyebrow}
 					</p>
-					<CardTitle className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
+					<h3 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
 						{title}
-					</CardTitle>
-					<CardDescription className="mt-2 max-w-3xl text-sm text-muted-foreground">
-						{description}
-					</CardDescription>
+					</h3>
+					{description ? (
+						<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+							{description}
+						</p>
+					) : null}
 				</div>
-				{headerAction ? <CardAction>{headerAction}</CardAction> : null}
-			</CardHeader>
+				{headerAction ? <div className="shrink-0">{headerAction}</div> : null}
+			</div>
 
-			<CardContent className="px-0 pb-0">
-				<div className="flex flex-wrap gap-2 border-b border-border/70 px-4 py-4">
-					<SummaryBadge label="Total" value={summary.total} />
-					<SummaryBadge label="In progress" value={summary.inProgress} />
-					<SummaryBadge label="Blocked" value={summary.blocked} />
-					<SummaryBadge label="Due today" value={summary.dueToday} />
-					<SummaryBadge label="Overdue" value={summary.overdue} />
-				</div>
+			<div className="flex flex-wrap gap-2">
+				<SummaryBadge label="Total" value={summary.total} />
+				<SummaryBadge label="In progress" value={summary.inProgress} />
+				<SummaryBadge label="Blocked" value={summary.blocked} />
+				<SummaryBadge label="Due today" value={summary.dueToday} />
+				<SummaryBadge label="Overdue" value={summary.overdue} />
+			</div>
 
-				{tasks.length === 0 ? (
-					<div className="px-4 py-8">
-						<Empty className="min-h-[240px] border-border/70 bg-background/60">
-							<EmptyHeader>
-								<EmptyTitle className="text-sm font-medium text-foreground">
-									{emptyTitle}
-								</EmptyTitle>
-								<EmptyDescription className="max-w-md text-sm text-muted-foreground">
-									{emptyDescription}
-								</EmptyDescription>
-							</EmptyHeader>
-						</Empty>
-					</div>
-				) : (
-					<div>
-						{tasks.map((task) => (
-							<article
-								key={task.id}
-								className="border-b border-border/70 px-4 py-4 last:border-b-0"
-							>
-								<div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1.8fr)_auto_auto] xl:items-start">
-									<div className="min-w-0">
-										<p className="text-xs text-muted-foreground">
-											{getTaskScopeLabel(task)}
+			{tasks.length === 0 ? (
+				<Empty className="min-h-[240px] border-border/70 bg-background/35">
+					<EmptyHeader>
+						<EmptyTitle className="text-sm font-medium text-foreground">
+							{emptyTitle}
+						</EmptyTitle>
+						<EmptyDescription className="max-w-md text-sm text-muted-foreground">
+							{emptyDescription}
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
+			) : (
+				<div className="overflow-hidden rounded-sm border border-border/70 bg-background/20">
+					{tasks.map((task) => (
+						<article
+							key={task.id}
+							className="border-b border-border/70 px-4 py-4 last:border-b-0"
+						>
+							<div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1.8fr)_auto_auto] xl:items-start">
+								<div className="min-w-0">
+									<p className="text-xs text-muted-foreground">
+										{getTaskScopeLabel(task)}
+									</p>
+									<h4 className="mt-1 text-base font-medium text-foreground">
+										{task.title}
+									</h4>
+									<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+										{getDescription(task.description)}
+									</p>
+
+									{task.status === "blocked" && task.blockedReason ? (
+										<p className="mt-3 text-sm text-destructive">
+											{task.blockedReason}
 										</p>
-										<h4 className="mt-1 text-base font-medium text-foreground">
-											{task.title}
-										</h4>
-										<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-											{getDescription(task.description)}
-										</p>
-
-										{task.status === "blocked" && task.blockedReason ? (
-											<p className="mt-3 text-sm text-destructive">
-												{task.blockedReason}
-											</p>
-										) : null}
-									</div>
-
-									<div className="flex flex-wrap gap-2 xl:justify-end">
-										<PriorityBadge priority={task.priority} />
-										<StatusBadge status={task.status} />
-									</div>
-
-									<div className="flex flex-col gap-3 xl:items-end">
-										<dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3 xl:grid-cols-1">
-											<MetaItem
-												label="Due"
-												value={formatDueDateLabel(task.dueDate)}
-											/>
-											<MetaItem
-												label="Assignee"
-												value={getUserLabel(task.expand?.assignee)}
-											/>
-											<MetaItem
-												label="Creator"
-												value={getUserLabel(task.expand?.createdBy)}
-											/>
-										</dl>
-
-										{renderTaskActions ? (
-											<div className="flex flex-wrap gap-2">
-												{renderTaskActions(task)}
-											</div>
-										) : null}
-									</div>
+									) : null}
 								</div>
-							</article>
-						))}
-					</div>
-				)}
-			</CardContent>
-		</Card>
+
+								<div className="flex flex-wrap gap-2 xl:justify-end">
+									<PriorityBadge priority={task.priority} />
+									<StatusBadge status={task.status} />
+								</div>
+
+								<div className="flex flex-col gap-3 xl:items-end">
+									<dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3 xl:grid-cols-1">
+										<MetaItem
+											label="Due"
+											value={formatDueDateLabel(task.dueDate)}
+										/>
+										<MetaItem
+											label="Assignee"
+											value={getUserLabel(task.expand?.assignee)}
+										/>
+										<MetaItem
+											label="Creator"
+											value={getUserLabel(task.expand?.createdBy)}
+										/>
+									</dl>
+
+									{renderTaskActions ? (
+										<div className="flex flex-wrap gap-2">
+											{renderTaskActions(task)}
+										</div>
+									) : null}
+								</div>
+							</div>
+						</article>
+					))}
+				</div>
+			)}
+		</section>
 	);
 }
 

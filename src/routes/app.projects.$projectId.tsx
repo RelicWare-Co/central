@@ -150,7 +150,6 @@ function ProjectDetailRoute() {
 			</div>
 
 			<TaskCollectionView
-				description="Associated tasks stay in one compact surface so execution, blockers and deadlines remain obvious."
 				emptyDescription="Create the first task for this project to make ownership, status and next steps visible."
 				emptyTitle="No project tasks yet"
 				eyebrow="Project Tasks"

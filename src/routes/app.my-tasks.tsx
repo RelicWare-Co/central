@@ -14,8 +14,7 @@ function MyTasksRoute() {
 	return (
 		<TaskCollectionView
 			eyebrow="My Tasks"
-			title="Assigned Work Surface"
-			description="My Tasks agrupa el trabajo del usuario autenticado para ejecución diaria, seguimiento de bloqueos y deadlines visibles."
+			title="Assigned Work"
 			headerAction={
 				<Button asChild size="sm">
 					<Link

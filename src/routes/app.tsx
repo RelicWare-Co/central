@@ -19,6 +19,7 @@ import type { ComponentType } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { useAuth } from "#/lib/auth";
+import { cn } from "#/lib/utils";
 
 export const Route = createFileRoute("/app")({
 	beforeLoad: ({ context, location }) => {
@@ -36,35 +37,30 @@ export const Route = createFileRoute("/app")({
 
 const navigationItems = [
 	{
-		description: "Captured work that still needs sorting.",
 		icon: TrayIcon,
 		label: "Inbox",
 		matchPrefix: "/app/inbox",
 		to: "/app/inbox" as const,
 	},
 	{
-		description: "Immediate work that needs attention now.",
 		icon: CalendarDotsIcon,
 		label: "Today",
 		matchPrefix: "/app/today",
 		to: "/app/today" as const,
 	},
 	{
-		description: "Upcoming commitments and time-based work.",
 		icon: BriefcaseIcon,
 		label: "Upcoming",
 		matchPrefix: "/app/upcoming",
 		to: "/app/upcoming" as const,
 	},
 	{
-		description: "Portfolio view across all active projects.",
 		icon: FolderOpenIcon,
 		label: "Projects",
 		matchPrefix: "/app/projects",
 		to: "/app/projects" as const,
 	},
 	{
-		description: "Assigned work for the current user.",
 		icon: ListChecksIcon,
 		label: "My Tasks",
 		matchPrefix: "/app/my-tasks",
@@ -152,15 +148,9 @@ function AppRoute() {
 						<div className="flex flex-col gap-4">
 							<div className="flex items-start justify-between gap-4">
 								<div className="min-w-0">
-									<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-										Authenticated Workspace
-									</p>
-									<h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em] text-foreground sm:text-3xl">
+									<h2 className="text-2xl font-semibold tracking-[-0.05em] text-foreground sm:text-3xl">
 										{currentView.label}
 									</h2>
-									<p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-										{currentView.description}
-									</p>
 								</div>
 
 								<Button
@@ -201,7 +191,6 @@ function NavLink({
 }: {
 	compact?: boolean;
 	item: {
-		description: string;
 		icon: ComponentType<{ className?: string }>;
 		label: string;
 		matchPrefix: string;
@@ -221,62 +210,43 @@ function NavLink({
 			activeProps={{
 				"aria-current": "page",
 			}}
-			className={[
+			className={cn(
 				"group flex items-center gap-3 rounded-sm border px-3 py-3 transition-colors",
-				compact ? "shrink-0 whitespace-nowrap" : "w-full",
+				compact ? "shrink-0 whitespace-nowrap py-2" : "w-full",
 				isActive
 					? "border-primary/30 bg-accent/70 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
 					: "border-transparent text-muted-foreground hover:border-border/60 hover:bg-background/70 hover:text-foreground",
-			].join(" ")}
+			)}
 			preload="intent"
 			to={item.to}
 		>
 			<span
-				className={[
-					"flex size-8 items-center justify-center rounded-sm border text-foreground/80 transition-colors group-hover:text-foreground",
+				className={cn(
+					"flex size-9 shrink-0 aspect-square items-center justify-center rounded-sm border text-foreground/80 transition-colors group-hover:text-foreground",
 					isActive
 						? "border-primary/25 bg-background/90 text-primary"
 						: "border-border/60 bg-background/80",
-				].join(" ")}
+				)}
 			>
 				<Icon />
 			</span>
 
-			<span className="min-w-0">
-				<span className="block text-sm font-medium">{item.label}</span>
-				{!compact ? (
-					<span className="block truncate text-xs text-muted-foreground">
-						{item.description}
-					</span>
-				) : null}
-			</span>
+			<span className="min-w-0 truncate text-sm font-medium">{item.label}</span>
 		</Link>
 	);
 }
 
 function getCurrentView(pathname: string) {
 	if (pathname.startsWith("/app/projects/")) {
-		return {
-			description:
-				"Project detail keeps ownership, status and associated tasks in one surface.",
-			label: "Project Detail",
-		};
+		return { label: "Project Detail" };
 	}
 
 	if (pathname.startsWith("/app/tasks/new")) {
-		return {
-			description:
-				"Capture work quickly, keep state explicit and defer extra decisions.",
-			label: "New Task",
-		};
+		return { label: "New Task" };
 	}
 
 	if (pathname.startsWith("/app/tasks/")) {
-		return {
-			description:
-				"Update the task without losing the context of where you came from.",
-			label: "Task Detail",
-		};
+		return { label: "Task Detail" };
 	}
 
 	return (
@@ -284,10 +254,6 @@ function getCurrentView(pathname: string) {
 			(item) =>
 				pathname === item.matchPrefix ||
 				pathname.startsWith(`${item.matchPrefix}/`),
-		) ?? {
-			description:
-				"Shared operating surface for projects, tasks and inbox work.",
-			label: "Workspace",
-		}
+		) ?? { label: "Workspace" }
 	);
 }

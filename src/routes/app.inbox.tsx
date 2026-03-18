@@ -14,8 +14,7 @@ function InboxRoute() {
 	return (
 		<TaskCollectionView
 			eyebrow="Inbox"
-			title="Unsorted Work Lands Here"
-			description="Inbox lista tareas sin proyecto para preservar captura rápida, triage manual y claridad operativa antes de clasificar."
+			title="Unsorted Work"
 			headerAction={
 				<Button asChild size="sm">
 					<Link
