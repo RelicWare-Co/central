@@ -73,7 +73,7 @@ export function TaskCollectionView({
 
 				{tasks.length === 0 ? (
 					<div className="px-4 py-8">
-						<Empty className="min-h-[240px] rounded-2xl border-border/70 bg-background/60">
+						<Empty className="min-h-[240px] border-border/70 bg-background/60">
 							<EmptyHeader>
 								<EmptyTitle className="text-sm font-medium text-foreground">
 									{emptyTitle}
@@ -158,7 +158,7 @@ function MetaItem({ label, value }: { label: string; value: string }) {
 
 function SummaryBadge({ label, value }: { label: string; value: number }) {
 	return (
-		<div className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 text-xs text-muted-foreground">
+		<div className="rounded-sm border border-border/80 bg-background/85 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground">
 			<span className="font-medium text-foreground">
 				{String(value).padStart(2, "0")}
 			</span>{" "}

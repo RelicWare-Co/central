@@ -88,8 +88,8 @@ function AppRoute() {
 
 	return (
 		<main className="min-h-screen bg-background text-foreground">
-			<div className="mx-auto flex min-h-screen max-w-[1600px] flex-col gap-3 p-3 md:flex-row md:p-4">
-				<aside className="hidden w-64 shrink-0 flex-col rounded-3xl border border-border/70 bg-card/85 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur md:flex">
+			<div className="mx-auto flex min-h-screen max-w-[1680px] flex-col gap-2 p-2 md:flex-row md:p-3">
+				<aside className="hidden w-64 shrink-0 flex-col rounded-md border border-border/80 bg-card/92 p-2 shadow-[0_24px_80px_rgba(0,0,0,0.36)] md:flex">
 					<div className="flex items-center justify-between gap-3 border-b border-border/70 px-2 pb-4">
 						<div>
 							<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
@@ -102,7 +102,7 @@ function AppRoute() {
 
 						<Badge
 							variant="outline"
-							className="border-border/80 bg-background/70"
+							className="border-primary/25 bg-background/85 text-primary"
 						>
 							{String(authState.user?.role ?? "member")}
 						</Badge>
@@ -147,7 +147,7 @@ function AppRoute() {
 					</div>
 				</aside>
 
-				<section className="flex min-w-0 flex-1 flex-col rounded-[1.75rem] border border-border/70 bg-card/75 shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur">
+				<section className="flex min-w-0 flex-1 flex-col rounded-md border border-border/80 bg-card/88 shadow-[0_24px_80px_rgba(0,0,0,0.34)]">
 					<header className="border-b border-border/70 px-4 py-4 sm:px-6">
 						<div className="flex flex-col gap-4">
 							<div className="flex items-start justify-between gap-4">
@@ -177,7 +177,7 @@ function AppRoute() {
 
 							<nav
 								aria-label="Primary mobile"
-								className="flex gap-2 overflow-x-auto md:hidden"
+								className="flex gap-1.5 overflow-x-auto md:hidden"
 							>
 								{navigationItems.map((item) => (
 									<NavLink key={item.to} compact item={item} />
@@ -222,16 +222,23 @@ function NavLink({
 				"aria-current": "page",
 			}}
 			className={[
-				"group flex items-center gap-3 rounded-2xl border px-3 py-2.5 transition-colors",
+				"group flex items-center gap-3 rounded-sm border px-3 py-3 transition-colors",
 				compact ? "shrink-0 whitespace-nowrap" : "w-full",
 				isActive
-					? "border-border bg-background text-foreground"
-					: "border-transparent text-muted-foreground hover:bg-background/60 hover:text-foreground",
+					? "border-primary/30 bg-accent/70 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+					: "border-transparent text-muted-foreground hover:border-border/60 hover:bg-background/70 hover:text-foreground",
 			].join(" ")}
 			preload="intent"
 			to={item.to}
 		>
-			<span className="flex size-8 items-center justify-center rounded-xl bg-background/80 text-foreground/80 transition-colors group-hover:text-foreground">
+			<span
+				className={[
+					"flex size-8 items-center justify-center rounded-sm border text-foreground/80 transition-colors group-hover:text-foreground",
+					isActive
+						? "border-primary/25 bg-background/90 text-primary"
+						: "border-border/60 bg-background/80",
+				].join(" ")}
+			>
 				<Icon />
 			</span>
 

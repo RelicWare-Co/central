@@ -161,7 +161,7 @@ export function TaskSubtasksPanel({
 
 				{subtasks.length === 0 ? (
 					<div className="pt-4">
-						<Empty className="min-h-[200px] rounded-2xl border-border/70 bg-background/60">
+						<Empty className="min-h-[200px] border-border/70 bg-background/60">
 							<EmptyHeader>
 								<EmptyTitle className="text-sm font-medium text-foreground">
 									No subtasks yet
@@ -174,7 +174,7 @@ export function TaskSubtasksPanel({
 						</Empty>
 					</div>
 				) : (
-					<div className="mt-4 divide-y divide-border/70 rounded-2xl border border-border/70 bg-background/50">
+					<div className="mt-4 divide-y divide-border/70 rounded-sm border border-border/80 bg-background/60">
 						{subtasks.map((subtask) => {
 							const isBusy = activeSubtaskId === subtask.id;
 

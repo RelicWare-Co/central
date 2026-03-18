@@ -86,7 +86,7 @@ function EditTaskRoute() {
 
 function MissingTaskRoute() {
 	return (
-		<section className="rounded-3xl border border-border/70 bg-card/70 p-6">
+		<section className="rounded-md border border-border/80 bg-card/88 p-6 shadow-[0_22px_64px_rgba(0,0,0,0.34)]">
 			<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
 				Task Detail
 			</p>

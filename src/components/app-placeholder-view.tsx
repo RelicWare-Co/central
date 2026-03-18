@@ -37,7 +37,7 @@ export function AppPlaceholderView({
 			</CardHeader>
 
 			<div className="p-4">
-				<Empty className="min-h-[280px] rounded-2xl border-border/70 bg-background/60">
+				<Empty className="min-h-[280px] border-border/70 bg-background/60">
 					<EmptyHeader>
 						<EmptyTitle className="text-sm font-medium text-foreground">
 							{title}

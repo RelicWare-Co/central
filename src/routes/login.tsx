@@ -65,7 +65,7 @@ function LoginRoute() {
 
 	return (
 		<main className="relative min-h-screen overflow-hidden bg-background text-foreground">
-			<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(210,121,78,0.14),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent_18%)]" />
+			<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),transparent_14%),radial-gradient(circle_at_top,rgba(255,120,58,0.16),transparent_28%)]" />
 
 			<section className="relative mx-auto grid min-h-screen max-w-[1280px] items-center gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_420px] lg:px-8">
 				<div className="max-w-2xl">
@@ -94,7 +94,7 @@ function LoginRoute() {
 						].map(([title, description]) => (
 							<div
 								key={title}
-								className="rounded-2xl border border-border/70 bg-card/70 px-4 py-4 text-sm text-muted-foreground"
+								className="rounded-sm border border-border/80 bg-card/72 px-4 py-4 text-sm text-muted-foreground shadow-[0_18px_42px_rgba(0,0,0,0.22)]"
 							>
 								<p className="font-medium text-foreground">{title}</p>
 								<p className="mt-2">{description}</p>
@@ -103,7 +103,7 @@ function LoginRoute() {
 					</div>
 				</div>
 
-				<Card className="border border-border/70 bg-card/85 shadow-[0_24px_80px_rgba(0,0,0,0.28)] ring-0">
+				<Card className="border-border/80 bg-card/92 shadow-[0_28px_90px_rgba(0,0,0,0.4)] ring-0">
 					<CardHeader className="border-b border-border/70">
 						<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
 							Secure Access
