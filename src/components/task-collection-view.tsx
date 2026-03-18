@@ -1,4 +1,4 @@
-import { format, isPast, isToday, parseISO } from 'date-fns'
+import type { ReactNode } from 'react'
 import { Badge } from '#/components/ui/badge'
 import {
   Empty,
@@ -6,6 +6,7 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from '#/components/ui/empty'
+import { formatDueDateLabel } from '#/lib/formatting'
 import type { TaskCollectionData, TaskPriority, TaskRecord, TaskStatus } from '#/lib/tasks'
 
 type TaskCollectionViewProps = {
@@ -13,6 +14,8 @@ type TaskCollectionViewProps = {
   emptyDescription: string
   emptyTitle: string
   eyebrow: string
+  headerAction?: ReactNode
+  renderTaskActions?: (task: TaskRecord) => ReactNode
   tasks: TaskRecord[]
   title: string
   summary: TaskCollectionData['summary']
@@ -23,6 +26,8 @@ export function TaskCollectionView({
   emptyDescription,
   emptyTitle,
   eyebrow,
+  headerAction,
+  renderTaskActions,
   summary,
   tasks,
   title,
@@ -41,7 +46,7 @@ export function TaskCollectionView({
       </div>
 
       <section className="border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-5 sm:p-6">
-        <div className="flex flex-col gap-3 border-b border-[rgba(255,255,255,0.08)] pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-[rgba(255,255,255,0.08)] pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
               {eyebrow}
@@ -50,9 +55,12 @@ export function TaskCollectionView({
               {title}
             </h3>
           </div>
-          <p className="max-w-xl text-sm leading-7 text-[var(--muted-foreground)]">
-            {description}
-          </p>
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <p className="max-w-xl text-sm leading-7 text-[var(--muted-foreground)]">
+              {description}
+            </p>
+            {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
+          </div>
         </div>
 
         {tasks.length === 0 ? (
@@ -104,7 +112,9 @@ export function TaskCollectionView({
                     <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
                       Due
                     </dt>
-                    <dd className="mt-2 text-sm text-white">{getDueLabel(task.dueDate)}</dd>
+                    <dd className="mt-2 text-sm text-white">
+                      {formatDueDateLabel(task.dueDate)}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
@@ -121,6 +131,12 @@ export function TaskCollectionView({
                     </dd>
                   </div>
                 </dl>
+
+                {renderTaskActions ? (
+                  <div className="mt-5 flex flex-wrap gap-3 border-t border-[rgba(255,255,255,0.08)] pt-5">
+                    {renderTaskActions(task)}
+                  </div>
+                ) : null}
               </article>
             ))}
           </div>
@@ -190,28 +206,6 @@ function getDescription(value?: string) {
   const plainText = value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
 
   return plainText || 'No description yet. This task is ready for state, assignment and follow-up.'
-}
-
-function getDueLabel(value?: string) {
-  if (!value) {
-    return 'No deadline'
-  }
-
-  const dueDate = parseISO(value)
-
-  if (Number.isNaN(dueDate.getTime())) {
-    return 'Invalid date'
-  }
-
-  if (isToday(dueDate)) {
-    return `Due today · ${format(dueDate, 'MMM d, yyyy')}`
-  }
-
-  if (isPast(dueDate)) {
-    return `Overdue · ${format(dueDate, 'MMM d, yyyy')}`
-  }
-
-  return format(dueDate, 'MMM d, yyyy')
 }
 
 function getUserLabel(

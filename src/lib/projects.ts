@@ -1,5 +1,5 @@
 import type { RecordModel } from 'pocketbase'
-import { redirect } from '@tanstack/react-router'
+import { notFound, redirect } from '@tanstack/react-router'
 import type { AuthContext } from '#/lib/auth'
 import { pb } from '#/lib/pocketbase'
 
@@ -96,11 +96,49 @@ export async function listProjects(auth: AuthContext) {
   }
 }
 
+export async function getProjectById(
+  auth: AuthContext,
+  projectId: string,
+  redirectTo = `/app/projects/${projectId}`,
+) {
+  try {
+    return await pb.collection('projects').getOne<ProjectRecord>(projectId, {
+      expand: 'owner',
+    })
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      auth.logout()
+
+      throw redirect({
+        to: '/login',
+        search: {
+          redirect: redirectTo,
+        },
+      })
+    }
+
+    if (isNotFoundError(error)) {
+      throw notFound()
+    }
+
+    throw error
+  }
+}
+
 function isUnauthorizedError(error: unknown) {
   return (
     typeof error === 'object' &&
     error !== null &&
     'status' in error &&
     error.status === 401
+  )
+}
+
+function isNotFoundError(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    error.status === 404
   )
 }

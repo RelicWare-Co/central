@@ -1,12 +1,18 @@
-import { format, isPast, isToday, parseISO } from 'date-fns'
-import { createFileRoute } from '@tanstack/react-router'
+import {
+  Link,
+  Outlet,
+  createFileRoute,
+  useRouterState,
+} from '@tanstack/react-router'
 import { Badge } from '#/components/ui/badge'
+import { Button } from '#/components/ui/button'
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
 } from '#/components/ui/empty'
+import { formatDueDateLabel } from '#/lib/formatting'
 import {
   listProjects,
   type ProjectRecord,
@@ -19,7 +25,14 @@ export const Route = createFileRoute('/app/projects')({
 })
 
 function ProjectsRoute() {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   const { items, summary } = Route.useLoaderData()
+
+  if (pathname.startsWith('/app/projects/')) {
+    return <Outlet />
+  }
 
   return (
     <section className="space-y-5">
@@ -71,7 +84,15 @@ function ProjectsRoute() {
                       {project.slug}
                     </p>
                     <h4 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-white">
-                      {project.name}
+                      <Link
+                        to="/app/projects/$projectId"
+                        params={{
+                          projectId: project.id,
+                        }}
+                        className="transition-colors hover:text-[var(--accent-foreground)]"
+                      >
+                        {project.name}
+                      </Link>
                     </h4>
                   </div>
                   <StatusBadge status={project.status} />
@@ -93,9 +114,29 @@ function ProjectsRoute() {
                     <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
                       Deadline
                     </dt>
-                    <dd className="mt-2 text-sm text-white">{getDueLabel(project.dueDate)}</dd>
+                    <dd className="mt-2 text-sm text-white">
+                      {formatDueDateLabel(project.dueDate)}
+                    </dd>
                   </div>
                 </dl>
+
+                <div className="mt-5 border-t border-[rgba(255,255,255,0.08)] pt-5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-[rgba(255,255,255,0.14)] bg-transparent text-[0.72rem] uppercase tracking-[0.18em] text-white transition-[border-color,background-color,color] hover:bg-[rgba(255,255,255,0.06)]"
+                    asChild
+                  >
+                    <Link
+                      to="/app/projects/$projectId"
+                      params={{
+                        projectId: project.id,
+                      }}
+                    >
+                      Open Project
+                    </Link>
+                  </Button>
+                </div>
               </article>
             ))}
           </div>
@@ -140,26 +181,4 @@ function getOwnerLabel(project: ProjectRecord) {
   }
 
   return owner.name || owner.email || owner.username || 'Assigned'
-}
-
-function getDueLabel(value?: string) {
-  if (!value) {
-    return 'No deadline'
-  }
-
-  const dueDate = parseISO(value)
-
-  if (Number.isNaN(dueDate.getTime())) {
-    return 'Invalid date'
-  }
-
-  if (isToday(dueDate)) {
-    return `Due today · ${format(dueDate, 'MMM d, yyyy')}`
-  }
-
-  if (isPast(dueDate)) {
-    return `Overdue · ${format(dueDate, 'MMM d, yyyy')}`
-  }
-
-  return format(dueDate, 'MMM d, yyyy')
 }

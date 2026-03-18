@@ -15,7 +15,7 @@ export const Route = createFileRoute('/app')({
       throw redirect({
         to: '/login',
         search: {
-          redirect: `${location.pathname}${location.search}${location.hash}`,
+          redirect: `${location.pathname}${location.searchStr}${location.hash}`,
         },
       })
     }
@@ -139,16 +139,30 @@ function AppRoute() {
 
         <div className="border border-[rgba(255,255,255,0.08)] bg-[rgba(17,17,18,0.88)] shadow-[0_18px_70px_rgba(0,0,0,0.42)] backdrop-blur-sm">
           <header className="border-b border-[rgba(255,255,255,0.08)] px-5 py-5 sm:px-6">
-            <p className="text-[0.68rem] uppercase tracking-[0.32em] text-[var(--accent-foreground)]">
-              Authenticated Workspace
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-balance text-white sm:text-4xl">
-              Central Command Surface
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted-foreground)]">
-              La navegación principal ya quedó estructurada. Desde aquí podemos crecer en proyectos,
-              tareas, inbox y vistas personales sin rehacer el layout.
-            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[0.68rem] uppercase tracking-[0.32em] text-[var(--accent-foreground)]">
+                  Authenticated Workspace
+                </p>
+                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-balance text-white sm:text-4xl">
+                  Central Command Surface
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted-foreground)]">
+                  Tareas, proyectos e inbox ya comparten la misma superficie operativa.
+                  El siguiente paso es mantener estado y contexto visibles sin añadir
+                  peso innecesario.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                size="lg"
+                className="h-11 border border-[rgba(255,111,60,0.42)] bg-[linear-gradient(180deg,rgba(255,111,60,0.9),rgba(202,59,0,0.92))] px-4 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-black transition-[transform,box-shadow,background-color] hover:bg-[linear-gradient(180deg,rgba(255,136,92,0.95),rgba(222,85,26,0.95))]"
+                asChild
+              >
+                <Link to="/app/tasks/new">New Task</Link>
+              </Button>
+            </div>
           </header>
 
           <div className="p-5 sm:p-6">
