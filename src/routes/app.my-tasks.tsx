@@ -1,16 +1,24 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { AppPlaceholderView } from '#/components/app-placeholder-view'
+import { TaskCollectionView } from '#/components/task-collection-view'
+import { listMyTasks } from '#/lib/tasks'
 
 export const Route = createFileRoute('/app/my-tasks')({
+  loader: async ({ context }) => listMyTasks(context.auth),
   component: MyTasksRoute,
 })
 
 function MyTasksRoute() {
+  const { items, summary } = Route.useLoaderData()
+
   return (
-    <AppPlaceholderView
+    <TaskCollectionView
       eyebrow="My Tasks"
-      title="Personal execution surface"
-      description="Esta vista agrupará las tareas asignadas al usuario autenticado para que el enfoque personal y la visibilidad de equipo convivan en la misma app."
+      title="Assigned Work Surface"
+      description="My Tasks agrupa el trabajo del usuario autenticado para ejecución diaria, seguimiento de bloqueos y deadlines visibles."
+      tasks={items}
+      summary={summary}
+      emptyTitle="No assigned tasks"
+      emptyDescription="Cuando el usuario tenga tareas asignadas en PocketBase, esta vista servirá como su superficie operativa principal."
     />
   )
 }

@@ -5,7 +5,6 @@ import {
   createFileRoute,
   redirect,
   useNavigate,
-  useRouter,
 } from '@tanstack/react-router'
 import { Button } from '#/components/ui/button'
 import { useAuth } from '#/lib/auth'
@@ -55,13 +54,11 @@ const navigationItems = [
 function AppRoute() {
   const { auth } = Route.useRouteContext()
   const authState = useAuth(auth)
-  const navigate = useNavigate({ from: '/app' })
-  const router = useRouter()
+  const navigate = useNavigate()
 
   async function handleLogout() {
     auth.logout()
-    await router.invalidate()
-    await navigate({ to: '/login' })
+    await navigate({ replace: true, to: '/login' })
   }
 
   return (

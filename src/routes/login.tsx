@@ -4,7 +4,6 @@ import {
   createFileRoute,
   redirect,
   useNavigate,
-  useRouter,
 } from '@tanstack/react-router'
 import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
@@ -39,8 +38,7 @@ export const Route = createFileRoute('/login')({
 function LoginRoute() {
   const { auth } = Route.useRouteContext()
   const search = Route.useSearch()
-  const navigate = useNavigate({ from: '/login' })
-  const router = useRouter()
+  const navigate = useNavigate()
   const [identity, setIdentity] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -54,8 +52,7 @@ function LoginRoute() {
 
     try {
       await auth.login(identity, password)
-      await router.invalidate()
-      await navigate({ to: search.redirect ?? '/app' })
+      await navigate({ replace: true, to: search.redirect ?? '/app' })
     } catch (caughtError) {
       setError(getLoginErrorMessage(caughtError))
     } finally {
