@@ -1,175 +1,286 @@
-import { SignOutIcon } from '@phosphor-icons/react'
 import {
-  Link,
-  Outlet,
-  createFileRoute,
-  redirect,
-  useNavigate,
-} from '@tanstack/react-router'
-import { Button } from '#/components/ui/button'
-import { useAuth } from '#/lib/auth'
+	BriefcaseIcon,
+	CalendarDotsIcon,
+	FolderOpenIcon,
+	ListChecksIcon,
+	PlusIcon,
+	SignOutIcon,
+	TrayIcon,
+} from "@phosphor-icons/react";
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	redirect,
+	useNavigate,
+	useRouterState,
+} from "@tanstack/react-router";
+import type { ComponentType } from "react";
+import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
+import { useAuth } from "#/lib/auth";
 
-export const Route = createFileRoute('/app')({
-  beforeLoad: ({ context, location }) => {
-    if (!context.auth.getState().isAuthenticated) {
-      throw redirect({
-        to: '/login',
-        search: {
-          redirect: `${location.pathname}${location.searchStr}${location.hash}`,
-        },
-      })
-    }
-  },
-  component: AppRoute,
-})
+export const Route = createFileRoute("/app")({
+	beforeLoad: ({ context, location }) => {
+		if (!context.auth.getState().isAuthenticated) {
+			throw redirect({
+				to: "/login",
+				search: {
+					redirect: `${location.pathname}${location.searchStr}${location.hash}`,
+				},
+			});
+		}
+	},
+	component: AppRoute,
+});
 
 const navigationItems = [
-  {
-    description: 'Tasks without a project',
-    label: 'Inbox',
-    to: '/app/inbox' as const,
-  },
-  {
-    description: 'Work that needs attention now',
-    label: 'Today',
-    to: '/app/today' as const,
-  },
-  {
-    description: 'Time-based planning lane',
-    label: 'Upcoming',
-    to: '/app/upcoming' as const,
-  },
-  {
-    description: 'Project portfolio and status',
-    label: 'Projects',
-    to: '/app/projects' as const,
-  },
-  {
-    description: 'Assigned work for the user',
-    label: 'My Tasks',
-    to: '/app/my-tasks' as const,
-  },
-]
+	{
+		description: "Captured work that still needs sorting.",
+		icon: TrayIcon,
+		label: "Inbox",
+		matchPrefix: "/app/inbox",
+		to: "/app/inbox" as const,
+	},
+	{
+		description: "Immediate work that needs attention now.",
+		icon: CalendarDotsIcon,
+		label: "Today",
+		matchPrefix: "/app/today",
+		to: "/app/today" as const,
+	},
+	{
+		description: "Upcoming commitments and time-based work.",
+		icon: BriefcaseIcon,
+		label: "Upcoming",
+		matchPrefix: "/app/upcoming",
+		to: "/app/upcoming" as const,
+	},
+	{
+		description: "Portfolio view across all active projects.",
+		icon: FolderOpenIcon,
+		label: "Projects",
+		matchPrefix: "/app/projects",
+		to: "/app/projects" as const,
+	},
+	{
+		description: "Assigned work for the current user.",
+		icon: ListChecksIcon,
+		label: "My Tasks",
+		matchPrefix: "/app/my-tasks",
+		to: "/app/my-tasks" as const,
+	},
+];
 
 function AppRoute() {
-  const { auth } = Route.useRouteContext()
-  const authState = useAuth(auth)
-  const navigate = useNavigate()
+	const { auth } = Route.useRouteContext();
+	const authState = useAuth(auth);
+	const navigate = useNavigate();
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
+	const currentView = getCurrentView(pathname);
 
-  async function handleLogout() {
-    auth.logout()
-    await navigate({ replace: true, to: '/login' })
-  }
+	async function handleLogout() {
+		auth.logout();
+		await navigate({ replace: true, to: "/login" });
+	}
 
-  return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(255,111,60,0.14),transparent_22%),linear-gradient(180deg,#090909_0%,#111214_45%,#080808_100%)] px-4 py-4 text-white sm:px-6 sm:py-6">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-7xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="border border-[rgba(255,111,60,0.24)] bg-[linear-gradient(180deg,rgba(17,17,18,0.96),rgba(12,12,13,0.96))] p-5 shadow-[0_18px_70px_rgba(0,0,0,0.42)]">
-          <div className="border-b border-[rgba(255,255,255,0.08)] pb-5">
-            <p className="text-[0.68rem] uppercase tracking-[0.34em] text-[var(--accent-foreground)]">
-              Central Systems
-            </p>
-            <h1 className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-white">
-              Operations Grid
-            </h1>
-            <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">
-              Estado explícito, poca fricción y una sola superficie para el trabajo interno.
-            </p>
-          </div>
+	return (
+		<main className="min-h-screen bg-background text-foreground">
+			<div className="mx-auto flex min-h-screen max-w-[1600px] flex-col gap-3 p-3 md:flex-row md:p-4">
+				<aside className="hidden w-64 shrink-0 flex-col rounded-3xl border border-border/70 bg-card/85 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur md:flex">
+					<div className="flex items-center justify-between gap-3 border-b border-border/70 px-2 pb-4">
+						<div>
+							<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+								Central
+							</p>
+							<h1 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-foreground">
+								Workspace
+							</h1>
+						</div>
 
-          <nav aria-label="Primary" className="mt-5 grid gap-2">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                preload="intent"
-                activeOptions={{ exact: true }}
-                className="group block border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-4 py-3 transition-[border-color,background-color]"
-                activeProps={{
-                  className:
-                    'border-[rgba(255,111,60,0.42)] bg-[rgba(255,111,60,0.12)]',
-                  'aria-current': 'page',
-                }}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[0.78rem] uppercase tracking-[0.24em] text-white">
-                    {item.label}
-                  </span>
-                  <span className="h-2 w-2 bg-[var(--accent-foreground)] opacity-60 transition-opacity group-aria-[current=page]:opacity-100" />
-                </div>
-                <p className="mt-2 text-xs leading-6 text-[var(--muted-foreground)]">
-                  {item.description}
-                </p>
-              </Link>
-            ))}
-          </nav>
+						<Badge
+							variant="outline"
+							className="border-border/80 bg-background/70"
+						>
+							{String(authState.user?.role ?? "member")}
+						</Badge>
+					</div>
 
-          <div className="mt-6 border-t border-[rgba(255,255,255,0.08)] pt-5">
-            <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
-              Session
-            </p>
-            <dl className="mt-3 space-y-3 text-sm leading-6 text-[var(--muted-foreground)]">
-              <div>
-                <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
-                  User
-                </dt>
-                <dd className="text-white">
-                  {authState.user?.email ?? authState.user?.username ?? 'Unknown'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
-                  Role
-                </dt>
-                <dd className="text-white">{String(authState.user?.role ?? 'member')}</dd>
-              </div>
-            </dl>
+					<div className="py-4">
+						<Button asChild className="w-full justify-start" size="lg">
+							<Link to="/app/tasks/new">
+								<PlusIcon data-icon="inline-start" />
+								New Task
+							</Link>
+						</Button>
+					</div>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-5 h-11 w-full border-[rgba(255,111,60,0.28)] bg-transparent px-4 text-[0.72rem] uppercase tracking-[0.24em] text-white transition-[background-color,border-color,color] hover:bg-[rgba(255,111,60,0.12)]"
-              onClick={handleLogout}
-            >
-              <SignOutIcon aria-hidden="true" className="size-4" />
-              Sign Out
-            </Button>
-          </div>
-        </aside>
+					<nav aria-label="Primary" className="flex flex-1 flex-col gap-1">
+						{navigationItems.map((item) => (
+							<NavLink key={item.to} item={item} />
+						))}
+					</nav>
 
-        <div className="border border-[rgba(255,255,255,0.08)] bg-[rgba(17,17,18,0.88)] shadow-[0_18px_70px_rgba(0,0,0,0.42)] backdrop-blur-sm">
-          <header className="border-b border-[rgba(255,255,255,0.08)] px-5 py-5 sm:px-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[0.68rem] uppercase tracking-[0.32em] text-[var(--accent-foreground)]">
-                  Authenticated Workspace
-                </p>
-                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-balance text-white sm:text-4xl">
-                  Central Command Surface
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted-foreground)]">
-                  Tareas, proyectos e inbox ya comparten la misma superficie operativa.
-                  El siguiente paso es mantener estado y contexto visibles sin añadir
-                  peso innecesario.
-                </p>
-              </div>
+					<div className="mt-4 flex items-center justify-between gap-3 border-t border-border/70 px-2 pt-4">
+						<div className="min-w-0">
+							<p className="truncate text-sm font-medium text-foreground">
+								{authState.user?.name ||
+									authState.user?.email ||
+									authState.user?.username ||
+									"Unknown user"}
+							</p>
+							<p className="truncate text-xs text-muted-foreground">
+								{authState.user?.email ?? "No email available"}
+							</p>
+						</div>
 
-              <Button
-                type="button"
-                size="lg"
-                className="h-11 border border-[rgba(255,111,60,0.42)] bg-[linear-gradient(180deg,rgba(255,111,60,0.9),rgba(202,59,0,0.92))] px-4 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-black transition-[transform,box-shadow,background-color] hover:bg-[linear-gradient(180deg,rgba(255,136,92,0.95),rgba(222,85,26,0.95))]"
-                asChild
-              >
-                <Link to="/app/tasks/new">New Task</Link>
-              </Button>
-            </div>
-          </header>
+						<Button
+							aria-label="Sign Out"
+							onClick={handleLogout}
+							size="icon-sm"
+							variant="ghost"
+						>
+							<SignOutIcon />
+						</Button>
+					</div>
+				</aside>
 
-          <div className="p-5 sm:p-6">
-            <Outlet />
-          </div>
-        </div>
-      </div>
-    </main>
-  )
+				<section className="flex min-w-0 flex-1 flex-col rounded-[1.75rem] border border-border/70 bg-card/75 shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur">
+					<header className="border-b border-border/70 px-4 py-4 sm:px-6">
+						<div className="flex flex-col gap-4">
+							<div className="flex items-start justify-between gap-4">
+								<div className="min-w-0">
+									<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+										Authenticated Workspace
+									</p>
+									<h2 className="mt-1 text-2xl font-semibold tracking-[-0.05em] text-foreground sm:text-3xl">
+										{currentView.label}
+									</h2>
+									<p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+										{currentView.description}
+									</p>
+								</div>
+
+								<Button
+									asChild
+									className="hidden shrink-0 md:inline-flex"
+									size="lg"
+								>
+									<Link to="/app/tasks/new">
+										<PlusIcon data-icon="inline-start" />
+										New Task
+									</Link>
+								</Button>
+							</div>
+
+							<nav
+								aria-label="Primary mobile"
+								className="flex gap-2 overflow-x-auto md:hidden"
+							>
+								{navigationItems.map((item) => (
+									<NavLink key={item.to} compact item={item} />
+								))}
+							</nav>
+						</div>
+					</header>
+
+					<div className="flex-1 px-4 py-4 sm:px-6 sm:py-6">
+						<Outlet />
+					</div>
+				</section>
+			</div>
+		</main>
+	);
+}
+
+function NavLink({
+	compact = false,
+	item,
+}: {
+	compact?: boolean;
+	item: {
+		description: string;
+		icon: ComponentType<{ className?: string }>;
+		label: string;
+		matchPrefix: string;
+		to: (typeof navigationItems)[number]["to"];
+	};
+}) {
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
+	const Icon = item.icon;
+	const isActive =
+		pathname === item.matchPrefix ||
+		pathname.startsWith(`${item.matchPrefix}/`);
+
+	return (
+		<Link
+			activeProps={{
+				"aria-current": "page",
+			}}
+			className={[
+				"group flex items-center gap-3 rounded-2xl border px-3 py-2.5 transition-colors",
+				compact ? "shrink-0 whitespace-nowrap" : "w-full",
+				isActive
+					? "border-border bg-background text-foreground"
+					: "border-transparent text-muted-foreground hover:bg-background/60 hover:text-foreground",
+			].join(" ")}
+			preload="intent"
+			to={item.to}
+		>
+			<span className="flex size-8 items-center justify-center rounded-xl bg-background/80 text-foreground/80 transition-colors group-hover:text-foreground">
+				<Icon />
+			</span>
+
+			<span className="min-w-0">
+				<span className="block text-sm font-medium">{item.label}</span>
+				{!compact ? (
+					<span className="block truncate text-xs text-muted-foreground">
+						{item.description}
+					</span>
+				) : null}
+			</span>
+		</Link>
+	);
+}
+
+function getCurrentView(pathname: string) {
+	if (pathname.startsWith("/app/projects/")) {
+		return {
+			description:
+				"Project detail keeps ownership, status and associated tasks in one surface.",
+			label: "Project Detail",
+		};
+	}
+
+	if (pathname.startsWith("/app/tasks/new")) {
+		return {
+			description:
+				"Capture work quickly, keep state explicit and defer extra decisions.",
+			label: "New Task",
+		};
+	}
+
+	if (pathname.startsWith("/app/tasks/")) {
+		return {
+			description:
+				"Update the task without losing the context of where you came from.",
+			label: "Task Detail",
+		};
+	}
+
+	return (
+		navigationItems.find(
+			(item) =>
+				pathname === item.matchPrefix ||
+				pathname.startsWith(`${item.matchPrefix}/`),
+		) ?? {
+			description:
+				"Shared operating surface for projects, tasks and inbox work.",
+			label: "Workspace",
+		}
+	);
 }

@@ -1,184 +1,190 @@
 import {
-  Link,
-  Outlet,
-  createFileRoute,
-  useRouterState,
-} from '@tanstack/react-router'
-import { Badge } from '#/components/ui/badge'
-import { Button } from '#/components/ui/button'
+	createFileRoute,
+	Link,
+	Outlet,
+	useRouterState,
+} from "@tanstack/react-router";
+import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from '#/components/ui/empty'
-import { formatDueDateLabel } from '#/lib/formatting'
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#/components/ui/card";
 import {
-  listProjects,
-  type ProjectRecord,
-  type ProjectStatus,
-} from '#/lib/projects'
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyTitle,
+} from "#/components/ui/empty";
+import { formatDueDateLabel } from "#/lib/formatting";
+import {
+	listProjects,
+	type ProjectRecord,
+	type ProjectStatus,
+} from "#/lib/projects";
 
-export const Route = createFileRoute('/app/projects')({
-  loader: async ({ context }) => listProjects(context.auth),
-  component: ProjectsRoute,
-})
+export const Route = createFileRoute("/app/projects")({
+	loader: async ({ context }) => listProjects(context.auth),
+	component: ProjectsRoute,
+});
 
 function ProjectsRoute() {
-  const pathname = useRouterState({
-    select: (state) => state.location.pathname,
-  })
-  const { items, summary } = Route.useLoaderData()
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
+	const { items, summary } = Route.useLoaderData();
 
-  if (pathname.startsWith('/app/projects/')) {
-    return <Outlet />
-  }
+	if (pathname.startsWith("/app/projects/")) {
+		return <Outlet />;
+	}
 
-  return (
-    <section className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Portfolio" value={String(summary.total).padStart(2, '0')} />
-        <StatCard label="Active" value={String(summary.active).padStart(2, '0')} />
-        <StatCard label="Blocked" value={String(summary.blocked).padStart(2, '0')} />
-        <StatCard label="Completed" value={String(summary.completed).padStart(2, '0')} />
-      </div>
+	return (
+		<Card className="border border-border/70 bg-card/70 ring-0">
+			<CardHeader className="border-b border-border/70">
+				<div>
+					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+						Projects
+					</p>
+					<CardTitle className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
+						Current Portfolio
+					</CardTitle>
+					<CardDescription className="mt-2 max-w-3xl text-sm text-muted-foreground">
+						Active projects stay visible with ownership, status and deadline in
+						one compact list.
+					</CardDescription>
+				</div>
+			</CardHeader>
 
-      <section className="border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-5 sm:p-6">
-        <div className="flex flex-col gap-3 border-b border-[rgba(255,255,255,0.08)] pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
-              Projects
-            </p>
-            <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-white">
-              Current Portfolio
-            </h3>
-          </div>
-          <p className="max-w-xl text-sm leading-7 text-[var(--muted-foreground)]">
-            Primera vista real conectada a PocketBase. Aquí ya filtramos archivados y
-            exponemos estado, responsable y vencimiento.
-          </p>
-        </div>
+			<CardContent className="px-0 pb-0">
+				<div className="flex flex-wrap gap-2 border-b border-border/70 px-4 py-4">
+					<SummaryBadge label="Portfolio" value={summary.total} />
+					<SummaryBadge label="Active" value={summary.active} />
+					<SummaryBadge label="Blocked" value={summary.blocked} />
+					<SummaryBadge label="Completed" value={summary.completed} />
+				</div>
 
-        {items.length === 0 ? (
-          <Empty className="mt-6 min-h-[320px] border-[rgba(255,255,255,0.08)] bg-[rgba(0,0,0,0.16)]">
-            <EmptyHeader>
-              <EmptyTitle className="text-base uppercase tracking-[0.2em] text-white">
-                No active projects
-              </EmptyTitle>
-              <EmptyDescription className="max-w-md text-sm leading-7 text-[var(--muted-foreground)]">
-                Cuando empecemos a crear proyectos en PocketBase, esta vista mostrará su
-                estado operativo y servirá como punto de entrada al detalle.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <div className="mt-6 grid gap-4 xl:grid-cols-2">
-            {items.map((project) => (
-              <article
-                key={project.id}
-                className="border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-[0.68rem] uppercase tracking-[0.24em] text-[rgba(255,255,255,0.48)]">
-                      {project.slug}
-                    </p>
-                    <h4 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-white">
-                      <Link
-                        to="/app/projects/$projectId"
-                        params={{
-                          projectId: project.id,
-                        }}
-                        className="transition-colors hover:text-[var(--accent-foreground)]"
-                      >
-                        {project.name}
-                      </Link>
-                    </h4>
-                  </div>
-                  <StatusBadge status={project.status} />
-                </div>
+				{items.length === 0 ? (
+					<div className="px-4 py-8">
+						<Empty className="min-h-[240px] rounded-2xl border-border/70 bg-background/60">
+							<EmptyHeader>
+								<EmptyTitle className="text-sm font-medium text-foreground">
+									No active projects
+								</EmptyTitle>
+								<EmptyDescription className="max-w-md text-sm text-muted-foreground">
+									When projects are created in PocketBase, this view will
+									surface their status, owner and deadline.
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				) : (
+					<div>
+						{items.map((project) => (
+							<article
+								key={project.id}
+								className="border-b border-border/70 px-4 py-4 last:border-b-0"
+							>
+								<div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.8fr)_auto_auto] lg:items-start">
+									<div className="min-w-0">
+										<p className="text-xs text-muted-foreground">
+											{project.slug}
+										</p>
+										<h3 className="mt-1 text-base font-medium text-foreground">
+											<Link
+												className="transition-colors hover:text-primary"
+												params={{
+													projectId: project.id,
+												}}
+												to="/app/projects/$projectId"
+											>
+												{project.name}
+											</Link>
+										</h3>
+										<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+											{project.description?.trim() ||
+												"No description yet. This project is ready for tasks, ownership and status tracking."}
+										</p>
+									</div>
 
-                <p className="mt-4 min-h-14 text-sm leading-7 text-[var(--muted-foreground)]">
-                  {project.description?.trim() ||
-                    'No description yet. This project is ready for tasks, ownership and progress tracking.'}
-                </p>
+									<div className="flex flex-wrap gap-2 lg:justify-end">
+										<StatusBadge status={project.status} />
+									</div>
 
-                <dl className="mt-5 grid gap-4 border-t border-[rgba(255,255,255,0.08)] pt-5 sm:grid-cols-2">
-                  <div>
-                    <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
-                      Owner
-                    </dt>
-                    <dd className="mt-2 text-sm text-white">{getOwnerLabel(project)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
-                      Deadline
-                    </dt>
-                    <dd className="mt-2 text-sm text-white">
-                      {formatDueDateLabel(project.dueDate)}
-                    </dd>
-                  </div>
-                </dl>
+									<div className="flex flex-col gap-3 lg:items-end">
+										<dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-1">
+											<MetaItem label="Owner" value={getOwnerLabel(project)} />
+											<MetaItem
+												label="Deadline"
+												value={formatDueDateLabel(project.dueDate)}
+											/>
+										</dl>
 
-                <div className="mt-5 border-t border-[rgba(255,255,255,0.08)] pt-5">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-[rgba(255,255,255,0.14)] bg-transparent text-[0.72rem] uppercase tracking-[0.18em] text-white transition-[border-color,background-color,color] hover:bg-[rgba(255,255,255,0.06)]"
-                    asChild
-                  >
-                    <Link
-                      to="/app/projects/$projectId"
-                      params={{
-                        projectId: project.id,
-                      }}
-                    >
-                      Open Project
-                    </Link>
-                  </Button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-    </section>
-  )
+										<Button asChild size="sm" variant="outline">
+											<Link
+												params={{
+													projectId: project.id,
+												}}
+												to="/app/projects/$projectId"
+											>
+												Open Project
+											</Link>
+										</Button>
+									</div>
+								</div>
+							</article>
+						))}
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <article className="border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
-      <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
-        {label}
-      </p>
-      <p className="mt-4 text-4xl font-semibold tracking-[-0.06em] text-white">{value}</p>
-    </article>
-  )
+function MetaItem({ label, value }: { label: string; value: string }) {
+	return (
+		<div>
+			<dt className="text-[0.68rem] uppercase tracking-[0.18em]">{label}</dt>
+			<dd className="mt-1 text-sm text-foreground">{value}</dd>
+		</div>
+	);
+}
+
+function SummaryBadge({ label, value }: { label: string; value: number }) {
+	return (
+		<div className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 text-xs text-muted-foreground">
+			<span className="font-medium text-foreground">
+				{String(value).padStart(2, "0")}
+			</span>{" "}
+			{label}
+		</div>
+	);
 }
 
 function StatusBadge({ status }: { status: ProjectStatus }) {
-  const palette = {
-    active: 'border-[rgba(94,234,212,0.28)] bg-[rgba(94,234,212,0.12)] text-[#c4fff1]',
-    blocked: 'border-[rgba(255,111,60,0.34)] bg-[rgba(255,111,60,0.12)] text-[#ffb18d]',
-    completed: 'border-[rgba(163,230,53,0.28)] bg-[rgba(163,230,53,0.12)] text-[#e5ffb0]',
-    paused: 'border-[rgba(250,204,21,0.28)] bg-[rgba(250,204,21,0.12)] text-[#ffe89b]',
-    archived: 'border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.72)]',
-  } satisfies Record<ProjectStatus, string>
+	const palette = {
+		active: "border-sky-500/20 bg-sky-500/10 text-sky-300",
+		archived: "border-border bg-background/70 text-muted-foreground",
+		blocked: "border-destructive/20 bg-destructive/10 text-destructive",
+		completed: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
+		paused: "border-amber-500/20 bg-amber-500/10 text-amber-300",
+	} satisfies Record<ProjectStatus, string>;
 
-  return (
-    <Badge variant="outline" className={`uppercase tracking-[0.18em] ${palette[status]}`}>
-      {status.replace('_', ' ')}
-    </Badge>
-  )
+	return (
+		<Badge variant="outline" className={palette[status]}>
+			{status.replace("_", " ")}
+		</Badge>
+	);
 }
 
 function getOwnerLabel(project: ProjectRecord) {
-  const owner = project.expand?.owner
+	const owner = project.expand?.owner;
 
-  if (!owner) {
-    return 'Unassigned'
-  }
+	if (!owner) {
+		return "Unassigned";
+	}
 
-  return owner.name || owner.email || owner.username || 'Assigned'
+	return owner.name || owner.email || owner.username || "Assigned";
 }

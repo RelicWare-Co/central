@@ -1,223 +1,236 @@
-import type { ReactNode } from 'react'
-import { Badge } from '#/components/ui/badge'
+import type { ReactNode } from "react";
+import { Badge } from "#/components/ui/badge";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from '#/components/ui/empty'
-import { formatDueDateLabel } from '#/lib/formatting'
-import type { TaskCollectionData, TaskPriority, TaskRecord, TaskStatus } from '#/lib/tasks'
+	Card,
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#/components/ui/card";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyTitle,
+} from "#/components/ui/empty";
+import { formatDueDateLabel } from "#/lib/formatting";
+import type {
+	TaskCollectionData,
+	TaskPriority,
+	TaskRecord,
+	TaskStatus,
+} from "#/lib/tasks";
 
 type TaskCollectionViewProps = {
-  description: string
-  emptyDescription: string
-  emptyTitle: string
-  eyebrow: string
-  headerAction?: ReactNode
-  renderTaskActions?: (task: TaskRecord) => ReactNode
-  tasks: TaskRecord[]
-  title: string
-  summary: TaskCollectionData['summary']
-}
+	description: string;
+	emptyDescription: string;
+	emptyTitle: string;
+	eyebrow: string;
+	headerAction?: ReactNode;
+	renderTaskActions?: (task: TaskRecord) => ReactNode;
+	tasks: TaskRecord[];
+	title: string;
+	summary: TaskCollectionData["summary"];
+};
 
 export function TaskCollectionView({
-  description,
-  emptyDescription,
-  emptyTitle,
-  eyebrow,
-  headerAction,
-  renderTaskActions,
-  summary,
-  tasks,
-  title,
+	description,
+	emptyDescription,
+	emptyTitle,
+	eyebrow,
+	headerAction,
+	renderTaskActions,
+	summary,
+	tasks,
+	title,
 }: TaskCollectionViewProps) {
-  return (
-    <section className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Total" value={String(summary.total).padStart(2, '0')} />
-        <StatCard
-          label="In Progress"
-          value={String(summary.inProgress).padStart(2, '0')}
-        />
-        <StatCard label="Blocked" value={String(summary.blocked).padStart(2, '0')} />
-        <StatCard label="Due Today" value={String(summary.dueToday).padStart(2, '0')} />
-        <StatCard label="Overdue" value={String(summary.overdue).padStart(2, '0')} />
-      </div>
+	return (
+		<Card className="border border-border/70 bg-card/70 ring-0">
+			<CardHeader className="border-b border-border/70">
+				<div>
+					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+						{eyebrow}
+					</p>
+					<CardTitle className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
+						{title}
+					</CardTitle>
+					<CardDescription className="mt-2 max-w-3xl text-sm text-muted-foreground">
+						{description}
+					</CardDescription>
+				</div>
+				{headerAction ? <CardAction>{headerAction}</CardAction> : null}
+			</CardHeader>
 
-      <section className="border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-5 sm:p-6">
-        <div className="flex flex-col gap-4 border-b border-[rgba(255,255,255,0.08)] pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
-              {eyebrow}
-            </p>
-            <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-white">
-              {title}
-            </h3>
-          </div>
-          <div className="flex flex-col items-start gap-3 sm:items-end">
-            <p className="max-w-xl text-sm leading-7 text-[var(--muted-foreground)]">
-              {description}
-            </p>
-            {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
-          </div>
-        </div>
+			<CardContent className="px-0 pb-0">
+				<div className="flex flex-wrap gap-2 border-b border-border/70 px-4 py-4">
+					<SummaryBadge label="Total" value={summary.total} />
+					<SummaryBadge label="In progress" value={summary.inProgress} />
+					<SummaryBadge label="Blocked" value={summary.blocked} />
+					<SummaryBadge label="Due today" value={summary.dueToday} />
+					<SummaryBadge label="Overdue" value={summary.overdue} />
+				</div>
 
-        {tasks.length === 0 ? (
-          <Empty className="mt-6 min-h-[320px] border-[rgba(255,255,255,0.08)] bg-[rgba(0,0,0,0.16)]">
-            <EmptyHeader>
-              <EmptyTitle className="text-base uppercase tracking-[0.2em] text-white">
-                {emptyTitle}
-              </EmptyTitle>
-              <EmptyDescription className="max-w-md text-sm leading-7 text-[var(--muted-foreground)]">
-                {emptyDescription}
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <div className="mt-6 grid gap-4 xl:grid-cols-2">
-            {tasks.map((task) => (
-              <article
-                key={task.id}
-                className="border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[0.68rem] uppercase tracking-[0.24em] text-[rgba(255,255,255,0.48)]">
-                      {getTaskScopeLabel(task)}
-                    </p>
-                    <h4 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-white">
-                      {task.title}
-                    </h4>
-                  </div>
+				{tasks.length === 0 ? (
+					<div className="px-4 py-8">
+						<Empty className="min-h-[240px] rounded-2xl border-border/70 bg-background/60">
+							<EmptyHeader>
+								<EmptyTitle className="text-sm font-medium text-foreground">
+									{emptyTitle}
+								</EmptyTitle>
+								<EmptyDescription className="max-w-md text-sm text-muted-foreground">
+									{emptyDescription}
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				) : (
+					<div>
+						{tasks.map((task) => (
+							<article
+								key={task.id}
+								className="border-b border-border/70 px-4 py-4 last:border-b-0"
+							>
+								<div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1.8fr)_auto_auto] xl:items-start">
+									<div className="min-w-0">
+										<p className="text-xs text-muted-foreground">
+											{getTaskScopeLabel(task)}
+										</p>
+										<h4 className="mt-1 text-base font-medium text-foreground">
+											{task.title}
+										</h4>
+										<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+											{getDescription(task.description)}
+										</p>
 
-                  <div className="flex flex-wrap gap-2">
-                    <PriorityBadge priority={task.priority} />
-                    <StatusBadge status={task.status} />
-                  </div>
-                </div>
+										{task.status === "blocked" && task.blockedReason ? (
+											<p className="mt-3 text-sm text-destructive">
+												{task.blockedReason}
+											</p>
+										) : null}
+									</div>
 
-                <p className="mt-4 min-h-14 text-sm leading-7 text-[var(--muted-foreground)]">
-                  {getDescription(task.description)}
-                </p>
+									<div className="flex flex-wrap gap-2 xl:justify-end">
+										<PriorityBadge priority={task.priority} />
+										<StatusBadge status={task.status} />
+									</div>
 
-                {task.status === 'blocked' && task.blockedReason ? (
-                  <div className="mt-4 border border-[rgba(255,111,60,0.2)] bg-[rgba(255,111,60,0.08)] px-3 py-3 text-sm leading-6 text-[#ffbf9e]">
-                    {task.blockedReason}
-                  </div>
-                ) : null}
+									<div className="flex flex-col gap-3 xl:items-end">
+										<dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3 xl:grid-cols-1">
+											<MetaItem
+												label="Due"
+												value={formatDueDateLabel(task.dueDate)}
+											/>
+											<MetaItem
+												label="Assignee"
+												value={getUserLabel(task.expand?.assignee)}
+											/>
+											<MetaItem
+												label="Creator"
+												value={getUserLabel(task.expand?.createdBy)}
+											/>
+										</dl>
 
-                <dl className="mt-5 grid gap-4 border-t border-[rgba(255,255,255,0.08)] pt-5 sm:grid-cols-3">
-                  <div>
-                    <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
-                      Due
-                    </dt>
-                    <dd className="mt-2 text-sm text-white">
-                      {formatDueDateLabel(task.dueDate)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
-                      Assignee
-                    </dt>
-                    <dd className="mt-2 text-sm text-white">{getUserLabel(task.expand?.assignee)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
-                      Creator
-                    </dt>
-                    <dd className="mt-2 text-sm text-white">
-                      {getUserLabel(task.expand?.createdBy)}
-                    </dd>
-                  </div>
-                </dl>
-
-                {renderTaskActions ? (
-                  <div className="mt-5 flex flex-wrap gap-3 border-t border-[rgba(255,255,255,0.08)] pt-5">
-                    {renderTaskActions(task)}
-                  </div>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-    </section>
-  )
+										{renderTaskActions ? (
+											<div className="flex flex-wrap gap-2">
+												{renderTaskActions(task)}
+											</div>
+										) : null}
+									</div>
+								</div>
+							</article>
+						))}
+					</div>
+				)}
+			</CardContent>
+		</Card>
+	);
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <article className="border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
-      <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
-        {label}
-      </p>
-      <p className="mt-4 text-4xl font-semibold tracking-[-0.06em] text-white">{value}</p>
-    </article>
-  )
+function MetaItem({ label, value }: { label: string; value: string }) {
+	return (
+		<div>
+			<dt className="text-[0.68rem] uppercase tracking-[0.18em]">{label}</dt>
+			<dd className="mt-1 text-sm text-foreground">{value}</dd>
+		</div>
+	);
+}
+
+function SummaryBadge({ label, value }: { label: string; value: number }) {
+	return (
+		<div className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 text-xs text-muted-foreground">
+			<span className="font-medium text-foreground">
+				{String(value).padStart(2, "0")}
+			</span>{" "}
+			{label}
+		</div>
+	);
 }
 
 function StatusBadge({ status }: { status: TaskStatus }) {
-  const palette = {
-    blocked: 'border-[rgba(255,111,60,0.34)] bg-[rgba(255,111,60,0.12)] text-[#ffb18d]',
-    canceled: 'border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.72)]',
-    completed: 'border-[rgba(163,230,53,0.28)] bg-[rgba(163,230,53,0.12)] text-[#e5ffb0]',
-    in_progress:
-      'border-[rgba(94,234,212,0.28)] bg-[rgba(94,234,212,0.12)] text-[#c4fff1]',
-    pending: 'border-[rgba(250,204,21,0.28)] bg-[rgba(250,204,21,0.12)] text-[#ffe89b]',
-  } satisfies Record<TaskStatus, string>
+	const palette = {
+		blocked: "border-destructive/20 bg-destructive/10 text-destructive",
+		canceled: "border-border bg-background/70 text-muted-foreground",
+		completed: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
+		in_progress: "border-sky-500/20 bg-sky-500/10 text-sky-300",
+		pending: "border-amber-500/20 bg-amber-500/10 text-amber-300",
+	} satisfies Record<TaskStatus, string>;
 
-  return (
-    <Badge variant="outline" className={`uppercase tracking-[0.18em] ${palette[status]}`}>
-      {status.replace('_', ' ')}
-    </Badge>
-  )
+	return (
+		<Badge variant="outline" className={palette[status]}>
+			{status.replace("_", " ")}
+		</Badge>
+	);
 }
 
 function PriorityBadge({ priority }: { priority: TaskPriority }) {
-  const palette = {
-    high: 'border-[rgba(255,111,60,0.34)] bg-[rgba(255,111,60,0.12)] text-[#ffb18d]',
-    low: 'border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.72)]',
-    medium: 'border-[rgba(250,204,21,0.28)] bg-[rgba(250,204,21,0.12)] text-[#ffe89b]',
-  } satisfies Record<TaskPriority, string>
+	const palette = {
+		high: "border-destructive/20 bg-destructive/10 text-destructive",
+		low: "border-border bg-background/70 text-muted-foreground",
+		medium: "border-primary/20 bg-primary/10 text-primary",
+	} satisfies Record<TaskPriority, string>;
 
-  return (
-    <Badge variant="outline" className={`uppercase tracking-[0.18em] ${palette[priority]}`}>
-      {priority}
-    </Badge>
-  )
+	return (
+		<Badge variant="outline" className={palette[priority]}>
+			{priority}
+		</Badge>
+	);
 }
 
 function getTaskScopeLabel(task: TaskRecord) {
-  const project = task.expand?.project
+	const project = task.expand?.project;
 
-  if (!project) {
-    return 'Inbox'
-  }
+	if (!project) {
+		return "Inbox";
+	}
 
-  return `${project.slug} · ${project.name}`
+	return `${project.slug} · ${project.name}`;
 }
 
 function getDescription(value?: string) {
-  if (!value?.trim()) {
-    return 'No description yet. This task is ready for state, assignment and follow-up.'
-  }
+	if (!value?.trim()) {
+		return "No description yet. This task is ready for assignment, state and follow-up.";
+	}
 
-  const plainText = value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+	const plainText = value
+		.replace(/<[^>]+>/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
 
-  return plainText || 'No description yet. This task is ready for state, assignment and follow-up.'
+	return (
+		plainText ||
+		"No description yet. This task is ready for assignment, state and follow-up."
+	);
 }
 
-function getUserLabel(
-  user?: {
-    email?: string
-    name?: string
-    username?: string
-  },
-) {
-  if (!user) {
-    return 'Unassigned'
-  }
+function getUserLabel(user?: {
+	email?: string;
+	name?: string;
+	username?: string;
+}) {
+	if (!user) {
+		return "Unassigned";
+	}
 
-  return user.name || user.email || user.username || 'Assigned'
+	return user.name || user.email || user.username || "Assigned";
 }

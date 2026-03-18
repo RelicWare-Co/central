@@ -1,293 +1,282 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { Badge } from '#/components/ui/badge'
-import { Button } from '#/components/ui/button'
-import { TaskCollectionView } from '#/components/task-collection-view'
-import { formatDateLabel, formatDueDateLabel } from '#/lib/formatting'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { TaskCollectionView } from "#/components/task-collection-view";
+import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
 import {
-  getProjectById,
-  type ProjectRecord,
-  type ProjectStatus,
-} from '#/lib/projects'
-import { listProjectTasks } from '#/lib/tasks'
+	Card,
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#/components/ui/card";
+import { formatDateLabel, formatDueDateLabel } from "#/lib/formatting";
+import {
+	getProjectById,
+	type ProjectRecord,
+	type ProjectStatus,
+} from "#/lib/projects";
+import { listProjectTasks } from "#/lib/tasks";
 
-export const Route = createFileRoute('/app/projects/$projectId')({
-  loader: async ({ context, params }) => {
-    const [project, tasks] = await Promise.all([
-      getProjectById(
-        context.auth,
-        params.projectId,
-        `/app/projects/${params.projectId}`,
-      ),
-      listProjectTasks(
-        context.auth,
-        params.projectId,
-        `/app/projects/${params.projectId}`,
-      ),
-    ])
+export const Route = createFileRoute("/app/projects/$projectId")({
+	loader: async ({ context, params }) => {
+		const [project, tasks] = await Promise.all([
+			getProjectById(
+				context.auth,
+				params.projectId,
+				`/app/projects/${params.projectId}`,
+			),
+			listProjectTasks(
+				context.auth,
+				params.projectId,
+				`/app/projects/${params.projectId}`,
+			),
+		]);
 
-    return {
-      project,
-      tasks,
-    }
-  },
-  component: ProjectDetailRoute,
-  notFoundComponent: MissingProjectRoute,
-})
+		return {
+			project,
+			tasks,
+		};
+	},
+	component: ProjectDetailRoute,
+	notFoundComponent: MissingProjectRoute,
+});
 
 function ProjectDetailRoute() {
-  const { project, tasks } = Route.useLoaderData()
-  const openTasks = tasks.items.filter(
-    (task) => task.status !== 'completed' && task.status !== 'canceled',
-  ).length
+	const { project, tasks } = Route.useLoaderData();
+	const openTasks = tasks.items.filter(
+		(task) => task.status !== "completed" && task.status !== "canceled",
+	).length;
 
-  return (
-    <section className="space-y-5">
-      <div className="flex flex-col gap-4 border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
-        <div className="min-w-0">
-          <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
-            Project Detail
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h3 className="text-2xl font-semibold tracking-[-0.04em] text-balance text-white">
-              {project.name}
-            </h3>
-            <StatusBadge status={project.status} />
-          </div>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--muted-foreground)]">
-            {getProjectDescription(project.description)}
-          </p>
-        </div>
+	return (
+		<div className="flex flex-col gap-4">
+			<Card className="border border-border/70 bg-card/70 ring-0">
+				<CardHeader className="border-b border-border/70">
+					<div>
+						<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+							{project.slug}
+						</p>
+						<div className="mt-2 flex flex-wrap items-center gap-2">
+							<CardTitle className="text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
+								{project.name}
+							</CardTitle>
+							<StatusBadge status={project.status} />
+						</div>
+						<CardDescription className="mt-2 max-w-3xl text-sm text-muted-foreground">
+							{getProjectDescription(project.description)}
+						</CardDescription>
+					</div>
 
-        <div className="flex flex-wrap gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="h-11 border-[rgba(255,255,255,0.14)] bg-transparent px-4 text-[0.72rem] uppercase tracking-[0.24em] text-white transition-[border-color,background-color,color] hover:bg-[rgba(255,255,255,0.06)]"
-            asChild
-          >
-            <Link to="/app/projects">Back to Projects</Link>
-          </Button>
+					<CardAction className="flex gap-2">
+						<Button asChild size="sm" variant="outline">
+							<Link to="/app/projects">Back</Link>
+						</Button>
+						<Button asChild size="sm">
+							<Link
+								search={{
+									projectId: project.id,
+									source: "project",
+								}}
+								to="/app/tasks/new"
+							>
+								New Task
+							</Link>
+						</Button>
+					</CardAction>
+				</CardHeader>
 
-          <Button
-            type="button"
-            size="lg"
-            className="h-11 border border-[rgba(255,111,60,0.42)] bg-[linear-gradient(180deg,rgba(255,111,60,0.9),rgba(202,59,0,0.92))] px-4 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-black transition-[transform,box-shadow,background-color] hover:bg-[linear-gradient(180deg,rgba(255,136,92,0.95),rgba(222,85,26,0.95))]"
-            asChild
-          >
-            <Link
-              to="/app/tasks/new"
-              search={{
-                projectId: project.id,
-                source: 'project',
-              }}
-            >
-              New Task
-            </Link>
-          </Button>
-        </div>
-      </div>
+				<CardContent className="flex flex-wrap gap-2 py-4">
+					<SummaryBadge label="Open tasks" value={openTasks} />
+					<SummaryBadge label="Blocked" value={tasks.summary.blocked} />
+					<SummaryBadge label="Due today" value={tasks.summary.dueToday} />
+					<SummaryBadge label="Overdue" value={tasks.summary.overdue} />
+				</CardContent>
+			</Card>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Open Tasks" value={String(openTasks).padStart(2, '0')} />
-        <StatCard
-          label="Blocked"
-          value={String(tasks.summary.blocked).padStart(2, '0')}
-        />
-        <StatCard
-          label="Due Today"
-          value={String(tasks.summary.dueToday).padStart(2, '0')}
-        />
-        <StatCard
-          label="Overdue"
-          value={String(tasks.summary.overdue).padStart(2, '0')}
-        />
-      </div>
+			<div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_320px]">
+				<Card className="border border-border/70 bg-card/70 ring-0">
+					<CardHeader className="border-b border-border/70">
+						<div>
+							<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+								Snapshot
+							</p>
+							<CardTitle className="mt-2 text-lg font-semibold text-foreground">
+								Operating context
+							</CardTitle>
+						</div>
+					</CardHeader>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <article className="border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-[0.68rem] uppercase tracking-[0.24em] text-[rgba(255,255,255,0.48)]">
-                {project.slug}
-              </p>
-              <h4 className="mt-3 text-xl font-semibold tracking-[-0.04em] text-white">
-                Operating Snapshot
-              </h4>
-            </div>
+					<CardContent className="grid gap-4 py-4 sm:grid-cols-2">
+						<MetaItem label="Owner" value={getOwnerLabel(project)} />
+						<MetaItem
+							label="Start date"
+							value={formatDateLabel(project.startDate)}
+						/>
+						<MetaItem
+							label="Deadline"
+							value={formatDueDateLabel(project.dueDate)}
+						/>
+						<MetaItem
+							label="Completed"
+							value={String(tasks.summary.completed).padStart(2, "0")}
+						/>
+					</CardContent>
+				</Card>
 
-            <StatusBadge status={project.status} />
-          </div>
+				<Card className="border border-border/70 bg-card/70 ring-0">
+					<CardHeader className="border-b border-border/70">
+						<div>
+							<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+								Principles
+							</p>
+							<CardTitle className="mt-2 text-lg font-semibold text-foreground">
+								Keep work visible
+							</CardTitle>
+						</div>
+					</CardHeader>
 
-          <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-            <MetaItem label="Owner" value={getOwnerLabel(project)} />
-            <MetaItem label="Start Date" value={formatDateLabel(project.startDate)} />
-            <MetaItem label="Deadline" value={formatDueDateLabel(project.dueDate)} />
-            <MetaItem
-              label="Completed"
-              value={String(tasks.summary.completed).padStart(2, '0')}
-            />
-          </dl>
-        </article>
+					<CardContent className="flex flex-col gap-3 py-4 text-sm text-muted-foreground">
+						<p>
+							Use this surface to review ownership, blockers and due dates
+							together.
+						</p>
+						<p>Blocked tasks should expose the reason directly in the list.</p>
+						<p>
+							Capture unclear work in Inbox first and move it here only when it
+							has context.
+						</p>
+					</CardContent>
+				</Card>
+			</div>
 
-        <aside className="border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] p-5 sm:p-6">
-          <p className="text-[0.68rem] uppercase tracking-[0.24em] text-[var(--accent-foreground)]">
-            Project Rules
-          </p>
-          <h4 className="mt-3 text-lg font-semibold tracking-[-0.03em] text-white">
-            Keep Work Visible
-          </h4>
-          <div className="mt-4 space-y-4 text-sm leading-7 text-[var(--muted-foreground)]">
-            <p>
-              Use the project detail as the operating surface for execution,
-              blockers and deadline review.
-            </p>
-            <p>
-              Archived work should stay out of active views. Blocked tasks should
-              expose the reason directly in the list.
-            </p>
-            <p>
-              If new work still lacks context, capture it in Inbox first and move
-              it here later.
-            </p>
-          </div>
-        </aside>
-      </section>
-
-      <TaskCollectionView
-        eyebrow="Project Tasks"
-        title="Associated Work"
-        description="This list keeps the project grounded in explicit tasks, visible assignees and deadlines that can be acted on."
-        headerAction={
-          <Button
-            type="button"
-            variant="outline"
-            className="border-[rgba(255,255,255,0.14)] bg-transparent text-[0.72rem] uppercase tracking-[0.18em] text-white transition-[border-color,background-color,color] hover:bg-[rgba(255,255,255,0.06)]"
-            asChild
-          >
-            <Link
-              to="/app/tasks/new"
-              search={{
-                projectId: project.id,
-                source: 'project',
-              }}
-            >
-              Add Task
-            </Link>
-          </Button>
-        }
-        renderTaskActions={(task) => (
-          <Button
-            type="button"
-            variant="outline"
-            className="border-[rgba(255,255,255,0.14)] bg-transparent text-[0.72rem] uppercase tracking-[0.18em] text-white transition-[border-color,background-color,color] hover:bg-[rgba(255,255,255,0.06)]"
-            asChild
-          >
-            <Link
-              to="/app/tasks/$taskId"
-              params={{
-                taskId: task.id,
-              }}
-              search={{
-                projectId: project.id,
-                source: 'project',
-              }}
-            >
-              Edit Task
-            </Link>
-          </Button>
-        )}
-        tasks={tasks.items}
-        summary={tasks.summary}
-        emptyTitle="No project tasks yet"
-        emptyDescription="Create the first task for this project to make ownership, state and next steps visible."
-      />
-    </section>
-  )
+			<TaskCollectionView
+				description="Associated tasks stay in one compact surface so execution, blockers and deadlines remain obvious."
+				emptyDescription="Create the first task for this project to make ownership, status and next steps visible."
+				emptyTitle="No project tasks yet"
+				eyebrow="Project Tasks"
+				headerAction={
+					<Button asChild size="sm" variant="outline">
+						<Link
+							search={{
+								projectId: project.id,
+								source: "project",
+							}}
+							to="/app/tasks/new"
+						>
+							Add Task
+						</Link>
+					</Button>
+				}
+				renderTaskActions={(task) => (
+					<Button asChild size="sm" variant="outline">
+						<Link
+							params={{
+								taskId: task.id,
+							}}
+							search={{
+								projectId: project.id,
+								source: "project",
+							}}
+							to="/app/tasks/$taskId"
+						>
+							Edit Task
+						</Link>
+					</Button>
+				)}
+				summary={tasks.summary}
+				tasks={tasks.items}
+				title="Associated Work"
+			/>
+		</div>
+	);
 }
 
 function MissingProjectRoute() {
-  return (
-    <section className="border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-6">
-      <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
-        Project Detail
-      </p>
-      <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-white">
-        Project Not Found
-      </h3>
-      <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--muted-foreground)]">
-        This project no longer exists or your session cannot access it.
-      </p>
-      <Button
-        type="button"
-        variant="outline"
-        size="lg"
-        className="mt-5 h-12 border-[rgba(255,255,255,0.14)] bg-transparent px-5 text-[0.74rem] uppercase tracking-[0.24em] text-white transition-[border-color,background-color,color] hover:bg-[rgba(255,255,255,0.06)]"
-        asChild
-      >
-        <Link to="/app/projects">Back to Projects</Link>
-      </Button>
-    </section>
-  )
-}
+	return (
+		<Card className="border border-border/70 bg-card/70 ring-0">
+			<CardHeader className="border-b border-border/70">
+				<div>
+					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+						Project Detail
+					</p>
+					<CardTitle className="mt-2 text-xl font-semibold text-foreground">
+						Project Not Found
+					</CardTitle>
+					<CardDescription className="mt-2 text-sm text-muted-foreground">
+						This project no longer exists or your session cannot access it.
+					</CardDescription>
+				</div>
+			</CardHeader>
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <article className="border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4">
-      <p className="text-[0.68rem] uppercase tracking-[0.28em] text-[var(--accent-foreground)]">
-        {label}
-      </p>
-      <p className="mt-4 text-4xl font-semibold tracking-[-0.06em] text-white">{value}</p>
-    </article>
-  )
+			<CardContent className="py-4">
+				<Button asChild size="sm" variant="outline">
+					<Link to="/app/projects">Back to Projects</Link>
+				</Button>
+			</CardContent>
+		</Card>
+	);
 }
 
 function MetaItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-[0.68rem] uppercase tracking-[0.22em] text-[rgba(255,255,255,0.46)]">
-        {label}
-      </dt>
-      <dd className="mt-2 text-sm text-white">{value}</dd>
-    </div>
-  )
+	return (
+		<div>
+			<dt className="text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
+				{label}
+			</dt>
+			<dd className="mt-1 text-sm text-foreground">{value}</dd>
+		</div>
+	);
+}
+
+function SummaryBadge({ label, value }: { label: string; value: number }) {
+	return (
+		<div className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 text-xs text-muted-foreground">
+			<span className="font-medium text-foreground">
+				{String(value).padStart(2, "0")}
+			</span>{" "}
+			{label}
+		</div>
+	);
 }
 
 function StatusBadge({ status }: { status: ProjectStatus }) {
-  const palette = {
-    active: 'border-[rgba(94,234,212,0.28)] bg-[rgba(94,234,212,0.12)] text-[#c4fff1]',
-    blocked: 'border-[rgba(255,111,60,0.34)] bg-[rgba(255,111,60,0.12)] text-[#ffb18d]',
-    completed: 'border-[rgba(163,230,53,0.28)] bg-[rgba(163,230,53,0.12)] text-[#e5ffb0]',
-    paused: 'border-[rgba(250,204,21,0.28)] bg-[rgba(250,204,21,0.12)] text-[#ffe89b]',
-    archived: 'border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] text-[rgba(255,255,255,0.72)]',
-  } satisfies Record<ProjectStatus, string>
+	const palette = {
+		active: "border-sky-500/20 bg-sky-500/10 text-sky-300",
+		archived: "border-border bg-background/70 text-muted-foreground",
+		blocked: "border-destructive/20 bg-destructive/10 text-destructive",
+		completed: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
+		paused: "border-amber-500/20 bg-amber-500/10 text-amber-300",
+	} satisfies Record<ProjectStatus, string>;
 
-  return (
-    <Badge variant="outline" className={`uppercase tracking-[0.18em] ${palette[status]}`}>
-      {status.replace('_', ' ')}
-    </Badge>
-  )
+	return (
+		<Badge variant="outline" className={palette[status]}>
+			{status.replace("_", " ")}
+		</Badge>
+	);
 }
 
 function getOwnerLabel(project: ProjectRecord) {
-  const owner = project.expand?.owner
+	const owner = project.expand?.owner;
 
-  if (!owner) {
-    return 'Unassigned'
-  }
+	if (!owner) {
+		return "Unassigned";
+	}
 
-  return owner.name || owner.email || owner.username || 'Assigned'
+	return owner.name || owner.email || owner.username || "Assigned";
 }
 
 function getProjectDescription(value?: string) {
-  if (!value?.trim()) {
-    return 'No description yet. This project is ready for tasks, ownership and explicit state tracking.'
-  }
+	if (!value?.trim()) {
+		return "No description yet. This project is ready for tasks, ownership and explicit state tracking.";
+	}
 
-  const plainText = value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+	const plainText = value
+		.replace(/<[^>]+>/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
 
-  return (
-    plainText ||
-    'No description yet. This project is ready for tasks, ownership and explicit state tracking.'
-  )
+	return (
+		plainText ||
+		"No description yet. This project is ready for tasks, ownership and explicit state tracking."
+	);
 }
