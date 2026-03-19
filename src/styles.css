@@ -182,3 +182,188 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@layer components {
+  .central-rich-editor {
+    @apply overflow-hidden rounded-sm border border-input bg-input/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)];
+  }
+
+  .central-rich-editor__body {
+    @apply bg-gradient-to-b from-transparent to-background/10;
+  }
+
+  .central-rich-editor__input {
+    min-height: inherit;
+  }
+
+  .central-rich-editor__input,
+  .central-rich-text {
+    @apply leading-7;
+  }
+
+  .central-rich-editor__input > * + *,
+  .central-rich-text > * + * {
+    margin-top: 0.9rem;
+  }
+
+  .central-rich-editor__input h2,
+  .central-rich-text h2 {
+    @apply text-base font-semibold tracking-[-0.04em] text-foreground;
+  }
+
+  .central-rich-editor__input h3,
+  .central-rich-text h3 {
+    @apply text-sm font-semibold uppercase tracking-[0.16em] text-accent-foreground;
+  }
+
+  .central-rich-editor__input h4,
+  .central-rich-text h4 {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .central-rich-editor__input p,
+  .central-rich-text p {
+    @apply text-sm text-inherit;
+  }
+
+  .central-rich-editor__input strong,
+  .central-rich-text strong {
+    @apply font-semibold text-foreground;
+  }
+
+  .central-rich-editor__input em,
+  .central-rich-text em {
+    @apply italic text-foreground;
+  }
+
+  .central-rich-editor__input s,
+  .central-rich-text s {
+    @apply opacity-80;
+  }
+
+  .central-rich-editor__input ul,
+  .central-rich-text ul {
+    @apply list-disc space-y-2 pl-5;
+  }
+
+  .central-rich-editor__input ol,
+  .central-rich-text ol {
+    @apply list-decimal space-y-2 pl-5;
+  }
+
+  .central-rich-editor__input li,
+  .central-rich-text li {
+    @apply text-sm text-inherit;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"],
+  .central-rich-text ul[data-task-list="true"] {
+    @apply list-none pl-0;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li,
+  .central-rich-text li[data-task-item="true"] {
+    @apply my-2 flex list-none items-center gap-3;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label,
+  .central-rich-text li[data-task-item="true"] > label {
+    @apply relative block shrink-0;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label > input[type="checkbox"],
+  .central-rich-text li[data-task-item="true"] > label > input[type="checkbox"] {
+    @apply absolute inset-0 z-10 m-0 size-5 cursor-pointer appearance-none rounded-[0.28rem] border border-primary/35 bg-background/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(255,140,72,0.05)] transition-[border-color,background-color,box-shadow];
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label > span,
+  .central-rich-text li[data-task-item="true"] > label > span {
+    @apply block size-5 rounded-[0.28rem] border border-border/80 bg-background/70;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label > span::after,
+  .central-rich-text li[data-task-item="true"] > label > span::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0.32rem;
+    height: 0.62rem;
+    border-right: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    transform: translate(-50%, -58%) rotate(45deg) scale(0.85);
+    transform-origin: center;
+    transition:
+      border-color 120ms ease,
+      opacity 120ms ease,
+      transform 120ms ease;
+    opacity: 0;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label > input[type="checkbox"]:hover,
+  .central-rich-text li[data-task-item="true"] > label > input[type="checkbox"]:hover {
+    @apply border-primary/55 bg-accent/35;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label > input[type="checkbox"]:focus-visible,
+  .central-rich-text li[data-task-item="true"] > label > input[type="checkbox"]:focus-visible {
+    @apply border-ring ring-2 ring-ring/35;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label > input[type="checkbox"]:checked,
+  .central-rich-text li[data-task-item="true"] > label > input[type="checkbox"]:checked {
+    @apply border-primary bg-primary/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_18px_rgba(255,140,72,0.18)];
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label > input[type="checkbox"]:checked + span,
+  .central-rich-text li[data-task-item="true"] > label > input[type="checkbox"]:checked + span {
+    @apply border-primary/70 bg-primary/18;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > label > input[type="checkbox"]:checked + span::after,
+  .central-rich-text li[data-task-item="true"] > label > input[type="checkbox"]:checked + span::after {
+    @apply border-primary;
+    opacity: 1;
+    transform: translate(-50%, -58%) rotate(45deg) scale(1);
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > div,
+  .central-rich-text li[data-task-item="true"] > div {
+    @apply min-w-0 flex-1 self-center;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li > div > :first-child,
+  .central-rich-text li[data-task-item="true"] > div > :first-child {
+    margin-top: 0;
+  }
+
+  .central-rich-editor__input ul[data-type="taskList"] > li[data-checked="true"] > div,
+  .central-rich-text li[data-task-item="true"]:has(input[type="checkbox"]:checked) > div {
+    @apply text-muted-foreground;
+  }
+
+  .central-rich-editor__input blockquote,
+  .central-rich-text blockquote {
+    @apply border-l-2 border-primary/45 bg-background/40 px-4 py-2 text-muted-foreground;
+  }
+
+  .central-rich-editor__input code,
+  .central-rich-text code {
+    @apply rounded-[0.2rem] bg-background/80 px-1 py-0.5 text-[0.78rem] text-primary;
+  }
+
+  .central-rich-editor__input pre,
+  .central-rich-text pre {
+    @apply overflow-x-auto rounded-sm border border-border/70 bg-background/80 px-3 py-3 text-[0.78rem] text-foreground;
+  }
+
+  .central-rich-editor__input pre code,
+  .central-rich-text pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+
+  .central-rich-editor__input hr,
+  .central-rich-text hr {
+    @apply border-border/70;
+  }
+}

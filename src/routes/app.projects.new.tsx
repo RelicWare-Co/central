@@ -5,6 +5,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
+import { RichTextEditor } from "#/components/rich-text-editor";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -14,13 +15,17 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "#/components/ui/field";
+import {
+	Field,
+	FieldDescription,
+	FieldGroup,
+	FieldLabel,
+} from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import {
 	NativeSelect,
 	NativeSelectOption,
 } from "#/components/ui/native-select";
-import { Textarea } from "#/components/ui/textarea";
 import {
 	createProject,
 	getDefaultProjectFormValues,
@@ -223,16 +228,19 @@ function NewProjectRoute() {
 
 							<Field className="lg:col-span-2">
 								<FieldLabel htmlFor="description">Description</FieldLabel>
-								<Textarea
-									className="min-h-40"
+								<FieldDescription>
+									Describe the scope, outcome and boundaries so the team reads
+									the project the same way.
+								</FieldDescription>
+								<RichTextEditor
 									id="description"
-									name="description"
+									minHeightClassName="min-h-40"
 									placeholder="Add scope, expected outcome and boundaries"
 									value={values.description}
-									onChange={(event) =>
+									onChange={(nextDescription) =>
 										setValues((current) => ({
 											...current,
-											description: event.target.value,
+											description: nextDescription,
 										}))
 									}
 								/>

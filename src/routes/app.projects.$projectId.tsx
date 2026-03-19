@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RichTextContent } from "#/components/rich-text-content";
 import { TaskCollectionView } from "#/components/task-collection-view";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -62,8 +63,17 @@ function ProjectDetailRoute() {
 							</CardTitle>
 							<StatusBadge status={project.status} />
 						</div>
-						<CardDescription className="mt-2 max-w-3xl text-sm text-muted-foreground">
-							{getProjectDescription(project.description)}
+						<CardDescription className="mt-2 max-w-3xl">
+							<RichTextContent
+								className="text-sm text-muted-foreground"
+								fallback={
+									<p>
+										No description yet. This project is ready for tasks,
+										ownership and explicit state tracking.
+									</p>
+								}
+								value={project.description}
+							/>
 						</CardDescription>
 					</div>
 
@@ -262,20 +272,4 @@ function getOwnerLabel(project: ProjectRecord) {
 	}
 
 	return owner.name || owner.email || owner.username || "Assigned";
-}
-
-function getProjectDescription(value?: string) {
-	if (!value?.trim()) {
-		return "No description yet. This project is ready for tasks, ownership and explicit state tracking.";
-	}
-
-	const plainText = value
-		.replace(/<[^>]+>/g, " ")
-		.replace(/\s+/g, " ")
-		.trim();
-
-	return (
-		plainText ||
-		"No description yet. This project is ready for tasks, ownership and explicit state tracking."
-	);
 }

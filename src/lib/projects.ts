@@ -3,6 +3,7 @@ import type { RecordModel } from "pocketbase";
 import type { AuthContext } from "#/lib/auth";
 import { formatDateForPocketBase } from "#/lib/formatting";
 import { pb } from "#/lib/pocketbase";
+import { serializeRichTextValue } from "#/lib/rich-text";
 
 export type ProjectStatus =
 	| "active"
@@ -212,9 +213,10 @@ function buildProjectPayload(values: ProjectFormValues) {
 	const normalizedName = values.name.trim();
 	const normalizedSlug =
 		normalizeSlug(values.slug) || normalizeSlug(normalizedName);
+	const normalizedDescription = serializeRichTextValue(values.description);
 
 	return {
-		description: values.description.trim() || null,
+		description: normalizedDescription || null,
 		dueDate: formatDateForPocketBase(values.dueDate),
 		isArchived: false,
 		name: normalizedName,

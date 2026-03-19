@@ -5,6 +5,7 @@ import type { AuthContext } from "#/lib/auth";
 import { formatDateForPocketBase } from "#/lib/formatting";
 import { pb } from "#/lib/pocketbase";
 import type { ProjectRecord } from "#/lib/projects";
+import { serializeRichTextValue } from "#/lib/rich-text";
 
 export type TaskStatus =
 	| "pending"
@@ -296,7 +297,7 @@ export function getTaskFormValues(task: TaskRecord) {
 	return {
 		assignee: task.assignee ?? "",
 		blockedReason: task.blockedReason ?? "",
-		description: task.description?.replace(/<[^>]+>/g, " ").trim() ?? "",
+		description: task.description ?? "",
 		dueDate: task.dueDate ? formatDateInputValue(task.dueDate) : "",
 		priority: task.priority,
 		project: task.project ?? "",
@@ -397,7 +398,7 @@ function buildTaskPayload(
 	existingCompletedAt?: string,
 ) {
 	const normalizedTitle = values.title.trim();
-	const normalizedDescription = values.description.trim();
+	const normalizedDescription = serializeRichTextValue(values.description);
 	const normalizedBlockedReason = values.blockedReason.trim();
 	const completedAt =
 		values.status === "completed"

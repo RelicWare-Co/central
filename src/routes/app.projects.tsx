@@ -18,6 +18,7 @@ import {
 	type ProjectRecord,
 	type ProjectStatus,
 } from "#/lib/projects";
+import { getRichTextPreview } from "#/lib/rich-text";
 
 export const Route = createFileRoute("/app/projects")({
 	loader: async ({ context }) => listProjects(context.auth),
@@ -94,8 +95,10 @@ function ProjectsRoute() {
 										</Link>
 									</h3>
 									<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-										{project.description?.trim() ||
-											"No description yet. This project is ready for tasks, ownership and status tracking."}
+										{getRichTextPreview(
+											project.description,
+											"No description yet. This project is ready for tasks, ownership and status tracking.",
+										)}
 									</p>
 								</div>
 

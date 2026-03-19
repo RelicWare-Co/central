@@ -7,6 +7,7 @@ import {
 	EmptyTitle,
 } from "#/components/ui/empty";
 import { formatDueDateLabel } from "#/lib/formatting";
+import { getRichTextPreview } from "#/lib/rich-text";
 import type {
 	TaskCollectionData,
 	TaskPriority,
@@ -198,18 +199,9 @@ function getTaskScopeLabel(task: TaskRecord) {
 }
 
 function getDescription(value?: string) {
-	if (!value?.trim()) {
-		return "No description yet. This task is ready for assignment, state and follow-up.";
-	}
-
-	const plainText = value
-		.replace(/<[^>]+>/g, " ")
-		.replace(/\s+/g, " ")
-		.trim();
-
-	return (
-		plainText ||
-		"No description yet. This task is ready for assignment, state and follow-up."
+	return getRichTextPreview(
+		value,
+		"No description yet. This task is ready for assignment, state and follow-up.",
 	);
 }
 
