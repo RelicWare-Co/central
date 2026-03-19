@@ -13,7 +13,7 @@ export type TaskEditorNavigation =
 	| { to: "/app/projects" }
 	| { params: { projectId: string }; to: "/app/projects/$projectId" };
 
-export function validateTaskEditorSearch(search: unknown) {
+export function validateTaskEditorSearch(search: unknown): TaskEditorSearch {
 	const values =
 		typeof search === "object" && search !== null
 			? (search as Record<string, unknown>)
@@ -26,7 +26,7 @@ export function validateTaskEditorSearch(search: unknown) {
 				? values.projectId
 				: undefined,
 		source: isTaskEditorSource(values.source) ? values.source : undefined,
-	} satisfies TaskEditorSearch;
+	};
 }
 
 export function getTaskEditorReturnLink(

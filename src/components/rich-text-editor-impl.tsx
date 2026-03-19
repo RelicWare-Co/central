@@ -64,7 +64,7 @@ export function RichTextEditorImpl({
 					autocorrect: "on",
 					class:
 						"central-rich-editor__input text-sm text-foreground outline-none",
-					id,
+					...(id ? { id } : {}),
 					spellcheck: "true",
 				},
 			},
@@ -130,7 +130,9 @@ export function RichTextEditorImpl({
 			return;
 		}
 
-		editor.commands.setContent(parseRichTextDocument(value), false);
+		editor.commands.setContent(parseRichTextDocument(value), {
+			emitUpdate: false,
+		});
 		lastSyncedValueRef.current = normalizedValue;
 	}, [editor, normalizedValue, value]);
 
