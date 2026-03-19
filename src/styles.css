@@ -123,6 +123,7 @@
 
   html {
     color-scheme: dark;
+    scrollbar-gutter: stable;
     @apply font-mono antialiased;
   }
 

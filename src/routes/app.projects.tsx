@@ -12,6 +12,7 @@ import {
 	EmptyHeader,
 	EmptyTitle,
 } from "#/components/ui/empty";
+import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
 import { formatDueDateLabel } from "#/lib/formatting";
 import {
 	listProjects,
@@ -19,6 +20,7 @@ import {
 	type ProjectStatus,
 } from "#/lib/projects";
 import { getRichTextPreview } from "#/lib/rich-text";
+import { cn } from "#/lib/utils";
 
 export const Route = createFileRoute("/app/projects")({
 	loader: async ({ context }) => listProjects(context.auth),
@@ -29,9 +31,16 @@ function ProjectsRoute() {
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
+	const isProjectDetailRoute = pathname.startsWith("/app/projects/");
 	const { items, summary } = Route.useLoaderData();
 
-	if (pathname.startsWith("/app/projects/")) {
+	usePocketBaseRealtimeInvalidate({
+		collection: "projects",
+		enabled: !isProjectDetailRoute,
+		topic: "*",
+	});
+
+	if (isProjectDetailRoute) {
 		return <Outlet />;
 	}
 
@@ -76,16 +85,16 @@ function ProjectsRoute() {
 					{items.map((project) => (
 						<article
 							key={project.id}
-							className="border-b border-border/70 px-4 py-4 last:border-b-0"
+							className="border-b border-border/70 px-4 py-5 last:border-b-0 sm:px-5"
 						>
-							<div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.8fr)_auto_auto] lg:items-start">
+							<div className="grid gap-4 lg:grid-cols-[minmax(0,2.2fr)_minmax(7rem,0.8fr)_minmax(8.5rem,0.95fr)_minmax(9.5rem,1fr)_auto] lg:items-start lg:gap-5">
 								<div className="min-w-0">
-									<p className="text-xs text-muted-foreground">
+									<p className="truncate text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
 										{project.slug}
 									</p>
-									<h3 className="mt-1 text-base font-medium text-foreground">
+									<h3 className="mt-2 text-pretty text-lg font-semibold tracking-[-0.03em] text-foreground">
 										<Link
-											className="transition-colors hover:text-primary"
+											className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/50"
 											params={{
 												projectId: project.id,
 											}}
@@ -94,7 +103,7 @@ function ProjectsRoute() {
 											{project.name}
 										</Link>
 									</h3>
-									<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+									<p className="mt-2 max-w-2xl break-words text-sm text-muted-foreground">
 										{getRichTextPreview(
 											project.description,
 											"No description yet. This project is ready for tasks, ownership and status tracking.",
@@ -102,19 +111,19 @@ function ProjectsRoute() {
 									</p>
 								</div>
 
-								<div className="flex flex-wrap gap-2 lg:justify-end">
+								<div className="flex flex-wrap gap-2 lg:flex-col lg:items-start">
 									<StatusBadge status={project.status} />
 								</div>
 
-								<div className="flex flex-col gap-3 lg:items-end">
-									<dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-1">
-										<MetaItem label="Owner" value={getOwnerLabel(project)} />
-										<MetaItem
-											label="Deadline"
-											value={formatDueDateLabel(project.dueDate)}
-										/>
-									</dl>
+								<MetaItem label="Owner" value={getOwnerLabel(project)} />
 
+								<MetaItem
+									label="Deadline"
+									value={formatDueDateLabel(project.dueDate)}
+									valueClassName="tabular-nums"
+								/>
+
+								<div className="flex flex-wrap gap-2 lg:justify-self-end">
 									<Button asChild size="sm" variant="outline">
 										<Link
 											params={{
@@ -135,11 +144,26 @@ function ProjectsRoute() {
 	);
 }
 
-function MetaItem({ label, value }: { label: string; value: string }) {
+function MetaItem({
+	label,
+	value,
+	valueClassName,
+}: {
+	label: string;
+	value: string;
+	valueClassName?: string;
+}) {
 	return (
-		<div>
+		<div className="min-w-0">
 			<dt className="text-[0.68rem] uppercase tracking-[0.18em]">{label}</dt>
-			<dd className="mt-1 text-sm text-foreground">{value}</dd>
+			<dd
+				className={cn(
+					"mt-2 break-words text-sm text-foreground",
+					valueClassName,
+				)}
+			>
+				{value}
+			</dd>
 		</div>
 	);
 }
@@ -147,7 +171,7 @@ function MetaItem({ label, value }: { label: string; value: string }) {
 function SummaryBadge({ label, value }: { label: string; value: number }) {
 	return (
 		<div className="rounded-sm border border-border/80 bg-background/85 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground">
-			<span className="font-medium text-foreground">
+			<span className="font-medium tabular-nums text-foreground">
 				{String(value).padStart(2, "0")}
 			</span>{" "}
 			{label}

@@ -77,6 +77,7 @@ function AppRoute() {
 	});
 	const currentView = getCurrentView(pathname);
 	const primaryAction = getPrimaryAction(pathname);
+	const contentContainerClassName = "mx-auto w-full max-w-6xl";
 
 	async function handleLogout() {
 		auth.logout();
@@ -146,7 +147,7 @@ function AppRoute() {
 
 				<section className="flex min-w-0 flex-1 flex-col rounded-md border border-border/80 bg-card/88 shadow-[0_24px_80px_rgba(0,0,0,0.34)]">
 					<header className="border-b border-border/70 px-4 py-4 sm:px-6">
-						<div className="flex flex-col gap-4">
+						<div className={`${contentContainerClassName} flex flex-col gap-4`}>
 							<div className="flex items-start justify-between gap-4">
 								<div className="min-w-0">
 									<h2 className="text-2xl font-semibold tracking-[-0.05em] text-foreground sm:text-3xl">
@@ -178,7 +179,9 @@ function AppRoute() {
 					</header>
 
 					<div className="flex-1 px-4 py-4 sm:px-6 sm:py-6">
-						<Outlet />
+						<div className={contentContainerClassName}>
+							<Outlet />
+						</div>
 					</div>
 				</section>
 			</div>

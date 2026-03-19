@@ -1,8 +1,10 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useEffectEvent, useState } from "react";
 import { Button } from "#/components/ui/button";
 import { Checkbox } from "#/components/ui/checkbox";
 import { Input } from "#/components/ui/input";
+import { usePocketBaseRealtimeSubscription } from "#/hooks/use-pocketbase-realtime";
 import { formatDateLabel } from "#/lib/formatting";
+import { pb } from "#/lib/pocketbase";
 import {
 	createSubtask,
 	deleteSubtask,
@@ -27,6 +29,21 @@ export function TaskSubtasksPanel({
 	const completedCount = subtasks.filter(
 		(subtask) => subtask.isCompleted,
 	).length;
+	const handleRealtimeEvent = useEffectEvent(
+		({ action, record }: { action: string; record: SubtaskRecord }) => {
+			setSubtasks((current) => {
+				if (action === "delete") {
+					return current.filter((item) => item.id !== record.id);
+				}
+
+				const nextSubtasks = current.some((item) => item.id === record.id)
+					? current.map((item) => (item.id === record.id ? record : item))
+					: [...current, record];
+
+				return sortSubtasks(nextSubtasks);
+			});
+		},
+	);
 
 	useEffect(() => {
 		setSubtasks(initialSubtasks);
@@ -35,6 +52,13 @@ export function TaskSubtasksPanel({
 		setIsCreating(false);
 		setActiveSubtaskId(null);
 	}, [initialSubtasks]);
+
+	usePocketBaseRealtimeSubscription<SubtaskRecord>({
+		collection: "subtasks",
+		filter: pb.filter("task = {:task}", { task: taskId }),
+		onEvent: handleRealtimeEvent,
+		topic: "*",
+	});
 
 	async function handleCreate(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();

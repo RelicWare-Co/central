@@ -14,6 +14,7 @@ import type {
 	TaskRecord,
 	TaskStatus,
 } from "#/lib/tasks";
+import { cn } from "#/lib/utils";
 
 type TaskCollectionViewProps = {
 	description?: string;
@@ -81,53 +82,46 @@ export function TaskCollectionView({
 					{tasks.map((task) => (
 						<article
 							key={task.id}
-							className="border-b border-border/70 px-4 py-4 last:border-b-0"
+							className="border-b border-border/70 px-4 py-5 last:border-b-0 sm:px-5"
 						>
-							<div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1.8fr)_auto_auto] xl:items-start">
+							<div className="grid gap-4 lg:grid-cols-[minmax(0,2.1fr)_minmax(7rem,0.8fr)_minmax(8.5rem,0.95fr)_minmax(9.5rem,1fr)_auto] lg:items-start lg:gap-5">
 								<div className="min-w-0">
-									<p className="text-xs text-muted-foreground">
+									<p className="truncate text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
 										{getTaskScopeLabel(task)}
 									</p>
-									<h4 className="mt-1 text-base font-medium text-foreground">
+									<h4 className="mt-2 text-pretty text-lg font-semibold tracking-[-0.03em] text-foreground">
 										{task.title}
 									</h4>
-									<p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+									<p className="mt-2 max-w-2xl break-words text-sm text-muted-foreground">
 										{getDescription(task.description)}
 									</p>
 
 									{task.status === "blocked" && task.blockedReason ? (
-										<p className="mt-3 text-sm text-destructive">
+										<p className="mt-3 max-w-2xl break-words text-sm text-destructive">
 											{task.blockedReason}
 										</p>
 									) : null}
 								</div>
 
-								<div className="flex flex-wrap gap-2 xl:justify-end">
+								<div className="flex flex-wrap gap-2 lg:flex-col lg:items-start">
 									<PriorityBadge priority={task.priority} />
 									<StatusBadge status={task.status} />
 								</div>
 
-								<div className="flex flex-col gap-3 xl:items-end">
-									<dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3 xl:grid-cols-1">
-										<MetaItem
-											label="Due"
-											value={formatDueDateLabel(task.dueDate)}
-										/>
-										<MetaItem
-											label="Assignee"
-											value={getUserLabel(task.expand?.assignee)}
-										/>
-										<MetaItem
-											label="Creator"
-											value={getUserLabel(task.expand?.createdBy)}
-										/>
-									</dl>
+								<MetaItem
+									label="Assignee"
+									value={getUserLabel(task.expand?.assignee)}
+									secondaryValue={`Created by ${getUserLabel(task.expand?.createdBy)}`}
+								/>
 
-									{renderTaskActions ? (
-										<div className="flex flex-wrap gap-2">
-											{renderTaskActions(task)}
-										</div>
-									) : null}
+								<MetaItem
+									label="Deadline"
+									value={formatDueDateLabel(task.dueDate)}
+									valueClassName="tabular-nums"
+								/>
+
+								<div className="flex flex-wrap gap-2 lg:justify-self-end">
+									{renderTaskActions ? renderTaskActions(task) : null}
 								</div>
 							</div>
 						</article>
@@ -138,11 +132,33 @@ export function TaskCollectionView({
 	);
 }
 
-function MetaItem({ label, value }: { label: string; value: string }) {
+function MetaItem({
+	label,
+	secondaryValue,
+	value,
+	valueClassName,
+}: {
+	label: string;
+	secondaryValue?: string;
+	value: string;
+	valueClassName?: string;
+}) {
 	return (
-		<div>
+		<div className="min-w-0">
 			<dt className="text-[0.68rem] uppercase tracking-[0.18em]">{label}</dt>
-			<dd className="mt-1 text-sm text-foreground">{value}</dd>
+			<dd
+				className={cn(
+					"mt-2 break-words text-sm text-foreground",
+					valueClassName,
+				)}
+			>
+				{value}
+			</dd>
+			{secondaryValue ? (
+				<dd className="mt-1 break-words text-xs text-muted-foreground">
+					{secondaryValue}
+				</dd>
+			) : null}
 		</div>
 	);
 }
@@ -150,7 +166,7 @@ function MetaItem({ label, value }: { label: string; value: string }) {
 function SummaryBadge({ label, value }: { label: string; value: number }) {
 	return (
 		<div className="rounded-sm border border-border/80 bg-background/85 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground">
-			<span className="font-medium text-foreground">
+			<span className="font-medium tabular-nums text-foreground">
 				{String(value).padStart(2, "0")}
 			</span>{" "}
 			{label}

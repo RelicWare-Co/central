@@ -397,10 +397,6 @@ export function TaskEditorForm({
 							/>
 						</Field>
 
-						{children ? (
-							<div className="border-t border-border/70 pt-5">{children}</div>
-						) : null}
-
 						<div
 							aria-live="polite"
 							className="min-h-5 text-sm text-destructive"
@@ -420,6 +416,12 @@ export function TaskEditorForm({
 						</div>
 					</form>
 				</CardContent>
+
+				{children ? (
+					<CardContent className="border-t border-border/70 py-5">
+						{children}
+					</CardContent>
+				) : null}
 			</Card>
 		</div>
 	);

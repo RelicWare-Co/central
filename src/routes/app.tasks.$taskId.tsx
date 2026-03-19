@@ -8,6 +8,7 @@ import { startTransition } from "react";
 import { TaskEditorForm } from "#/components/task-editor-form";
 import { TaskSubtasksPanel } from "#/components/task-subtasks-panel";
 import { Button } from "#/components/ui/button";
+import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
 import {
 	getTaskEditorReturnLink,
 	validateTaskEditorSearch,
@@ -57,6 +58,12 @@ function EditTaskRoute() {
 		search,
 		search.projectId ?? task.project,
 	);
+
+	usePocketBaseRealtimeInvalidate({
+		collection: "tasks",
+		enabled: search.editor !== "open",
+		topic: task.id,
+	});
 
 	return (
 		<TaskEditorForm

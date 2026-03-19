@@ -11,6 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
 import { formatDateLabel, formatDueDateLabel } from "#/lib/formatting";
 import {
 	getProjectById,
@@ -48,6 +49,16 @@ function ProjectDetailRoute() {
 	const openTasks = tasks.items.filter(
 		(task) => task.status !== "completed" && task.status !== "canceled",
 	).length;
+
+	usePocketBaseRealtimeInvalidate({
+		collection: "projects",
+		topic: project.id,
+	});
+
+	usePocketBaseRealtimeInvalidate({
+		collection: "tasks",
+		topic: "*",
+	});
 
 	return (
 		<div className="flex flex-col gap-4">

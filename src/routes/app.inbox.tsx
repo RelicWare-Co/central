@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TaskCollectionView } from "#/components/task-collection-view";
 import { Button } from "#/components/ui/button";
+import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
 import { listInboxTasks } from "#/lib/tasks";
 
 export const Route = createFileRoute("/app/inbox")({
@@ -10,6 +11,11 @@ export const Route = createFileRoute("/app/inbox")({
 
 function InboxRoute() {
 	const { items, summary } = Route.useLoaderData();
+
+	usePocketBaseRealtimeInvalidate({
+		collection: "tasks",
+		topic: "*",
+	});
 
 	return (
 		<TaskCollectionView
