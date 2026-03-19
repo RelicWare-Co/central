@@ -4,6 +4,7 @@ import {
 	useNavigate,
 	useRouter,
 } from "@tanstack/react-router";
+import { startTransition } from "react";
 import { TaskEditorForm } from "#/components/task-editor-form";
 import { TaskSubtasksPanel } from "#/components/task-subtasks-panel";
 import { Button } from "#/components/ui/button";
@@ -64,12 +65,23 @@ function EditTaskRoute() {
 					<Link {...cancelLink}>Cancel</Link>
 				</Button>
 			}
-			description="Adjust ownership, timing and state without losing the project or list context you came from."
+			editorOpen={search.editor === "open"}
 			eyebrow="Task Detail"
 			initialValues={getTaskFormValues(task)}
 			options={options}
 			submitLabel="Save Task"
 			title="Edit Task"
+			onToggleEditor={(open) => {
+				startTransition(() => {
+					void navigate({
+						replace: true,
+						search: {
+							...search,
+							editor: open ? "open" : "closed",
+						},
+					});
+				});
+			}}
 			onSubmit={async (values) => {
 				await updateTask(task.id, values, task.completedAt);
 

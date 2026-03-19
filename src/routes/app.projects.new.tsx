@@ -5,6 +5,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
+import { DatePickerField } from "#/components/date-picker-field";
 import { RichTextEditor } from "#/components/rich-text-editor";
 import { Button } from "#/components/ui/button";
 import {
@@ -23,9 +24,13 @@ import {
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import {
-	NativeSelect,
-	NativeSelectOption,
-} from "#/components/ui/native-select";
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
 import {
 	createProject,
 	getDefaultProjectFormValues,
@@ -148,63 +153,67 @@ function NewProjectRoute() {
 
 							<Field>
 								<FieldLabel htmlFor="owner">Owner</FieldLabel>
-								<NativeSelect
-									className="w-full"
-									id="owner"
-									name="owner"
-									value={values.owner}
-									onChange={(event) =>
+								<Select
+									value={values.owner || "__unassigned"}
+									onValueChange={(nextValue) =>
 										setValues((current) => ({
 											...current,
-											owner: event.target.value,
+											owner: nextValue === "__unassigned" ? "" : nextValue,
 										}))
 									}
 								>
-									<NativeSelectOption value="">Unassigned</NativeSelectOption>
-									{options.users.map((user) => (
-										<NativeSelectOption key={user.id} value={user.id}>
-											{user.name || user.email || user.id}
-										</NativeSelectOption>
-									))}
-								</NativeSelect>
+									<SelectTrigger aria-label="Owner" id="owner">
+										<SelectValue placeholder="Unassigned" />
+									</SelectTrigger>
+									<SelectContent position="popper">
+										<SelectGroup>
+											<SelectItem value="__unassigned">Unassigned</SelectItem>
+											{options.users.map((user) => (
+												<SelectItem key={user.id} value={user.id}>
+													{user.name || user.email || user.id}
+												</SelectItem>
+											))}
+										</SelectGroup>
+									</SelectContent>
+								</Select>
 							</Field>
 
 							<Field>
 								<FieldLabel htmlFor="status">Status</FieldLabel>
-								<NativeSelect
-									className="w-full"
-									id="status"
-									name="status"
+								<Select
 									value={values.status}
-									onChange={(event) =>
+									onValueChange={(nextValue) =>
 										setValues((current) => ({
 											...current,
-											status: event.target.value as ProjectFormValues["status"],
+											status: nextValue as ProjectFormValues["status"],
 										}))
 									}
 								>
-									<NativeSelectOption value="active">Active</NativeSelectOption>
-									<NativeSelectOption value="paused">Paused</NativeSelectOption>
-									<NativeSelectOption value="blocked">
-										Blocked
-									</NativeSelectOption>
-									<NativeSelectOption value="completed">
-										Completed
-									</NativeSelectOption>
-								</NativeSelect>
+									<SelectTrigger aria-label="Status" id="status">
+										<SelectValue placeholder="Select status" />
+									</SelectTrigger>
+									<SelectContent position="popper">
+										<SelectGroup>
+											<SelectItem value="active">Active</SelectItem>
+											<SelectItem value="paused">Paused</SelectItem>
+											<SelectItem value="blocked">Blocked</SelectItem>
+											<SelectItem value="completed">Completed</SelectItem>
+										</SelectGroup>
+									</SelectContent>
+								</Select>
 							</Field>
 
 							<Field>
 								<FieldLabel htmlFor="startDate">Start Date</FieldLabel>
-								<Input
+								<DatePickerField
 									id="startDate"
+									label="Start Date"
 									name="startDate"
-									type="date"
 									value={values.startDate}
-									onChange={(event) =>
+									onChange={(nextValue) =>
 										setValues((current) => ({
 											...current,
-											startDate: event.target.value,
+											startDate: nextValue,
 										}))
 									}
 								/>
@@ -212,15 +221,15 @@ function NewProjectRoute() {
 
 							<Field>
 								<FieldLabel htmlFor="dueDate">Due Date</FieldLabel>
-								<Input
+								<DatePickerField
 									id="dueDate"
+									label="Due Date"
 									name="dueDate"
-									type="date"
 									value={values.dueDate}
-									onChange={(event) =>
+									onChange={(nextValue) =>
 										setValues((current) => ({
 											...current,
-											dueDate: event.target.value,
+											dueDate: nextValue,
 										}))
 									}
 								/>

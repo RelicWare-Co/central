@@ -1,6 +1,8 @@
 export type TaskEditorSource = "inbox" | "my-tasks" | "project";
+export type TaskEditorPanelState = "open" | "closed";
 
 export type TaskEditorSearch = {
+	editor?: TaskEditorPanelState;
 	projectId?: string;
 	source?: TaskEditorSource;
 };
@@ -18,6 +20,7 @@ export function validateTaskEditorSearch(search: unknown) {
 			: {};
 
 	return {
+		editor: isTaskEditorPanelState(values.editor) ? values.editor : undefined,
 		projectId:
 			typeof values.projectId === "string" && values.projectId.length > 0
 				? values.projectId
@@ -67,4 +70,8 @@ export function getTaskEditorReturnLink(
 
 function isTaskEditorSource(value: unknown): value is TaskEditorSource {
 	return value === "inbox" || value === "my-tasks" || value === "project";
+}
+
+function isTaskEditorPanelState(value: unknown): value is TaskEditorPanelState {
+	return value === "open" || value === "closed";
 }

@@ -4,6 +4,7 @@ import {
 	useNavigate,
 	useRouter,
 } from "@tanstack/react-router";
+import { startTransition } from "react";
 import { TaskEditorForm } from "#/components/task-editor-form";
 import { Button } from "#/components/ui/button";
 import {
@@ -47,11 +48,24 @@ function NewTaskRoute() {
 				</Button>
 			}
 			description="Capture the next unit of work, keep state explicit and decide only the fields that matter now."
+			editorOpen={search.editor !== "closed"}
 			eyebrow="New Task"
 			initialValues={defaults}
+			isCreateMode
 			options={options}
 			submitLabel="Create Task"
 			title="Create a Task"
+			onToggleEditor={(open) => {
+				startTransition(() => {
+					void navigate({
+						replace: true,
+						search: {
+							...search,
+							editor: open ? "open" : "closed",
+						},
+					});
+				});
+			}}
 			onSubmit={async (values) => {
 				const task = await createTask(options.currentUserId, values);
 

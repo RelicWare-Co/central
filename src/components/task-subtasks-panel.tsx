@@ -1,20 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "#/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "#/components/ui/card";
 import { Checkbox } from "#/components/ui/checkbox";
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyTitle,
-} from "#/components/ui/empty";
-import { Field, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import { formatDateLabel } from "#/lib/formatting";
 import {
@@ -110,83 +96,81 @@ export function TaskSubtasksPanel({
 	}
 
 	return (
-		<Card className="border border-border/70 bg-card/70 ring-0">
-			<CardHeader className="border-b border-border/70">
+		<section aria-label="Subtasks" className="flex flex-col gap-3">
+			<div className="flex items-center justify-between gap-3">
 				<div>
-					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+					<p className="text-[0.6rem] uppercase tracking-[0.22em] text-accent-foreground">
 						Subtasks
 					</p>
-					<CardTitle className="mt-2 text-lg font-semibold text-foreground">
-						Break the work down
-					</CardTitle>
-					<CardDescription className="mt-2 text-sm text-muted-foreground">
-						{String(completedCount).padStart(2, "0")} of{" "}
-						{String(subtasks.length).padStart(2, "0")} completed.
-					</CardDescription>
+					<p className="mt-1 text-sm text-muted-foreground">
+						{subtasks.length > 0
+							? `${String(completedCount).padStart(2, "0")} of ${String(subtasks.length).padStart(2, "0")} completed.`
+							: "Add the next concrete step without separating it from the task."}
+					</p>
 				</div>
-			</CardHeader>
+			</div>
 
-			<CardContent className="py-5">
+			<div className="overflow-hidden rounded-sm border border-border/80 bg-background/55">
 				<form
-					className="flex flex-col gap-4"
+					className="border-b border-border/70 px-3 py-3"
 					noValidate
 					onSubmit={handleCreate}
 				>
-					<FieldGroup>
-						<Field>
-							<FieldLabel htmlFor="new-subtask">New subtask</FieldLabel>
-							<div className="flex flex-col gap-2 sm:flex-row">
-								<Input
-									autoComplete="off"
-									id="new-subtask"
-									name="new-subtask"
-									placeholder="Add the next concrete subtask"
-									value={title}
-									onChange={(event) => setTitle(event.target.value)}
-								/>
-								<Button disabled={isCreating} size="lg" type="submit">
-									{isCreating ? "Adding…" : "Add Subtask"}
-								</Button>
-							</div>
-						</Field>
-					</FieldGroup>
+					<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+						<Input
+							autoComplete="off"
+							className="h-9 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+							id="new-subtask"
+							name="new-subtask"
+							placeholder="Add the next concrete subtask"
+							value={title}
+							onChange={(event) => setTitle(event.target.value)}
+						/>
+						<Button
+							className="sm:shrink-0"
+							disabled={isCreating}
+							size="sm"
+							type="submit"
+						>
+							{isCreating ? "Adding…" : "Add"}
+						</Button>
+					</div>
 				</form>
 
-				<div
-					aria-live="polite"
-					className="mt-3 min-h-5 text-sm text-destructive"
-				>
-					{error ? error : null}
-				</div>
+				{error ? (
+					<div
+						aria-live="polite"
+						className="px-3 pt-3 text-sm text-destructive"
+					>
+						{error}
+					</div>
+				) : null}
 
 				{subtasks.length === 0 ? (
-					<div className="pt-4">
-						<Empty className="min-h-[200px] border-border/70 bg-background/60">
-							<EmptyHeader>
-								<EmptyTitle className="text-sm font-medium text-foreground">
-									No subtasks yet
-								</EmptyTitle>
-								<EmptyDescription className="max-w-md text-sm text-muted-foreground">
-									Use subtasks to split the work into visible steps without
-									changing the main task automatically.
-								</EmptyDescription>
-							</EmptyHeader>
-						</Empty>
+					<div className="px-3 py-4">
+						<p className="text-sm font-medium text-foreground">
+							No subtasks yet
+						</p>
+						<p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+							Break the work into visible steps here. Completing them will not
+							change the parent task automatically.
+						</p>
 					</div>
 				) : (
-					<div className="mt-4 divide-y divide-border/70 rounded-sm border border-border/80 bg-background/60">
+					<div className="divide-y divide-border/70">
 						{subtasks.map((subtask) => {
 							const isBusy = activeSubtaskId === subtask.id;
 
 							return (
 								<article
 									key={subtask.id}
-									className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+									className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
 								>
 									<div className="flex min-w-0 items-start gap-3">
 										<Checkbox
 											aria-label={`Mark ${subtask.title} as completed`}
 											checked={Boolean(subtask.isCompleted)}
+											className="mt-0.5"
 											disabled={isBusy}
 											onClick={(event) => {
 												event.preventDefault();
@@ -205,18 +189,18 @@ export function TaskSubtasksPanel({
 											>
 												{subtask.title}
 											</p>
-											<p className="mt-1 text-xs text-muted-foreground">
-												{subtask.isCompleted && subtask.completedAt
-													? `Completed ${formatDateLabel(subtask.completedAt)}`
-													: "Pending"}
-											</p>
+											{subtask.isCompleted && subtask.completedAt ? (
+												<p className="mt-1 text-xs text-muted-foreground">
+													Completed {formatDateLabel(subtask.completedAt)}
+												</p>
+											) : null}
 										</div>
 									</div>
 
 									<Button
 										disabled={isBusy}
 										onClick={() => handleDelete(subtask.id)}
-										size="sm"
+										size="xs"
 										type="button"
 										variant="ghost"
 									>
@@ -227,8 +211,8 @@ export function TaskSubtasksPanel({
 						})}
 					</div>
 				)}
-			</CardContent>
-		</Card>
+			</div>
+		</section>
 	);
 }
 
