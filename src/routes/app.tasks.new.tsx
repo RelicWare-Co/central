@@ -47,14 +47,14 @@ function NewTaskRoute() {
 					<Link {...cancelLink}>Cancel</Link>
 				</Button>
 			}
-			description="Capture the next unit of work, keep state explicit and decide only the fields that matter now."
+			description="Capture the next unit of work. Keep state explicit and fill in only the fields that matter now."
 			editorOpen={search.editor !== "closed"}
-			eyebrow="New Task"
+			eyebrow="New task"
 			initialValues={defaults}
 			isCreateMode
 			options={options}
-			submitLabel="Create Task"
-			title="Create a Task"
+			submitLabel="Create task"
+			title="Create a task"
 			onToggleEditor={(open) => {
 				startTransition(() => {
 					void navigate({

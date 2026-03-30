@@ -121,22 +121,18 @@ export function TaskSubtasksPanel({
 
 	return (
 		<section aria-label="Subtasks" className="flex flex-col gap-3">
-			<div className="flex items-center justify-between gap-3">
-				<div>
-					<p className="text-[0.6rem] uppercase tracking-[0.22em] text-accent-foreground">
-						Subtasks
-					</p>
-					<p className="mt-1 text-sm text-muted-foreground">
-						{subtasks.length > 0
-							? `${String(completedCount).padStart(2, "0")} of ${String(subtasks.length).padStart(2, "0")} completed.`
-							: "Add the next concrete step without separating it from the task."}
-					</p>
-				</div>
+			<div>
+				<p className="text-xs font-medium text-muted-foreground">Subtasks</p>
+				<p className="mt-0.5 text-sm text-muted-foreground">
+					{subtasks.length > 0
+						? `${completedCount} of ${subtasks.length} completed`
+						: "Break the work into smaller steps."}
+				</p>
 			</div>
 
-			<div className="overflow-hidden rounded-sm border border-border/80 bg-background/55">
+			<div className="overflow-hidden rounded-xl border border-border/30 bg-card/30">
 				<form
-					className="border-b border-border/70 px-3 py-3"
+					className="border-b border-border/30 px-4 py-3"
 					noValidate
 					onSubmit={handleCreate}
 				>
@@ -146,7 +142,7 @@ export function TaskSubtasksPanel({
 							className="h-9 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
 							id="new-subtask"
 							name="new-subtask"
-							placeholder="Add the next concrete subtask"
+							placeholder="Add a subtask"
 							value={title}
 							onChange={(event) => setTitle(event.target.value)}
 						/>
@@ -164,31 +160,31 @@ export function TaskSubtasksPanel({
 				{error ? (
 					<div
 						aria-live="polite"
-						className="px-3 pt-3 text-sm text-destructive"
+						className="px-4 pt-3 text-sm text-destructive"
 					>
 						{error}
 					</div>
 				) : null}
 
 				{subtasks.length === 0 ? (
-					<div className="px-3 py-4">
+					<div className="px-4 py-5">
 						<p className="text-sm font-medium text-foreground">
 							No subtasks yet
 						</p>
-						<p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-							Break the work into visible steps here. Completing them will not
+						<p className="mt-1 max-w-xl text-sm text-muted-foreground">
+							Break the work into visible steps. Completing subtasks will not
 							change the parent task automatically.
 						</p>
 					</div>
 				) : (
-					<div className="divide-y divide-border/70">
+					<div className="divide-y divide-border/20">
 						{subtasks.map((subtask) => {
 							const isBusy = activeSubtaskId === subtask.id;
 
 							return (
 								<article
 									key={subtask.id}
-									className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+									className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
 								>
 									<div className="flex min-w-0 items-start gap-3">
 										<Checkbox
@@ -214,7 +210,7 @@ export function TaskSubtasksPanel({
 												{subtask.title}
 											</p>
 											{subtask.isCompleted && subtask.completedAt ? (
-												<p className="mt-1 text-xs text-muted-foreground">
+												<p className="mt-0.5 text-xs text-muted-foreground">
 													Completed {formatDateLabel(subtask.completedAt)}
 												</p>
 											) : null}

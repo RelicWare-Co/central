@@ -73,11 +73,11 @@ function EditTaskRoute() {
 				</Button>
 			}
 			editorOpen={search.editor === "open"}
-			eyebrow="Task Detail"
+			eyebrow="Task detail"
 			initialValues={getTaskFormValues(task)}
 			options={options}
-			submitLabel="Save Task"
-			title="Edit Task"
+			submitLabel="Save task"
+			title="Edit task"
 			onToggleEditor={(open) => {
 				startTransition(() => {
 					void navigate({
@@ -105,14 +105,12 @@ function EditTaskRoute() {
 
 function MissingTaskRoute() {
 	return (
-		<section className="rounded-md border border-border/80 bg-card/88 p-6 shadow-[0_22px_64px_rgba(0,0,0,0.34)]">
-			<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-				Task Detail
-			</p>
-			<h3 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground">
-				Task Not Found
+		<section className="rounded-xl border border-border/30 bg-card/50 p-6">
+			<p className="text-xs font-medium text-muted-foreground">Task detail</p>
+			<h3 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-foreground">
+				Task not found
 			</h3>
-			<p className="mt-2 max-w-xl text-sm text-muted-foreground">
+			<p className="mt-1.5 max-w-md text-sm text-muted-foreground">
 				This task no longer exists or your session cannot access it.
 			</p>
 			<Button asChild className="mt-4" size="sm" variant="outline">

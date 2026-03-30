@@ -84,18 +84,18 @@ function NewProjectRoute() {
 
 	return (
 		<div className="flex flex-col gap-4">
-			<Card className="border border-border/70 bg-card/70 ring-0">
-				<CardHeader className="border-b border-border/70">
+			<Card>
+				<CardHeader className="border-b border-border/30">
 					<div>
-						<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-							New Project
+						<p className="text-xs font-medium text-muted-foreground">
+							New project
 						</p>
-						<CardTitle className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
-							Create Project
+						<CardTitle className="mt-1 text-xl font-semibold tracking-[-0.03em] sm:text-2xl">
+							Create project
 						</CardTitle>
-						<CardDescription className="mt-2 max-w-3xl text-sm text-muted-foreground">
-							Set ownership, scope and explicit status so the team can track
-							work with low friction.
+						<CardDescription className="mt-1.5 max-w-xl text-sm">
+							Set ownership, scope and status so the team can track work with
+							low friction.
 						</CardDescription>
 					</div>
 
@@ -107,8 +107,8 @@ function NewProjectRoute() {
 				</CardHeader>
 			</Card>
 
-			<Card className="border border-border/70 bg-card/70 ring-0">
-				<CardContent className="py-5">
+			<Card>
+				<CardContent className="pt-6">
 					<form
 						className="flex flex-col gap-5"
 						noValidate
@@ -116,7 +116,7 @@ function NewProjectRoute() {
 					>
 						<FieldGroup className="grid gap-4 lg:grid-cols-2">
 							<Field className="lg:col-span-2">
-								<FieldLabel htmlFor="name">Project Name</FieldLabel>
+								<FieldLabel htmlFor="name">Project name</FieldLabel>
 								<Input
 									autoComplete="off"
 									autoFocus
@@ -204,10 +204,10 @@ function NewProjectRoute() {
 							</Field>
 
 							<Field>
-								<FieldLabel htmlFor="startDate">Start Date</FieldLabel>
+								<FieldLabel htmlFor="startDate">Start date</FieldLabel>
 								<DatePickerField
 									id="startDate"
-									label="Start Date"
+									label="Start date"
 									name="startDate"
 									value={values.startDate}
 									onChange={(nextValue) =>
@@ -220,10 +220,10 @@ function NewProjectRoute() {
 							</Field>
 
 							<Field>
-								<FieldLabel htmlFor="dueDate">Due Date</FieldLabel>
+								<FieldLabel htmlFor="dueDate">Due date</FieldLabel>
 								<DatePickerField
 									id="dueDate"
-									label="Due Date"
+									label="Due date"
 									name="dueDate"
 									value={values.dueDate}
 									onChange={(nextValue) =>
@@ -238,8 +238,7 @@ function NewProjectRoute() {
 							<Field className="lg:col-span-2">
 								<FieldLabel htmlFor="description">Description</FieldLabel>
 								<FieldDescription>
-									Describe the scope, outcome and boundaries so the team reads
-									the project the same way.
+									Describe the scope, outcome and boundaries.
 								</FieldDescription>
 								<RichTextEditor
 									id="description"
@@ -263,9 +262,9 @@ function NewProjectRoute() {
 							{error ? error : null}
 						</div>
 
-						<div className="flex justify-end border-t border-border/70 pt-4">
+						<div className="flex justify-end border-t border-border/30 pt-4">
 							<Button disabled={isSubmitting} size="lg" type="submit">
-								{isSubmitting ? "Creating…" : "Create Project"}
+								{isSubmitting ? "Creating…" : "Create project"}
 							</Button>
 						</div>
 					</form>

@@ -20,7 +20,7 @@ function InboxRoute() {
 	return (
 		<TaskCollectionView
 			eyebrow="Inbox"
-			title="Unsorted Work"
+			title="Unsorted work"
 			headerAction={
 				<Button asChild size="sm">
 					<Link
@@ -29,7 +29,7 @@ function InboxRoute() {
 							source: "inbox",
 						}}
 					>
-						New Task
+						New task
 					</Link>
 				</Button>
 			}
@@ -44,14 +44,14 @@ function InboxRoute() {
 							source: "inbox",
 						}}
 					>
-						Edit Task
+						Edit
 					</Link>
 				</Button>
 			)}
 			tasks={items}
 			summary={summary}
 			emptyTitle="Inbox is clear"
-			emptyDescription="Cuando existan tareas sin proyecto en PocketBase, aparecerán aquí como punto de entrada para priorización y asignación."
+			emptyDescription="Tasks without a project will appear here as an entry point for prioritization."
 		/>
 	);
 }

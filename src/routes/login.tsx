@@ -1,14 +1,8 @@
-import { WarningOctagonIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, WarningOctagonIcon } from "@phosphor-icons/react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "#/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "#/components/ui/card";
+import { Card, CardContent } from "#/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 
@@ -64,60 +58,24 @@ function LoginRoute() {
 	}
 
 	return (
-		<main className="relative min-h-screen overflow-hidden bg-background text-foreground">
-			<div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),transparent_14%),radial-gradient(circle_at_top,rgba(255,120,58,0.16),transparent_28%)]" />
+		<main className="relative flex min-h-screen items-center justify-center bg-background text-foreground">
+			<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,oklch(0.72_0.14_55/0.08),transparent)]" />
 
-			<section className="relative mx-auto grid min-h-screen max-w-[1280px] items-center gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_420px] lg:px-8">
-				<div className="max-w-2xl">
-					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-						Central Systems
+			<section className="relative mx-auto w-full max-w-[440px] px-5 py-12">
+				<div className="mb-8 text-center">
+					<p className="text-sm font-medium tracking-[-0.01em] text-foreground">
+						Central
 					</p>
-					<h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em] text-foreground sm:text-5xl lg:text-6xl">
-						Trabajo interno claro, rápido y sin peso extra.
+					<h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-foreground">
+						Sign in to your workspace
 					</h1>
-					<p className="mt-4 max-w-xl text-base text-muted-foreground">
-						Central organiza proyectos, tareas y bloqueos en una superficie
-						sobria. Menos paneles, menos ruido y estados siempre visibles.
+					<p className="mt-2 text-sm text-muted-foreground">
+						Projects, tasks and team coordination in one place.
 					</p>
-
-					<div className="mt-8 grid gap-3 sm:grid-cols-3">
-						{[
-							[
-								"Inbox",
-								"Captura trabajo sin exigir proyecto desde el primer paso.",
-							],
-							["Hoy", "Prioriza lo que requiere atención inmediata."],
-							[
-								"Projects",
-								"Mantén dueño, estado y deadlines en la misma vista.",
-							],
-						].map(([title, description]) => (
-							<div
-								key={title}
-								className="rounded-sm border border-border/80 bg-card/72 px-4 py-4 text-sm text-muted-foreground shadow-[0_18px_42px_rgba(0,0,0,0.22)]"
-							>
-								<p className="font-medium text-foreground">{title}</p>
-								<p className="mt-2">{description}</p>
-							</div>
-						))}
-					</div>
 				</div>
 
-				<Card className="border-border/80 bg-card/92 shadow-[0_28px_90px_rgba(0,0,0,0.4)] ring-0">
-					<CardHeader className="border-b border-border/70">
-						<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-							Secure Access
-						</p>
-						<CardTitle className="text-2xl font-semibold tracking-[-0.04em] text-foreground">
-							Sign In
-						</CardTitle>
-						<CardDescription className="text-sm text-muted-foreground">
-							Usa tu cuenta de la colección{" "}
-							<span className="text-foreground">users</span> en PocketBase.
-						</CardDescription>
-					</CardHeader>
-
-					<CardContent className="py-5">
+				<Card>
+					<CardContent className="pt-6">
 						<form
 							className="flex flex-col gap-5"
 							noValidate
@@ -171,11 +129,22 @@ function LoginRoute() {
 							</div>
 
 							<Button disabled={isSubmitting} size="lg" type="submit">
-								{isSubmitting ? "Authorizing…" : "Enter Workspace"}
+								{isSubmitting ? (
+									"Signing in…"
+								) : (
+									<>
+										Sign in
+										<ArrowRightIcon data-icon="inline-end" />
+									</>
+								)}
 							</Button>
 						</form>
 					</CardContent>
 				</Card>
+
+				<p className="mt-6 text-center text-xs text-muted-foreground">
+					Use your credentials from the PocketBase users collection.
+				</p>
 			</section>
 		</main>
 	);

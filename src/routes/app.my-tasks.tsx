@@ -20,7 +20,7 @@ function MyTasksRoute() {
 	return (
 		<TaskCollectionView
 			eyebrow="My Tasks"
-			title="Assigned Work"
+			title="Assigned work"
 			headerAction={
 				<Button asChild size="sm">
 					<Link
@@ -29,7 +29,7 @@ function MyTasksRoute() {
 							source: "my-tasks",
 						}}
 					>
-						New Task
+						New task
 					</Link>
 				</Button>
 			}
@@ -44,14 +44,14 @@ function MyTasksRoute() {
 							source: "my-tasks",
 						}}
 					>
-						Edit Task
+						Edit
 					</Link>
 				</Button>
 			)}
 			tasks={items}
 			summary={summary}
 			emptyTitle="No assigned tasks"
-			emptyDescription="Cuando el usuario tenga tareas asignadas en PocketBase, esta vista servirá como su superficie operativa principal."
+			emptyDescription="When you have tasks assigned, they will appear here as your main working surface."
 		/>
 	);
 }

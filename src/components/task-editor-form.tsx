@@ -104,14 +104,14 @@ export function TaskEditorForm({
 	const assigneeLabel = getAssigneeLabel(values.assignee, options);
 	const startDateLabel = values.startDate
 		? formatDateLabel(values.startDate)
-		: "No Start Date";
+		: "No start date";
 	const dueDateLabel = formatDueDateLabel(values.dueDate);
 	const summaryTitle = values.title.trim() || title;
 	const toggleLabel = isEditorOpen
-		? "Hide Fields"
+		? "Hide fields"
 		: isCreateMode
-			? "Show Fields"
-			: "Edit Task";
+			? "Show fields"
+			: "Edit task";
 
 	function handleToggleEditor(nextOpen: boolean) {
 		setIsEditorOpen(nextOpen);
@@ -120,19 +120,19 @@ export function TaskEditorForm({
 
 	return (
 		<div className="flex flex-col gap-4">
-			<Card className="border border-border/70 bg-card/70 ring-0">
-				<CardHeader className="border-b border-border/70">
+			<Card>
+				<CardHeader className="border-b border-border/30">
 					<div className="flex flex-col gap-4">
 						<div className="flex items-start justify-between gap-4">
 							<div className="min-w-0">
-								<p className="text-[0.6rem] uppercase tracking-[0.22em] text-accent-foreground">
+								<p className="text-xs font-medium text-muted-foreground">
 									{eyebrow}
 								</p>
-								<CardTitle className="mt-1 text-lg font-semibold tracking-[-0.04em] text-foreground sm:text-xl">
+								<CardTitle className="mt-1 text-lg font-semibold tracking-[-0.02em] sm:text-xl">
 									{summaryTitle}
 								</CardTitle>
 								{description ? (
-									<CardDescription className="mt-1 max-w-2xl text-xs text-muted-foreground">
+									<CardDescription className="mt-1 max-w-xl text-sm">
 										{description}
 									</CardDescription>
 								) : null}
@@ -168,16 +168,16 @@ export function TaskEditorForm({
 								label="Priority"
 								value={formatPriorityLabel(values.priority)}
 							/>
-							<SummaryItem label="Start Date" value={startDateLabel} />
-							<SummaryItem label="Due Date" value={dueDateLabel} />
+							<SummaryItem label="Start date" value={startDateLabel} />
+							<SummaryItem label="Due date" value={dueDateLabel} />
 						</dl>
 
 						{values.status === "blocked" && values.blockedReason.trim() ? (
-							<div className="rounded-sm border border-border/70 bg-background/45 px-3 py-2">
-								<p className="text-[0.6rem] uppercase tracking-[0.18em] text-accent-foreground">
-									Blocked Reason
+							<div className="rounded-lg border border-border/30 bg-destructive/5 px-3.5 py-2.5">
+								<p className="text-xs font-medium text-muted-foreground">
+									Blocked reason
 								</p>
-								<p className="mt-1 text-sm text-foreground">
+								<p className="mt-0.5 text-sm text-foreground">
 									{values.blockedReason.trim()}
 								</p>
 							</div>
@@ -186,17 +186,17 @@ export function TaskEditorForm({
 				</CardHeader>
 
 				<Collapsible open={isEditorOpen} onOpenChange={handleToggleEditor}>
-					<CollapsibleContent className="overflow-hidden border-b border-border/70 data-[state=closed]:animate-out data-[state=open]:animate-in">
+					<CollapsibleContent className="overflow-hidden border-b border-border/30 data-[state=closed]:animate-out data-[state=open]:animate-in">
 						<CardContent className="py-5">
 							<FieldGroup className="grid gap-4 lg:grid-cols-2">
 								<Field className="lg:col-span-2">
-									<FieldLabel htmlFor="title">Task Title</FieldLabel>
+									<FieldLabel htmlFor="title">Task title</FieldLabel>
 									<Input
 										autoComplete="off"
 										autoFocus
 										id="title"
 										name="title"
-										placeholder="Define the next concrete piece of work"
+										placeholder="What needs to be done?"
 										required
 										value={values.title}
 										onChange={(event) =>
@@ -315,10 +315,10 @@ export function TaskEditorForm({
 								</Field>
 
 								<Field>
-									<FieldLabel htmlFor="startDate">Start Date</FieldLabel>
+									<FieldLabel htmlFor="startDate">Start date</FieldLabel>
 									<DatePickerField
 										id="startDate"
-										label="Start Date"
+										label="Start date"
 										name="startDate"
 										value={values.startDate}
 										onChange={(nextValue) =>
@@ -331,10 +331,10 @@ export function TaskEditorForm({
 								</Field>
 
 								<Field>
-									<FieldLabel htmlFor="dueDate">Due Date</FieldLabel>
+									<FieldLabel htmlFor="dueDate">Due date</FieldLabel>
 									<DatePickerField
 										id="dueDate"
-										label="Due Date"
+										label="Due date"
 										name="dueDate"
 										value={values.dueDate}
 										onChange={(nextValue) =>
@@ -349,12 +349,12 @@ export function TaskEditorForm({
 								{values.status === "blocked" ? (
 									<Field className="lg:col-span-2">
 										<FieldLabel htmlFor="blockedReason">
-											Blocked Reason
+											Blocked reason
 										</FieldLabel>
 										<Input
 											id="blockedReason"
 											name="blockedReason"
-											placeholder="Describe the blocker so the team can act on it"
+											placeholder="What is blocking this task?"
 											required
 											value={values.blockedReason}
 											onChange={(event) =>
@@ -380,13 +380,12 @@ export function TaskEditorForm({
 						<Field className="lg:col-span-2">
 							<FieldLabel htmlFor="description">Description</FieldLabel>
 							<FieldDescription>
-								Use short sections, lists and context notes to make the next
-								step obvious.
+								Add context, expected outcome or follow-up notes.
 							</FieldDescription>
 							<RichTextEditor
 								id="description"
 								minHeightClassName="min-h-56"
-								placeholder="Add context, expected outcome or follow-up notes"
+								placeholder="Describe the work, expected outcome or next steps"
 								value={values.description}
 								onChange={(nextDescription) =>
 									setValues((current) => ({
@@ -404,10 +403,10 @@ export function TaskEditorForm({
 							{error ? error : null}
 						</div>
 
-						<div className="flex flex-col gap-3 border-t border-border/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
+						<div className="flex flex-col gap-3 border-t border-border/30 pt-4 sm:flex-row sm:items-center sm:justify-between">
 							<p className="text-sm text-muted-foreground">
-								Inbox stays available by leaving Project empty. Blocked tasks
-								should always include a visible reason.
+								Leave Project empty to send to Inbox. Blocked tasks need a
+								reason.
 							</p>
 
 							<Button disabled={isSubmitting} size="lg" type="submit">
@@ -418,7 +417,7 @@ export function TaskEditorForm({
 				</CardContent>
 
 				{children ? (
-					<CardContent className="border-t border-border/70 py-5">
+					<CardContent className="border-t border-border/30 py-5">
 						{children}
 					</CardContent>
 				) : null}
@@ -429,11 +428,11 @@ export function TaskEditorForm({
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="rounded-sm border border-border/70 bg-background/45 px-3 py-2">
-			<dt className="text-[0.6rem] uppercase tracking-[0.18em] text-accent-foreground">
-				{label}
-			</dt>
-			<dd className="mt-1 truncate text-sm text-foreground">{value}</dd>
+		<div className="rounded-lg border border-border/30 bg-card/50 px-3.5 py-2">
+			<dt className="text-xs text-muted-foreground">{label}</dt>
+			<dd className="mt-0.5 truncate text-sm font-medium text-foreground">
+				{value}
+			</dd>
 		</div>
 	);
 }
@@ -446,7 +445,7 @@ function getProjectLabel(projectId: string, options: TaskFormOptions) {
 	const project = options.projects.find((item) => item.id === projectId);
 
 	if (!project) {
-		return "Unknown Project";
+		return "Unknown project";
 	}
 
 	return project.slug ? `${project.name} · ${project.slug}` : project.name;
@@ -459,7 +458,7 @@ function getAssigneeLabel(assigneeId: string, options: TaskFormOptions) {
 
 	const user = options.users.find((item) => item.id === assigneeId);
 
-	return user?.name || user?.email || user?.id || "Unknown User";
+	return user?.name || user?.email || user?.id || "Unknown user";
 }
 
 function formatStatusLabel(value: TaskFormValues["status"]) {
