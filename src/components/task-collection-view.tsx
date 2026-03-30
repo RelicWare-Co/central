@@ -57,11 +57,27 @@ export function TaskCollectionView({
 			</div>
 
 			<div className="flex flex-wrap gap-2">
-				<SummaryBadge label="Total" value={summary.total} />
-				<SummaryBadge label="In progress" value={summary.inProgress} />
-				<SummaryBadge label="Blocked" value={summary.blocked} />
-				<SummaryBadge label="Due today" value={summary.dueToday} />
-				<SummaryBadge label="Overdue" value={summary.overdue} />
+				<SummaryBadge label="Total" value={summary.total} variant="default" />
+				<SummaryBadge
+					label="In progress"
+					value={summary.inProgress}
+					variant="info"
+				/>
+				<SummaryBadge
+					label="Blocked"
+					value={summary.blocked}
+					variant="danger"
+				/>
+				<SummaryBadge
+					label="Due today"
+					value={summary.dueToday}
+					variant="warning"
+				/>
+				<SummaryBadge
+					label="Overdue"
+					value={summary.overdue}
+					variant="danger"
+				/>
 			</div>
 
 			{tasks.length === 0 ? (
@@ -161,10 +177,31 @@ function MetaItem({
 	);
 }
 
-function SummaryBadge({ label, value }: { label: string; value: number }) {
+function SummaryBadge({
+	label,
+	value,
+	variant = "default",
+}: {
+	label: string;
+	value: number;
+	variant?: "default" | "info" | "success" | "warning" | "danger";
+}) {
+	const palette = {
+		default: "border-border/30 bg-card/50 text-foreground",
+		info: "border-oklch(0.6 0.12 220 / 0.3) bg-oklch(0.6 0.12 220 / 0.08) text-oklch(0.75 0.1 220)",
+		success:
+			"border-oklch(0.65 0.14 145 / 0.3) bg-oklch(0.65 0.14 145 / 0.08) text-oklch(0.8 0.1 145)",
+		warning:
+			"border-oklch(0.72 0.14 85 / 0.3) bg-oklch(0.72 0.14 85 / 0.08) text-oklch(0.85 0.1 85)",
+		danger:
+			"border-oklch(0.55 0.16 25 / 0.3) bg-oklch(0.55 0.16 25 / 0.08) text-oklch(0.75 0.12 25)",
+	};
+
 	return (
-		<div className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-card/50 px-2.5 py-1 text-xs text-muted-foreground">
-			<span className="font-semibold tabular-nums text-foreground">
+		<div
+			className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs ${palette[variant]}`}
+		>
+			<span className="font-semibold tabular-nums">
 				{String(value).padStart(2, "0")}
 			</span>
 			{label}
@@ -174,11 +211,16 @@ function SummaryBadge({ label, value }: { label: string; value: number }) {
 
 function StatusBadge({ status }: { status: TaskStatus }) {
 	const palette = {
-		blocked: "border-destructive/25 bg-destructive/10 text-destructive",
-		canceled: "border-border/40 bg-muted/30 text-muted-foreground",
-		completed: "border-emerald-500/25 bg-emerald-500/10 text-emerald-400",
-		in_progress: "border-sky-500/25 bg-sky-500/10 text-sky-400",
-		pending: "border-amber-500/25 bg-amber-500/10 text-amber-400",
+		blocked:
+			"border-oklch(0.55 0.16 25 / 0.4) bg-oklch(0.55 0.16 25 / 0.12) text-oklch(0.75 0.12 25)",
+		canceled:
+			"border-oklch(0.35 0.02 280 / 0.3) bg-oklch(0.28 0.02 280 / 0.1) text-oklch(0.6 0.02 280)",
+		completed:
+			"border-oklch(0.65 0.14 145 / 0.4) bg-oklch(0.65 0.14 145 / 0.12) text-oklch(0.8 0.1 145)",
+		in_progress:
+			"border-oklch(0.6 0.12 220 / 0.4) bg-oklch(0.6 0.12 220 / 0.12) text-oklch(0.75 0.1 220)",
+		pending:
+			"border-oklch(0.72 0.14 85 / 0.4) bg-oklch(0.72 0.14 85 / 0.12) text-oklch(0.85 0.1 85)",
 	} satisfies Record<TaskStatus, string>;
 
 	return (
@@ -190,9 +232,10 @@ function StatusBadge({ status }: { status: TaskStatus }) {
 
 function PriorityBadge({ priority }: { priority: TaskPriority }) {
 	const palette = {
-		high: "border-destructive/25 bg-destructive/10 text-destructive",
-		low: "border-border/40 bg-muted/30 text-muted-foreground",
-		medium: "border-primary/25 bg-primary/10 text-primary",
+		high: "border-oklch(0.55 0.14 280 / 0.4) bg-oklch(0.55 0.14 280 / 0.12) text-oklch(0.75 0.12 280)",
+		low: "border-oklch(0.5 0.08 220 / 0.3) bg-oklch(0.45 0.06 220 / 0.1) text-oklch(0.65 0.06 220)",
+		medium:
+			"border-oklch(0.72 0.16 55 / 0.35) bg-oklch(0.72 0.16 55 / 0.1) text-oklch(0.85 0.12 55)",
 	} satisfies Record<TaskPriority, string>;
 
 	return (

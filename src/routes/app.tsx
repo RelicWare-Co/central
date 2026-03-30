@@ -87,7 +87,7 @@ function AppRoute() {
 	return (
 		<main className="min-h-screen bg-background text-foreground">
 			<div className="mx-auto flex min-h-screen max-w-[1600px] flex-col gap-3 p-3 md:flex-row md:p-4">
-				<aside className="hidden w-60 shrink-0 flex-col rounded-xl border border-border/40 bg-card/60 p-3 md:flex">
+				<aside className="hidden w-60 shrink-0 flex-col overflow-hidden rounded-xl border border-border/40 bg-card/60 p-3 md:flex md:sticky md:top-4 md:max-h-[calc(100dvh-2rem)] md:h-[calc(100dvh-2rem)]">
 					<div className="flex items-center gap-3 px-2 pb-4">
 						<div className="flex size-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
 							<StackIcon className="size-4" />
@@ -109,7 +109,10 @@ function AppRoute() {
 						</Button>
 					</div>
 
-					<nav aria-label="Primary" className="flex flex-1 flex-col gap-0.5">
+					<nav
+						aria-label="Primary"
+						className="flex flex-1 flex-col gap-0.5 overflow-y-auto"
+					>
 						{navigationItems.map((item) => (
 							<NavLink key={item.to} item={item} />
 						))}
@@ -222,7 +225,7 @@ function NavLink({
 				className={cn(
 					"flex size-7 shrink-0 items-center justify-center rounded-md transition-colors",
 					isActive
-						? "bg-primary/15 text-primary"
+						? "bg-secondary/20 text-secondary-foreground"
 						: "text-muted-foreground/70 group-hover:text-muted-foreground",
 				)}
 			>
