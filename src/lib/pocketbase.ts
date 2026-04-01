@@ -12,6 +12,12 @@ export const pocketbaseUrl =
 
 export const pb = new PocketBase(pocketbaseUrl);
 
+// The app intentionally fires concurrent reads from route loaders, suspense
+// queries and live streams against the same singleton client. Disabling the SDK
+// auto-cancellation prevents valid overlapping requests from surfacing abort
+// errors in the UI.
+pb.autoCancellation(false);
+
 export type PocketBaseRealtimeEvent<TRecord extends RecordModel = RecordModel> =
 	RecordSubscription<TRecord>;
 
