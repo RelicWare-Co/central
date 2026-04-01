@@ -21,8 +21,10 @@ import { Button } from "#/components/ui/button";
 import { useAuth } from "#/lib/auth";
 import { cn } from "#/lib/utils";
 
+let initialRefreshDone = false;
+
 export const Route = createFileRoute("/app")({
-	beforeLoad: ({ context, location }) => {
+	beforeLoad: async ({ context, location }) => {
 		if (!context.auth.getState().isAuthenticated) {
 			throw redirect({
 				to: "/login",
@@ -30,6 +32,20 @@ export const Route = createFileRoute("/app")({
 					redirect: `${location.pathname}${location.searchStr}${location.hash}`,
 				},
 			});
+		}
+
+		if (!initialRefreshDone) {
+			initialRefreshDone = true;
+			await context.auth.refresh();
+
+			if (!context.auth.getState().isAuthenticated) {
+				throw redirect({
+					to: "/login",
+					search: {
+						redirect: `${location.pathname}${location.searchStr}${location.hash}`,
+					},
+				});
+			}
 		}
 	},
 	component: AppRoute,

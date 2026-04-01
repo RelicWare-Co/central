@@ -12,6 +12,7 @@ export type AuthContext = {
 	login: (identity: string, password: string) => Promise<RecordModel>;
 	logout: () => void;
 	subscribe: (callback: () => void) => () => void;
+	refresh: () => Promise<void>;
 };
 
 function readState(): AuthState {
@@ -63,6 +64,16 @@ export function createAuthContext(): AuthContext {
 		logout() {
 			pb.authStore.clear();
 			emit();
+		},
+		async refresh() {
+			if (pb.authStore.isValid) {
+				try {
+					await pb.collection("users").authRefresh();
+				} catch {
+					pb.authStore.clear();
+					emit();
+				}
+			}
 		},
 		subscribe(callback) {
 			listeners.add(callback);
