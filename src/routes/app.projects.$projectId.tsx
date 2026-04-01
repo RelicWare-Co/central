@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ActivityPanel } from "#/components/activity-panel";
 import { RichTextContent } from "#/components/rich-text-content";
 import { TaskCollectionView } from "#/components/task-collection-view";
 import { Badge } from "#/components/ui/badge";
@@ -159,23 +160,16 @@ function ProjectDetailRoute() {
 					<CardHeader className="border-b border-border/30">
 						<div>
 							<p className="text-xs font-medium text-muted-foreground">
-								Principles
+								History
 							</p>
 							<CardTitle className="mt-1 text-base font-semibold">
-								Keep work visible
+								Activity Log
 							</CardTitle>
 						</div>
 					</CardHeader>
 
-					<CardContent className="flex flex-col gap-2.5 py-4 text-sm text-muted-foreground">
-						<p>
-							Review ownership, blockers and due dates together on this surface.
-						</p>
-						<p>Blocked tasks should always expose the reason.</p>
-						<p>
-							Capture unclear work in Inbox first. Move it here when it has
-							context.
-						</p>
+					<CardContent className="p-0">
+						<ActivityPanel projectId={project.id} />
 					</CardContent>
 				</Card>
 			</div>

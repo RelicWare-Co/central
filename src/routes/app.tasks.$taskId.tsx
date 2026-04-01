@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { startTransition } from "react";
 import { TaskEditorForm } from "#/components/task-editor-form";
+import { ActivityPanel } from "#/components/activity-panel";
 import { TaskSubtasksPanel } from "#/components/task-subtasks-panel";
 import { Button } from "#/components/ui/button";
 import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
@@ -99,6 +100,12 @@ function EditTaskRoute() {
 			}}
 		>
 			<TaskSubtasksPanel initialSubtasks={subtasks} taskId={task.id} />
+			<div className="mt-6 rounded-xl border border-border/30 bg-card/30">
+				<div className="border-b border-border/30 px-4 py-3">
+					<p className="text-sm font-medium text-foreground">Activity Log</p>
+				</div>
+				<ActivityPanel taskId={task.id} />
+			</div>
 		</TaskEditorForm>
 	);
 }

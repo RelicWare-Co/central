@@ -108,6 +108,78 @@ export async function listMyTasks(auth: AuthContext) {
 	});
 }
 
+export async function listTodayTasks(auth: AuthContext) {
+	const userId = auth.getState().user?.id;
+
+	if (!userId) {
+		auth.logout();
+
+		throw redirect({
+			to: "/login",
+			search: {
+				redirect: "/app/today",
+			},
+		});
+	}
+
+	const now = new Date();
+	const endOfDay = new Date(
+		now.getFullYear(),
+		now.getMonth(),
+		now.getDate(),
+		23,
+		59,
+		59,
+		999,
+	)
+		.toISOString()
+		.replace("T", " ");
+
+	return listTasks(auth, {
+		filter: pb.filter(
+			"assignee = {:assignee} && status != 'completed' && status != 'canceled' && (dueDate <= {:endOfDay} || priority = 'high' || status = 'in_progress')",
+			{ assignee: userId, endOfDay },
+		),
+		redirectTo: "/app/today",
+	});
+}
+
+export async function listUpcomingTasks(auth: AuthContext) {
+	const userId = auth.getState().user?.id;
+
+	if (!userId) {
+		auth.logout();
+
+		throw redirect({
+			to: "/login",
+			search: {
+				redirect: "/app/upcoming",
+			},
+		});
+	}
+
+	const now = new Date();
+	const endOfDay = new Date(
+		now.getFullYear(),
+		now.getMonth(),
+		now.getDate(),
+		23,
+		59,
+		59,
+		999,
+	)
+		.toISOString()
+		.replace("T", " ");
+
+	return listTasks(auth, {
+		filter: pb.filter(
+			"assignee = {:assignee} && status != 'completed' && status != 'canceled' && dueDate > {:endOfDay}",
+			{ assignee: userId, endOfDay },
+		),
+		redirectTo: "/app/upcoming",
+	});
+}
+
 export async function listProjectTasks(
 	auth: AuthContext,
 	projectId: string,

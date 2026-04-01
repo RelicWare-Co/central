@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { Badge } from "#/components/ui/badge";
 import {
 	Empty,
@@ -6,6 +6,14 @@ import {
 	EmptyHeader,
 	EmptyTitle,
 } from "#/components/ui/empty";
+import { Input } from "#/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
 import { formatDueDateLabel } from "#/lib/formatting";
 import { getRichTextPreview } from "#/lib/rich-text";
 import type {
@@ -39,6 +47,61 @@ export function TaskCollectionView({
 	tasks,
 	title,
 }: TaskCollectionViewProps) {
+	const [searchQuery, setSearchQuery] = useState("");
+	const [statusFilter, setStatusFilter] = useState("all");
+	const [priorityFilter, setPriorityFilter] = useState("all");
+	const [assigneeFilter, setAssigneeFilter] = useState("all");
+	const [projectFilter, setProjectFilter] = useState("all");
+
+	const assignees = useMemo(() => {
+		const map = new Map();
+		for (const t of tasks) {
+			if (t.expand?.assignee) {
+				map.set(t.assignee, getUserLabel(t.expand.assignee));
+			}
+		}
+		return Array.from(map.entries());
+	}, [tasks]);
+
+	const projects = useMemo(() => {
+		const map = new Map();
+		for (const t of tasks) {
+			if (t.expand?.project) {
+				map.set(t.project, t.expand.project.name);
+			}
+		}
+		return Array.from(map.entries());
+	}, [tasks]);
+
+	const filteredTasks = useMemo(() => {
+		return tasks.filter((task) => {
+			if (searchQuery) {
+				const query = searchQuery.toLowerCase();
+				if (
+					!task.title.toLowerCase().includes(query) &&
+					!task.description?.toLowerCase().includes(query)
+				) {
+					return false;
+				}
+			}
+			if (statusFilter !== "all" && task.status !== statusFilter) return false;
+			if (priorityFilter !== "all" && task.priority !== priorityFilter)
+				return false;
+			if (assigneeFilter !== "all" && task.assignee !== assigneeFilter)
+				return false;
+			if (projectFilter !== "all" && task.project !== projectFilter)
+				return false;
+			return true;
+		});
+	}, [
+		tasks,
+		searchQuery,
+		statusFilter,
+		priorityFilter,
+		assigneeFilter,
+		projectFilter,
+	]);
+
 	return (
 		<section className="flex flex-col gap-5">
 			<div className="flex flex-wrap items-start justify-between gap-3">
@@ -80,7 +143,76 @@ export function TaskCollectionView({
 				/>
 			</div>
 
-			{tasks.length === 0 ? (
+			{tasks.length > 0 ? (
+				<div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-card/50 p-3 sm:p-4">
+					<div className="min-w-[200px] flex-1">
+						<Input
+							placeholder="Search tasks..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="h-9 w-full bg-background"
+						/>
+					</div>
+					<div className="flex flex-wrap items-center gap-2">
+						<Select value={statusFilter} onValueChange={setStatusFilter}>
+							<SelectTrigger className="h-9 w-[130px] bg-background">
+								<SelectValue placeholder="Status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All statuses</SelectItem>
+								<SelectItem value="pending">Pending</SelectItem>
+								<SelectItem value="in_progress">In Progress</SelectItem>
+								<SelectItem value="blocked">Blocked</SelectItem>
+								<SelectItem value="completed">Completed</SelectItem>
+								<SelectItem value="canceled">Canceled</SelectItem>
+							</SelectContent>
+						</Select>
+						<Select value={priorityFilter} onValueChange={setPriorityFilter}>
+							<SelectTrigger className="h-9 w-[120px] bg-background">
+								<SelectValue placeholder="Priority" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All priorities</SelectItem>
+								<SelectItem value="low">Low</SelectItem>
+								<SelectItem value="medium">Medium</SelectItem>
+								<SelectItem value="high">High</SelectItem>
+							</SelectContent>
+						</Select>
+						{projects.length > 0 && (
+							<Select value={projectFilter} onValueChange={setProjectFilter}>
+								<SelectTrigger className="h-9 w-[140px] bg-background">
+									<SelectValue placeholder="Project" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All projects</SelectItem>
+									{projects.map(([id, name]) => (
+										<SelectItem key={id} value={id}>
+											{name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
+						{assignees.length > 0 && (
+							<Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+								<SelectTrigger className="h-9 w-[140px] bg-background">
+									<SelectValue placeholder="Assignee" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All assignees</SelectItem>
+									{assignees.map(([id, name]) => (
+										<SelectItem key={id} value={id}>
+											{name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
+					</div>
+				</div>
+			) : null}
+
+			{filteredTasks.length === 0 ? (
 				<Empty className="min-h-[200px] border-border/30 bg-card/30">
 					<EmptyHeader>
 						<EmptyTitle className="text-sm font-medium text-foreground">
@@ -93,7 +225,7 @@ export function TaskCollectionView({
 				</Empty>
 			) : (
 				<div className="flex flex-col gap-2">
-					{tasks.map((task) => (
+					{filteredTasks.map((task) => (
 						<article
 							key={task.id}
 							className="group rounded-xl border border-border/30 bg-card/40 px-4 py-4 transition-colors hover:border-border/50 hover:bg-card/60 sm:px-5"

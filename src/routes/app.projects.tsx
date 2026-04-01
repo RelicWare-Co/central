@@ -4,6 +4,7 @@ import {
 	Outlet,
 	useRouterState,
 } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -12,6 +13,14 @@ import {
 	EmptyHeader,
 	EmptyTitle,
 } from "#/components/ui/empty";
+import { Input } from "#/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
 import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
 import { formatDueDateLabel } from "#/lib/formatting";
 import {
@@ -33,6 +42,42 @@ function ProjectsRoute() {
 	});
 	const isProjectDetailRoute = pathname.startsWith("/app/projects/");
 	const { items, summary } = Route.useLoaderData();
+
+	const [searchQuery, setSearchQuery] = useState("");
+	const [statusFilter, setStatusFilter] = useState("all");
+	const [ownerFilter, setOwnerFilter] = useState("all");
+
+	const owners = useMemo(() => {
+		const map = new Map();
+		for (const p of items) {
+			if (p.expand?.owner) {
+				map.set(p.owner, getOwnerLabel(p));
+			}
+		}
+		return Array.from(map.entries());
+	}, [items]);
+
+	const filteredItems = useMemo(() => {
+		return items.filter((project) => {
+			if (searchQuery) {
+				const query = searchQuery.toLowerCase();
+				if (
+					!project.name.toLowerCase().includes(query) &&
+					!project.description?.toLowerCase().includes(query)
+				) {
+					return false;
+				}
+			}
+			if (statusFilter !== "all" && project.status !== statusFilter)
+				return false;
+			if (
+				ownerFilter !== "all" &&
+				(project.owner || "unassigned") !== ownerFilter
+			)
+				return false;
+			return true;
+		});
+	}, [items, searchQuery, statusFilter, ownerFilter]);
 
 	usePocketBaseRealtimeInvalidate({
 		collection: "projects",
@@ -78,7 +123,49 @@ function ProjectsRoute() {
 				/>
 			</div>
 
-			{items.length === 0 ? (
+			{items.length > 0 ? (
+				<div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-card/50 p-3 sm:p-4">
+					<div className="min-w-[200px] flex-1">
+						<Input
+							placeholder="Search projects..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="h-9 w-full bg-background"
+						/>
+					</div>
+					<div className="flex flex-wrap items-center gap-2">
+						<Select value={statusFilter} onValueChange={setStatusFilter}>
+							<SelectTrigger className="h-9 w-[130px] bg-background">
+								<SelectValue placeholder="Status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All statuses</SelectItem>
+								<SelectItem value="active">Active</SelectItem>
+								<SelectItem value="paused">Paused</SelectItem>
+								<SelectItem value="blocked">Blocked</SelectItem>
+								<SelectItem value="completed">Completed</SelectItem>
+								<SelectItem value="archived">Archived</SelectItem>
+							</SelectContent>
+						</Select>
+						<Select value={ownerFilter} onValueChange={setOwnerFilter}>
+							<SelectTrigger className="h-9 w-[140px] bg-background">
+								<SelectValue placeholder="Owner" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All owners</SelectItem>
+								<SelectItem value="unassigned">Unassigned</SelectItem>
+								{owners.map(([id, name]) => (
+									<SelectItem key={id} value={id}>
+										{name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
+			) : null}
+
+			{filteredItems.length === 0 ? (
 				<Empty className="min-h-[200px] border-border/30 bg-card/30">
 					<EmptyHeader>
 						<EmptyTitle className="text-sm font-medium text-foreground">
@@ -92,7 +179,7 @@ function ProjectsRoute() {
 				</Empty>
 			) : (
 				<div className="flex flex-col gap-2">
-					{items.map((project) => (
+					{filteredItems.map((project) => (
 						<article
 							key={project.id}
 							className="group rounded-xl border border-border/30 bg-card/40 px-4 py-4 transition-colors hover:border-border/50 hover:bg-card/60 sm:px-5"
