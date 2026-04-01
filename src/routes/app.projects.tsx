@@ -1,10 +1,11 @@
+import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import {
 	createFileRoute,
 	Link,
 	Outlet,
 	useRouterState,
 } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -17,10 +18,12 @@ import { Input } from "#/components/ui/input";
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Separator } from "#/components/ui/separator";
 import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
 import { formatDueDateLabel } from "#/lib/formatting";
 import {
@@ -46,6 +49,7 @@ function ProjectsRoute() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [ownerFilter, setOwnerFilter] = useState("all");
+	const [isPending, startTransition] = useTransition();
 
 	const owners = useMemo(() => {
 		const map = new Map();
@@ -56,6 +60,18 @@ function ProjectsRoute() {
 		}
 		return Array.from(map.entries());
 	}, [items]);
+
+	const handleStatusChange = (value: string) => {
+		startTransition(() => {
+			setStatusFilter(value);
+		});
+	};
+
+	const handleOwnerChange = (value: string) => {
+		startTransition(() => {
+			setOwnerFilter(value);
+		});
+	};
 
 	const filteredItems = useMemo(() => {
 		return items.filter((project) => {
@@ -78,6 +94,21 @@ function ProjectsRoute() {
 			return true;
 		});
 	}, [items, searchQuery, statusFilter, ownerFilter]);
+
+	const hasActiveFilters =
+		statusFilter !== "all" || ownerFilter !== "all" || searchQuery !== "";
+
+	const activeFilterCount = [
+		statusFilter !== "all",
+		ownerFilter !== "all",
+		searchQuery !== "",
+	].filter(Boolean).length;
+
+	function handleClearFilters() {
+		setSearchQuery("");
+		setStatusFilter("all");
+		setOwnerFilter("all");
+	}
 
 	usePocketBaseRealtimeInvalidate({
 		collection: "projects",
@@ -126,43 +157,89 @@ function ProjectsRoute() {
 			</div>
 
 			{items.length > 0 ? (
-				<div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 sm:p-4">
-					<div className="min-w-[200px] flex-1">
+				<div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+					{/* Search Input */}
+					<div className="relative min-w-0 flex-1">
+						<MagnifyingGlassIcon
+							className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+							aria-hidden="true"
+						/>
 						<Input
 							placeholder="Search projects..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="h-9 w-full"
+							className="h-10 w-full rounded-xl border-border bg-secondary/50 pl-10 pr-4 text-sm placeholder:text-muted-foreground/60 focus-visible:bg-background"
 						/>
 					</div>
+
+					<Separator orientation="vertical" className="hidden h-8 sm:block" />
+
+					{/* Filter Dropdowns */}
 					<div className="flex flex-wrap items-center gap-2">
-						<Select value={statusFilter} onValueChange={setStatusFilter}>
-							<SelectTrigger className="h-9 w-[130px]">
-								<SelectValue placeholder="Status" />
+						<Select value={statusFilter} onValueChange={handleStatusChange}>
+							<SelectTrigger
+								aria-label="Filter by status"
+								className="h-10 w-auto min-w-[140px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+							>
+								<SelectValue placeholder="All statuses" />
 							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All statuses</SelectItem>
-								<SelectItem value="active">Active</SelectItem>
-								<SelectItem value="paused">Paused</SelectItem>
-								<SelectItem value="blocked">Blocked</SelectItem>
-								<SelectItem value="completed">Completed</SelectItem>
-								<SelectItem value="archived">Archived</SelectItem>
+							<SelectContent position="popper" align="end">
+								<SelectGroup>
+									<SelectItem value="all">All statuses</SelectItem>
+									<SelectItem value="active">Active</SelectItem>
+									<SelectItem value="paused">Paused</SelectItem>
+									<SelectItem value="blocked">Blocked</SelectItem>
+									<SelectItem value="completed">Completed</SelectItem>
+									<SelectItem value="archived">Archived</SelectItem>
+								</SelectGroup>
 							</SelectContent>
 						</Select>
-						<Select value={ownerFilter} onValueChange={setOwnerFilter}>
-							<SelectTrigger className="h-9 w-[140px]">
-								<SelectValue placeholder="Owner" />
+
+						<Select value={ownerFilter} onValueChange={handleOwnerChange}>
+							<SelectTrigger
+								aria-label="Filter by owner"
+								className="h-10 w-auto min-w-[150px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+							>
+								<SelectValue placeholder="All owners" />
 							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All owners</SelectItem>
-								<SelectItem value="unassigned">Unassigned</SelectItem>
-								{owners.map(([id, name]) => (
-									<SelectItem key={id} value={id}>
-										{name}
-									</SelectItem>
-								))}
+							<SelectContent position="popper" align="end">
+								<SelectGroup>
+									<SelectItem value="all">All owners</SelectItem>
+									<SelectItem value="unassigned">Unassigned</SelectItem>
+									{owners.map(([id, name]) => (
+										<SelectItem key={id} value={id}>
+											{name}
+										</SelectItem>
+									))}
+								</SelectGroup>
 							</SelectContent>
 						</Select>
+
+						{hasActiveFilters && (
+							<>
+								<Separator
+									orientation="vertical"
+									className="mx-1 hidden h-6 sm:block"
+								/>
+								<Button
+									onClick={handleClearFilters}
+									variant="ghost"
+									size="sm"
+									className="h-10 gap-2 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
+								>
+									<XIcon data-icon="inline-start" className="size-4" />
+									Clear
+									{activeFilterCount > 0 && (
+										<Badge
+											variant="secondary"
+											className="ml-1 h-5 min-w-5 px-1.5 text-xs"
+										>
+											{activeFilterCount}
+										</Badge>
+									)}
+								</Button>
+							</>
+						)}
 					</div>
 				</div>
 			) : null}
@@ -180,7 +257,12 @@ function ProjectsRoute() {
 					</EmptyHeader>
 				</Empty>
 			) : (
-				<div className="flex flex-col">
+				<div
+					className={cn(
+						"flex flex-col",
+						isPending && "opacity-70 transition-opacity duration-200",
+					)}
+				>
 					{filteredItems.map((project, index) => (
 						<article
 							key={project.id}

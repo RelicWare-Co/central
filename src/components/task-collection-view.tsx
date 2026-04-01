@@ -1,5 +1,7 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
+import { type ReactNode, useMemo, useState, useTransition } from "react";
 import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
 import {
 	Empty,
 	EmptyDescription,
@@ -10,10 +12,12 @@ import { Input } from "#/components/ui/input";
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Separator } from "#/components/ui/separator";
 import { formatDueDateLabel } from "#/lib/formatting";
 import { getRichTextPreview } from "#/lib/rich-text";
 import type {
@@ -23,6 +27,197 @@ import type {
 	TaskStatus,
 } from "#/lib/tasks";
 import { cn } from "#/lib/utils";
+
+type FilterOption = {
+	label: string;
+	value: string;
+};
+
+type TaskFilterBarProps = {
+	assigneeOptions: FilterOption[];
+	assigneeValue: string;
+	onAssigneeChange: (value: string) => void;
+	onPriorityChange: (value: string) => void;
+	onProjectChange: (value: string) => void;
+	onSearchChange: (value: string) => void;
+	onStatusChange: (value: string) => void;
+	priorityOptions: FilterOption[];
+	priorityValue: string;
+	projectOptions: FilterOption[];
+	projectValue: string;
+	searchValue: string;
+	statusOptions: FilterOption[];
+	statusValue: string;
+};
+
+function TaskFilterBar({
+	assigneeOptions,
+	assigneeValue,
+	onAssigneeChange,
+	onPriorityChange,
+	onProjectChange,
+	onSearchChange,
+	onStatusChange,
+	priorityOptions,
+	priorityValue,
+	projectOptions,
+	projectValue,
+	searchValue,
+	statusOptions,
+	statusValue,
+}: TaskFilterBarProps) {
+	const hasActiveFilters =
+		statusValue !== "all" ||
+		priorityValue !== "all" ||
+		projectValue !== "all" ||
+		assigneeValue !== "all" ||
+		searchValue !== "";
+
+	const activeFilterCount = [
+		statusValue !== "all",
+		priorityValue !== "all",
+		projectValue !== "all",
+		assigneeValue !== "all",
+		searchValue !== "",
+	].filter(Boolean).length;
+
+	function handleClearFilters() {
+		onSearchChange("");
+		onStatusChange("all");
+		onPriorityChange("all");
+		onProjectChange("all");
+		onAssigneeChange("all");
+	}
+
+	return (
+		<div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+			{/* Search Input */}
+			<div className="relative min-w-0 flex-1">
+				<MagnifyingGlassIcon
+					className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+					aria-hidden="true"
+				/>
+				<Input
+					placeholder="Search tasks..."
+					value={searchValue}
+					onChange={(e) => onSearchChange(e.target.value)}
+					className="h-10 w-full rounded-xl border-border bg-secondary/50 pl-10 pr-4 text-sm placeholder:text-muted-foreground/60 focus-visible:bg-background"
+				/>
+			</div>
+
+			<Separator orientation="vertical" className="hidden h-8 sm:block" />
+
+			{/* Filter Dropdowns */}
+			<div className="flex flex-wrap items-center gap-2">
+				<Select value={statusValue} onValueChange={onStatusChange}>
+					<SelectTrigger
+						aria-label="Filter by status"
+						className="h-10 w-auto min-w-[140px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+					>
+						<SelectValue placeholder="All statuses" />
+					</SelectTrigger>
+					<SelectContent position="popper" align="end">
+						<SelectGroup>
+							<SelectItem value="all">All statuses</SelectItem>
+							{statusOptions.map((option) => (
+								<SelectItem key={option.value} value={option.value}>
+									{option.label}
+								</SelectItem>
+							))}
+						</SelectGroup>
+					</SelectContent>
+				</Select>
+
+				<Select value={priorityValue} onValueChange={onPriorityChange}>
+					<SelectTrigger
+						aria-label="Filter by priority"
+						className="h-10 w-auto min-w-[130px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+					>
+						<SelectValue placeholder="All priorities" />
+					</SelectTrigger>
+					<SelectContent position="popper" align="end">
+						<SelectGroup>
+							<SelectItem value="all">All priorities</SelectItem>
+							{priorityOptions.map((option) => (
+								<SelectItem key={option.value} value={option.value}>
+									{option.label}
+								</SelectItem>
+							))}
+						</SelectGroup>
+					</SelectContent>
+				</Select>
+
+				{projectOptions.length > 0 && (
+					<Select value={projectValue} onValueChange={onProjectChange}>
+						<SelectTrigger
+							aria-label="Filter by project"
+							className="h-10 w-auto min-w-[140px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+						>
+							<SelectValue placeholder="All projects" />
+						</SelectTrigger>
+						<SelectContent position="popper" align="end">
+							<SelectGroup>
+								<SelectItem value="all">All projects</SelectItem>
+								{projectOptions.map((option) => (
+									<SelectItem key={option.value} value={option.value}>
+										{option.label}
+									</SelectItem>
+								))}
+							</SelectGroup>
+						</SelectContent>
+					</Select>
+				)}
+
+				{assigneeOptions.length > 0 && (
+					<Select value={assigneeValue} onValueChange={onAssigneeChange}>
+						<SelectTrigger
+							aria-label="Filter by assignee"
+							className="h-10 w-auto min-w-[150px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+						>
+							<SelectValue placeholder="All assignees" />
+						</SelectTrigger>
+						<SelectContent position="popper" align="end">
+							<SelectGroup>
+								<SelectItem value="all">All assignees</SelectItem>
+								{assigneeOptions.map((option) => (
+									<SelectItem key={option.value} value={option.value}>
+										{option.label}
+									</SelectItem>
+								))}
+							</SelectGroup>
+						</SelectContent>
+					</Select>
+				)}
+
+				{hasActiveFilters && (
+					<>
+						<Separator
+							orientation="vertical"
+							className="mx-1 hidden h-6 sm:block"
+						/>
+						<Button
+							onClick={handleClearFilters}
+							variant="ghost"
+							size="sm"
+							className="h-10 gap-2 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
+						>
+							<XIcon data-icon="inline-start" className="size-4" />
+							Clear
+							{activeFilterCount > 0 && (
+								<Badge
+									variant="secondary"
+									className="ml-1 h-5 min-w-5 px-1.5 text-xs"
+								>
+									{activeFilterCount}
+								</Badge>
+							)}
+						</Button>
+					</>
+				)}
+			</div>
+		</div>
+	);
+}
 
 type TaskCollectionViewProps = {
 	description?: string;
@@ -35,6 +230,20 @@ type TaskCollectionViewProps = {
 	title: string;
 	summary: TaskCollectionData["summary"];
 };
+
+const STATUS_OPTIONS: FilterOption[] = [
+	{ value: "pending", label: "Pending" },
+	{ value: "in_progress", label: "In Progress" },
+	{ value: "blocked", label: "Blocked" },
+	{ value: "completed", label: "Completed" },
+	{ value: "canceled", label: "Canceled" },
+];
+
+const PRIORITY_OPTIONS: FilterOption[] = [
+	{ value: "low", label: "Low" },
+	{ value: "medium", label: "Medium" },
+	{ value: "high", label: "High" },
+];
 
 export function TaskCollectionView({
 	description,
@@ -52,27 +261,65 @@ export function TaskCollectionView({
 	const [priorityFilter, setPriorityFilter] = useState("all");
 	const [assigneeFilter, setAssigneeFilter] = useState("all");
 	const [projectFilter, setProjectFilter] = useState("all");
+	const [isPending, startTransition] = useTransition();
 
-	const assignees = useMemo(() => {
-		const map = new Map();
+	// Build filter options from task data
+	const assigneeOptions = useMemo<FilterOption[]>(() => {
+		const map = new Map<string, string>();
 		for (const t of tasks) {
-			if (t.expand?.assignee) {
+			if (t.expand?.assignee && t.assignee) {
 				map.set(t.assignee, getUserLabel(t.expand.assignee));
 			}
 		}
-		return Array.from(map.entries());
+		return Array.from(map.entries()).map(([value, label]) => ({
+			value,
+			label,
+		}));
 	}, [tasks]);
 
-	const projects = useMemo(() => {
-		const map = new Map();
+	const projectOptions = useMemo<FilterOption[]>(() => {
+		const map = new Map<string, string>();
 		for (const t of tasks) {
-			if (t.expand?.project) {
+			if (t.expand?.project && t.project) {
 				map.set(t.project, t.expand.project.name);
 			}
 		}
-		return Array.from(map.entries());
+		return Array.from(map.entries()).map(([value, label]) => ({
+			value,
+			label,
+		}));
 	}, [tasks]);
 
+	// Wrap non-urgent filter updates in startTransition
+	const handleSearchChange = (value: string) => {
+		setSearchQuery(value);
+	};
+
+	const handleStatusChange = (value: string) => {
+		startTransition(() => {
+			setStatusFilter(value);
+		});
+	};
+
+	const handlePriorityChange = (value: string) => {
+		startTransition(() => {
+			setPriorityFilter(value);
+		});
+	};
+
+	const handleProjectChange = (value: string) => {
+		startTransition(() => {
+			setProjectFilter(value);
+		});
+	};
+
+	const handleAssigneeChange = (value: string) => {
+		startTransition(() => {
+			setAssigneeFilter(value);
+		});
+	};
+
+	// Filter tasks
 	const filteredTasks = useMemo(() => {
 		return tasks.filter((task) => {
 			if (searchQuery) {
@@ -102,8 +349,12 @@ export function TaskCollectionView({
 		projectFilter,
 	]);
 
+	const showFilters = tasks.length > 0;
+	const hasTasks = filteredTasks.length > 0;
+
 	return (
 		<section className="flex flex-col gap-6">
+			{/* Header */}
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div className="min-w-0">
 					<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
@@ -121,6 +372,7 @@ export function TaskCollectionView({
 				{headerAction ? <div className="shrink-0">{headerAction}</div> : null}
 			</div>
 
+			{/* Summary Badges */}
 			<div className="flex flex-wrap gap-2">
 				<SummaryBadge label="Total" value={summary.total} variant="default" />
 				<SummaryBadge
@@ -145,146 +397,105 @@ export function TaskCollectionView({
 				/>
 			</div>
 
-			{tasks.length > 0 ? (
-				<div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 sm:p-4">
-					<div className="min-w-[200px] flex-1">
-						<Input
-							placeholder="Search tasks..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="h-9 w-full"
-						/>
-					</div>
-					<div className="flex flex-wrap items-center gap-2">
-						<Select value={statusFilter} onValueChange={setStatusFilter}>
-							<SelectTrigger className="h-9 w-[130px]">
-								<SelectValue placeholder="Status" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All statuses</SelectItem>
-								<SelectItem value="pending">Pending</SelectItem>
-								<SelectItem value="in_progress">In Progress</SelectItem>
-								<SelectItem value="blocked">Blocked</SelectItem>
-								<SelectItem value="completed">Completed</SelectItem>
-								<SelectItem value="canceled">Canceled</SelectItem>
-							</SelectContent>
-						</Select>
-						<Select value={priorityFilter} onValueChange={setPriorityFilter}>
-							<SelectTrigger className="h-9 w-[120px]">
-								<SelectValue placeholder="Priority" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All priorities</SelectItem>
-								<SelectItem value="low">Low</SelectItem>
-								<SelectItem value="medium">Medium</SelectItem>
-								<SelectItem value="high">High</SelectItem>
-							</SelectContent>
-						</Select>
-						{projects.length > 0 && (
-							<Select value={projectFilter} onValueChange={setProjectFilter}>
-								<SelectTrigger className="h-9 w-[140px]">
-									<SelectValue placeholder="Project" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All projects</SelectItem>
-									{projects.map(([id, name]) => (
-										<SelectItem key={id} value={id}>
-											{name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						)}
-						{assignees.length > 0 && (
-							<Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-								<SelectTrigger className="h-9 w-[140px]">
-									<SelectValue placeholder="Assignee" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All assignees</SelectItem>
-									{assignees.map(([id, name]) => (
-										<SelectItem key={id} value={id}>
-											{name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						)}
-					</div>
-				</div>
-			) : null}
-
-			{filteredTasks.length === 0 ? (
-				<Empty className="min-h-[200px]">
-					<EmptyHeader>
-						<EmptyTitle className="text-sm font-medium text-foreground">
-							{emptyTitle}
-						</EmptyTitle>
-						<EmptyDescription className="max-w-md text-sm text-muted-foreground">
-							{emptyDescription}
-						</EmptyDescription>
-					</EmptyHeader>
-				</Empty>
-			) : (
-				<div className="flex flex-col">
-					{filteredTasks.map((task, index) => (
-						<article
-							key={task.id}
-							className={cn(
-								"group relative px-4 py-4 transition-colors duration-150 hover:bg-secondary/50 sm:px-5",
-								index !== 0 && "border-t border-border",
-							)}
-						>
-							<span
-								className={cn(
-									"absolute inset-y-0 left-0 w-0.5",
-									getTaskAccentClass(task),
-								)}
-							/>
-							<div className="grid gap-3 lg:grid-cols-[minmax(0,2.2fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(9rem,1fr)_auto] lg:items-start lg:gap-4">
-								<div className="min-w-0">
-									<p className="text-xs text-muted-foreground">
-										{getTaskScopeLabel(task)}
-									</p>
-									<h4 className="mt-1 text-pretty text-sm font-semibold tracking-[-0.01em] text-foreground">
-										{task.title}
-									</h4>
-									<p className="mt-1 max-w-xl text-sm text-muted-foreground">
-										{getDescription(task.description)}
-									</p>
-
-									{task.status === "blocked" && task.blockedReason ? (
-										<p className="mt-2 max-w-xl text-sm text-destructive">
-											{task.blockedReason}
-										</p>
-									) : null}
-								</div>
-
-								<div className="flex flex-wrap gap-1.5 lg:flex-col lg:items-start">
-									<PriorityBadge priority={task.priority} />
-									<StatusBadge status={task.status} />
-								</div>
-
-								<MetaItem
-									label="Assignee"
-									value={getUserLabel(task.expand?.assignee)}
-									secondaryValue={`Created by ${getUserLabel(task.expand?.createdBy)}`}
-								/>
-
-								<MetaItem
-									label="Deadline"
-									value={formatDueDateLabel(task.dueDate)}
-									valueClassName="tabular-nums"
-								/>
-
-								<div className="flex flex-wrap gap-2 lg:justify-self-end">
-									{renderTaskActions ? renderTaskActions(task) : null}
-								</div>
-							</div>
-						</article>
-					))}
-				</div>
+			{/* Filter Bar */}
+			{showFilters && (
+				<TaskFilterBar
+					assigneeOptions={assigneeOptions}
+					assigneeValue={assigneeFilter}
+					onAssigneeChange={handleAssigneeChange}
+					onPriorityChange={handlePriorityChange}
+					onProjectChange={handleProjectChange}
+					onSearchChange={handleSearchChange}
+					onStatusChange={handleStatusChange}
+					priorityOptions={PRIORITY_OPTIONS}
+					priorityValue={priorityFilter}
+					projectOptions={projectOptions}
+					projectValue={projectFilter}
+					searchValue={searchQuery}
+					statusOptions={STATUS_OPTIONS}
+					statusValue={statusFilter}
+				/>
 			)}
+
+			{/* Results */}
+			<div
+				className={cn(
+					"min-h-[200px]",
+					isPending && "opacity-70 transition-opacity duration-200",
+				)}
+			>
+				{!hasTasks ? (
+					<Empty className="min-h-[200px]">
+						<EmptyHeader>
+							<EmptyTitle className="text-sm font-medium text-foreground">
+								{emptyTitle}
+							</EmptyTitle>
+							<EmptyDescription className="max-w-md text-sm text-muted-foreground">
+								{emptyDescription}
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
+				) : (
+					<div className="flex flex-col rounded-xl border border-border bg-card">
+						{filteredTasks.map((task, index) => (
+							<article
+								key={task.id}
+								className={cn(
+									"group relative px-4 py-4 transition-colors duration-150 hover:bg-secondary/50 sm:px-5",
+									index !== 0 && "border-t border-border",
+								)}
+							>
+								<span
+									className={cn(
+										"absolute inset-y-0 left-0 w-0.5",
+										getTaskAccentClass(task),
+									)}
+								/>
+								<div className="grid gap-3 lg:grid-cols-[minmax(0,2.2fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(9rem,1fr)_auto] lg:items-start lg:gap-4">
+									<div className="min-w-0">
+										<p className="text-xs text-muted-foreground">
+											{getTaskScopeLabel(task)}
+										</p>
+										<h4 className="mt-1 text-pretty text-sm font-semibold tracking-[-0.01em] text-foreground">
+											{task.title}
+										</h4>
+										<p className="mt-1 max-w-xl text-sm text-muted-foreground">
+											{getDescription(task.description)}
+										</p>
+
+										{task.status === "blocked" && task.blockedReason ? (
+											<p className="mt-2 max-w-xl text-sm text-destructive">
+												{task.blockedReason}
+											</p>
+										) : null}
+									</div>
+
+									<div className="flex flex-wrap gap-1.5 lg:flex-col lg:items-start">
+										<PriorityBadge priority={task.priority} />
+										<StatusBadge status={task.status} />
+									</div>
+
+									<MetaItem
+										label="Assignee"
+										value={getUserLabel(task.expand?.assignee)}
+										secondaryValue={`Created by ${getUserLabel(task.expand?.createdBy)}`}
+									/>
+
+									<MetaItem
+										label="Deadline"
+										value={formatDueDateLabel(task.dueDate)}
+										valueClassName="tabular-nums"
+									/>
+
+									<div className="flex flex-wrap gap-2 lg:justify-self-end">
+										{renderTaskActions ? renderTaskActions(task) : null}
+									</div>
+								</div>
+							</article>
+						))}
+					</div>
+				)}
+			</div>
 		</section>
 	);
 }
