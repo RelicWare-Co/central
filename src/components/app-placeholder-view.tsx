@@ -10,17 +10,17 @@ export function AppPlaceholderView({
 	title,
 }: AppPlaceholderViewProps) {
 	return (
-		<section className="flex flex-col gap-4">
+		<section className="flex flex-col gap-5">
 			<div>
-				<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+				<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 					{eyebrow}
 				</p>
-				<h3 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground">
+				<h3 className="mt-1.5 font-serif text-xl font-normal tracking-[-0.02em] text-foreground">
 					{title}
 				</h3>
 			</div>
 
-			<Empty className="min-h-[280px] border-border/70 bg-background/35">
+			<Empty className="min-h-[240px]">
 				<EmptyHeader>
 					<EmptyTitle className="text-sm font-medium text-foreground">
 						{title}

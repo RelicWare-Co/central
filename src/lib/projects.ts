@@ -203,10 +203,29 @@ export function getDefaultProjectFormValues(
 	} satisfies ProjectFormValues;
 }
 
-export async function createProject(values: ProjectFormValues) {
-	return pb
-		.collection("projects")
-		.create<ProjectRecord>(buildProjectPayload(values));
+export async function createProject(
+	auth: AuthContext,
+	values: ProjectFormValues,
+	redirectTo = "/app/projects/new",
+) {
+	try {
+		return await pb
+			.collection("projects")
+			.create<ProjectRecord>(buildProjectPayload(values));
+	} catch (error) {
+		if (isUnauthorizedError(error)) {
+			auth.logout();
+
+			throw redirect({
+				to: "/login",
+				search: {
+					redirect: redirectTo,
+				},
+			});
+		}
+
+		throw error;
+	}
 }
 
 function buildProjectPayload(values: ProjectFormValues) {

@@ -1,9 +1,12 @@
+import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Link,
 	Outlet,
 	useRouterState,
 } from "@tanstack/react-router";
+import { useMemo, useState, useTransition } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -12,131 +15,263 @@ import {
 	EmptyHeader,
 	EmptyTitle,
 } from "#/components/ui/empty";
-import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
-import { formatDueDateLabel } from "#/lib/formatting";
+import { Input } from "#/components/ui/input";
+import { ProjectCard } from "#/components/ui/project-card";
 import {
-	listProjects,
-	type ProjectRecord,
-	type ProjectStatus,
-} from "#/lib/projects";
-import { getRichTextPreview } from "#/lib/rich-text";
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
+import { Separator } from "#/components/ui/separator";
+import type { ProjectRecord } from "#/lib/projects";
+import {
+	projectsListLiveQueryOptions,
+	projectsListSnapshotQueryOptions,
+} from "#/lib/projects.queries";
 import { cn } from "#/lib/utils";
 
 export const Route = createFileRoute("/app/projects")({
-	loader: async ({ context }) => listProjects(context.auth),
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData({
+			...projectsListSnapshotQueryOptions(context.auth),
+			revalidateIfStale: true,
+		});
+	},
 	component: ProjectsRoute,
 });
 
 function ProjectsRoute() {
+	const { auth } = Route.useRouteContext();
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
 	const isProjectDetailRoute = pathname.startsWith("/app/projects/");
-	const { items, summary } = Route.useLoaderData();
+	const {
+		data: { items, summary },
+	} = useSuspenseQuery(projectsListLiveQueryOptions(auth));
 
-	usePocketBaseRealtimeInvalidate({
-		collection: "projects",
-		enabled: !isProjectDetailRoute,
-		topic: "*",
-	});
+	const [searchQuery, setSearchQuery] = useState("");
+	const [statusFilter, setStatusFilter] = useState("all");
+	const [ownerFilter, setOwnerFilter] = useState("all");
+	const [isPending, startTransition] = useTransition();
+
+	const owners = useMemo(() => {
+		const map = new Map();
+		for (const p of items) {
+			if (p.expand?.owner) {
+				map.set(p.owner, getOwnerLabel(p));
+			}
+		}
+		return Array.from(map.entries());
+	}, [items]);
+
+	const handleStatusChange = (value: string) => {
+		startTransition(() => {
+			setStatusFilter(value);
+		});
+	};
+
+	const handleOwnerChange = (value: string) => {
+		startTransition(() => {
+			setOwnerFilter(value);
+		});
+	};
+
+	const filteredItems = useMemo(() => {
+		return items.filter((project) => {
+			if (searchQuery) {
+				const query = searchQuery.toLowerCase();
+				if (
+					!project.name.toLowerCase().includes(query) &&
+					!project.description?.toLowerCase().includes(query)
+				) {
+					return false;
+				}
+			}
+			if (statusFilter !== "all" && project.status !== statusFilter)
+				return false;
+			if (
+				ownerFilter !== "all" &&
+				(project.owner || "unassigned") !== ownerFilter
+			)
+				return false;
+			return true;
+		});
+	}, [items, searchQuery, statusFilter, ownerFilter]);
+
+	const hasActiveFilters =
+		statusFilter !== "all" || ownerFilter !== "all" || searchQuery !== "";
+
+	const activeFilterCount = [
+		statusFilter !== "all",
+		ownerFilter !== "all",
+		searchQuery !== "",
+	].filter(Boolean).length;
+
+	function handleClearFilters() {
+		setSearchQuery("");
+		setStatusFilter("all");
+		setOwnerFilter("all");
+	}
 
 	if (isProjectDetailRoute) {
 		return <Outlet />;
 	}
 
 	return (
-		<section className="flex flex-col gap-4">
+		<section className="flex flex-col gap-6">
 			<div className="flex flex-wrap items-end justify-between gap-3">
 				<div>
-					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+					<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 						Projects
 					</p>
-					<h3 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
-						Current Portfolio
+					<h3 className="mt-1.5 font-serif text-xl font-normal tracking-[-0.02em] text-foreground sm:text-2xl">
+						Current portfolio
 					</h3>
 				</div>
 
 				<Button asChild size="sm">
-					<Link to="/app/projects/new">New Project</Link>
+					<Link to="/app/projects/new">New project</Link>
 				</Button>
 			</div>
 
 			<div className="flex flex-wrap gap-2">
-				<SummaryBadge label="Portfolio" value={summary.total} />
-				<SummaryBadge label="Active" value={summary.active} />
-				<SummaryBadge label="Blocked" value={summary.blocked} />
-				<SummaryBadge label="Completed" value={summary.completed} />
+				<SummaryBadge
+					label="Portfolio"
+					value={summary.total}
+					variant="default"
+				/>
+				<SummaryBadge label="Active" value={summary.active} variant="info" />
+				<SummaryBadge
+					label="Blocked"
+					value={summary.blocked}
+					variant="danger"
+				/>
+				<SummaryBadge
+					label="Completed"
+					value={summary.completed}
+					variant="success"
+				/>
 			</div>
 
-			{items.length === 0 ? (
-				<Empty className="min-h-[240px] border-border/70 bg-background/35">
+			{items.length > 0 ? (
+				<div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+					{/* Search Input */}
+					<div className="relative min-w-0 flex-1">
+						<MagnifyingGlassIcon
+							className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+							aria-hidden="true"
+						/>
+						<Input
+							placeholder="Search projects..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="h-10 w-full rounded-xl border-border bg-secondary/50 pl-10 pr-4 text-sm placeholder:text-muted-foreground/60 focus-visible:bg-background"
+						/>
+					</div>
+
+					<Separator orientation="vertical" className="hidden h-8 sm:block" />
+
+					{/* Filter Dropdowns */}
+					<div className="flex flex-wrap items-center gap-2">
+						<Select value={statusFilter} onValueChange={handleStatusChange}>
+							<SelectTrigger
+								aria-label="Filter by status"
+								className="h-10 w-auto min-w-[140px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+							>
+								<SelectValue placeholder="All statuses" />
+							</SelectTrigger>
+							<SelectContent position="popper" align="end">
+								<SelectGroup>
+									<SelectItem value="all">All statuses</SelectItem>
+									<SelectItem value="active">Active</SelectItem>
+									<SelectItem value="paused">Paused</SelectItem>
+									<SelectItem value="blocked">Blocked</SelectItem>
+									<SelectItem value="completed">Completed</SelectItem>
+									<SelectItem value="archived">Archived</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+
+						<Select value={ownerFilter} onValueChange={handleOwnerChange}>
+							<SelectTrigger
+								aria-label="Filter by owner"
+								className="h-10 w-auto min-w-[150px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+							>
+								<SelectValue placeholder="All owners" />
+							</SelectTrigger>
+							<SelectContent position="popper" align="end">
+								<SelectGroup>
+									<SelectItem value="all">All owners</SelectItem>
+									<SelectItem value="unassigned">Unassigned</SelectItem>
+									{owners.map(([id, name]) => (
+										<SelectItem key={id} value={id}>
+											{name}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+
+						{hasActiveFilters && (
+							<>
+								<Separator
+									orientation="vertical"
+									className="mx-1 hidden h-6 sm:block"
+								/>
+								<Button
+									onClick={handleClearFilters}
+									variant="ghost"
+									size="sm"
+									className="h-10 gap-2 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
+								>
+									<XIcon data-icon="inline-start" className="size-4" />
+									Clear
+									{activeFilterCount > 0 && (
+										<Badge
+											variant="secondary"
+											className="ml-1 h-5 min-w-5 px-1.5 text-xs"
+										>
+											{activeFilterCount}
+										</Badge>
+									)}
+								</Button>
+							</>
+						)}
+					</div>
+				</div>
+			) : null}
+
+			{filteredItems.length === 0 ? (
+				<Empty className="min-h-[200px]">
 					<EmptyHeader>
 						<EmptyTitle className="text-sm font-medium text-foreground">
 							No active projects
 						</EmptyTitle>
 						<EmptyDescription className="max-w-md text-sm text-muted-foreground">
-							When projects are created in PocketBase, this view will surface
-							their status, owner and deadline.
+							Create a project to organize tasks, assign owners and track
+							deadlines.
 						</EmptyDescription>
 					</EmptyHeader>
 				</Empty>
 			) : (
-				<div className="overflow-hidden rounded-sm border border-border/70 bg-background/20">
-					{items.map((project) => (
-						<article
+				<div
+					className={cn(
+						"flex flex-col gap-3",
+						isPending && "opacity-70 transition-opacity duration-200",
+					)}
+				>
+					{filteredItems.map((project, index) => (
+						<ProjectCard
 							key={project.id}
-							className="border-b border-border/70 px-4 py-5 last:border-b-0 sm:px-5"
-						>
-							<div className="grid gap-4 lg:grid-cols-[minmax(0,2.2fr)_minmax(7rem,0.8fr)_minmax(8.5rem,0.95fr)_minmax(9.5rem,1fr)_auto] lg:items-start lg:gap-5">
-								<div className="min-w-0">
-									<p className="truncate text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
-										{project.slug}
-									</p>
-									<h3 className="mt-2 text-pretty text-lg font-semibold tracking-[-0.03em] text-foreground">
-										<Link
-											className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/50"
-											params={{
-												projectId: project.id,
-											}}
-											to="/app/projects/$projectId"
-										>
-											{project.name}
-										</Link>
-									</h3>
-									<p className="mt-2 max-w-2xl break-words text-sm text-muted-foreground">
-										{getRichTextPreview(
-											project.description,
-											"No description yet. This project is ready for tasks, ownership and status tracking.",
-										)}
-									</p>
-								</div>
-
-								<div className="flex flex-wrap gap-2 lg:flex-col lg:items-start">
-									<StatusBadge status={project.status} />
-								</div>
-
-								<MetaItem label="Owner" value={getOwnerLabel(project)} />
-
-								<MetaItem
-									label="Deadline"
-									value={formatDueDateLabel(project.dueDate)}
-									valueClassName="tabular-nums"
-								/>
-
-								<div className="flex flex-wrap gap-2 lg:justify-self-end">
-									<Button asChild size="sm" variant="outline">
-										<Link
-											params={{
-												projectId: project.id,
-											}}
-											to="/app/projects/$projectId"
-										>
-											Open Project
-										</Link>
-									</Button>
-								</div>
-							</div>
-						</article>
+							project={project}
+							variant="default"
+							size="md"
+							index={index}
+						/>
 					))}
 				</div>
 			)}
@@ -144,54 +279,35 @@ function ProjectsRoute() {
 	);
 }
 
-function MetaItem({
+function SummaryBadge({
 	label,
 	value,
-	valueClassName,
+	variant = "default",
 }: {
 	label: string;
-	value: string;
-	valueClassName?: string;
+	value: number;
+	variant?: "default" | "info" | "success" | "warning" | "danger";
 }) {
-	return (
-		<div className="min-w-0">
-			<dt className="text-[0.68rem] uppercase tracking-[0.18em]">{label}</dt>
-			<dd
-				className={cn(
-					"mt-2 break-words text-sm text-foreground",
-					valueClassName,
-				)}
-			>
-				{value}
-			</dd>
-		</div>
-	);
-}
+	const palette = {
+		default: "border-border bg-secondary text-foreground",
+		info: "border-[oklch(0.85_0.04_230)] bg-[oklch(0.95_0.025_230)] text-[oklch(0.42_0.10_230)]",
+		success:
+			"border-[oklch(0.87_0.035_148)] bg-[oklch(0.955_0.02_148)] text-[oklch(0.40_0.10_148)]",
+		warning:
+			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
+		danger:
+			"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
+	};
 
-function SummaryBadge({ label, value }: { label: string; value: number }) {
 	return (
-		<div className="rounded-sm border border-border/80 bg-background/85 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground">
-			<span className="font-medium tabular-nums text-foreground">
+		<div
+			className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs ${palette[variant]}`}
+		>
+			<span className="font-semibold tabular-nums">
 				{String(value).padStart(2, "0")}
-			</span>{" "}
+			</span>
 			{label}
 		</div>
-	);
-}
-
-function StatusBadge({ status }: { status: ProjectStatus }) {
-	const palette = {
-		active: "border-sky-500/20 bg-sky-500/10 text-sky-300",
-		archived: "border-border bg-background/70 text-muted-foreground",
-		blocked: "border-destructive/20 bg-destructive/10 text-destructive",
-		completed: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
-		paused: "border-amber-500/20 bg-amber-500/10 text-amber-300",
-	} satisfies Record<ProjectStatus, string>;
-
-	return (
-		<Badge variant="outline" className={palette[status]}>
-			{status.replace("_", " ")}
-		</Badge>
 	);
 }
 

@@ -5,21 +5,21 @@ import type * as React from "react";
 import { cn } from "#/lib/utils";
 
 const badgeVariants = cva(
-	"group/badge inline-flex h-6 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-sm border px-2.5 py-0.5 text-[0.65rem] font-semibold whitespace-nowrap uppercase tracking-[0.14em] transition-[background-color,border-color,color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!",
+	"group/badge inline-flex h-6 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border px-2.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-[0.05em] whitespace-nowrap transition-[background-color,border-color,color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&>svg]:pointer-events-none [&>svg]:size-3!",
 	{
 		variants: {
 			variant: {
 				default:
-					"border-primary/50 bg-primary/95 text-primary-foreground [a]:hover:bg-primary/85",
+					"border-border bg-secondary text-foreground",
 				secondary:
-					"border-border/70 bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
+					"border-border bg-secondary text-secondary-foreground",
 				destructive:
-					"border-destructive/35 bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+					"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
 				outline:
-					"border-border/80 bg-background/70 text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
+					"border-border bg-transparent text-foreground",
 				ghost:
-					"border-transparent hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-				link: "text-primary underline-offset-4 hover:underline",
+					"border-transparent hover:bg-secondary hover:text-muted-foreground",
+				link: "text-foreground underline-offset-4 hover:underline",
 			},
 		},
 		defaultVariants: {

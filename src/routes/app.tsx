@@ -5,6 +5,7 @@ import {
 	ListChecksIcon,
 	PlusIcon,
 	SignOutIcon,
+	StackIcon,
 	TrayIcon,
 } from "@phosphor-icons/react";
 import {
@@ -16,13 +17,14 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import type { ComponentType } from "react";
-import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { useAuth } from "#/lib/auth";
 import { cn } from "#/lib/utils";
 
+let initialRefreshDone = false;
+
 export const Route = createFileRoute("/app")({
-	beforeLoad: ({ context, location }) => {
+	beforeLoad: async ({ context, location }) => {
 		if (!context.auth.getState().isAuthenticated) {
 			throw redirect({
 				to: "/login",
@@ -30,6 +32,20 @@ export const Route = createFileRoute("/app")({
 					redirect: `${location.pathname}${location.searchStr}${location.hash}`,
 				},
 			});
+		}
+
+		if (!initialRefreshDone) {
+			initialRefreshDone = true;
+			await context.auth.refresh();
+
+			if (!context.auth.getState().isAuthenticated) {
+				throw redirect({
+					to: "/login",
+					search: {
+						redirect: `${location.pathname}${location.searchStr}${location.hash}`,
+					},
+				});
+			}
 		}
 	},
 	component: AppRoute,
@@ -77,7 +93,7 @@ function AppRoute() {
 	});
 	const currentView = getCurrentView(pathname);
 	const primaryAction = getPrimaryAction(pathname);
-	const contentContainerClassName = "mx-auto w-full max-w-6xl";
+	const contentContainerClassName = "mx-auto w-full max-w-5xl";
 
 	async function handleLogout() {
 		auth.logout();
@@ -86,28 +102,22 @@ function AppRoute() {
 
 	return (
 		<main className="min-h-screen bg-background text-foreground">
-			<div className="mx-auto flex min-h-screen max-w-[1680px] flex-col gap-2 p-2 md:flex-row md:p-3">
-				<aside className="hidden w-64 shrink-0 flex-col rounded-md border border-border/80 bg-card/92 p-2 shadow-[0_24px_80px_rgba(0,0,0,0.36)] md:flex">
-					<div className="flex items-center justify-between gap-3 border-b border-border/70 px-2 pb-4">
+			<div className="mx-auto flex min-h-screen max-w-[1440px] flex-col md:flex-row">
+				<aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex md:sticky md:top-0 md:h-screen">
+					<div className="flex items-center gap-3 px-5 py-6">
+						<div className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background">
+							<StackIcon className="size-4" weight="bold" />
+						</div>
 						<div>
-							<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+							<p className="text-sm font-semibold tracking-[-0.01em] text-foreground">
 								Central
 							</p>
-							<h1 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-foreground">
-								Workspace
-							</h1>
+							<p className="text-[0.68rem] text-muted-foreground">Workspace</p>
 						</div>
-
-						<Badge
-							variant="outline"
-							className="border-primary/25 bg-background/85 text-primary"
-						>
-							{String(authState.user?.role ?? "member")}
-						</Badge>
 					</div>
 
-					<div className="py-4">
-						<Button asChild className="w-full justify-start" size="lg">
+					<div className="px-3 pb-3">
+						<Button asChild className="w-full justify-start" size="sm">
 							<Link to={primaryAction.to}>
 								<PlusIcon data-icon="inline-start" />
 								{primaryAction.label}
@@ -115,14 +125,17 @@ function AppRoute() {
 						</Button>
 					</div>
 
-					<nav aria-label="Primary" className="flex flex-1 flex-col gap-1">
+					<nav
+						aria-label="Primary"
+						className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3"
+					>
 						{navigationItems.map((item) => (
 							<NavLink key={item.to} item={item} />
 						))}
 					</nav>
 
-					<div className="mt-4 flex items-center justify-between gap-3 border-t border-border/70 px-2 pt-4">
-						<div className="min-w-0">
+					<div className="flex items-center justify-between gap-2 border-t border-border px-5 py-4">
+						<div className="min-w-0 flex-1">
 							<p className="truncate text-sm font-medium text-foreground">
 								{authState.user?.name ||
 									authState.user?.email ||
@@ -145,12 +158,12 @@ function AppRoute() {
 					</div>
 				</aside>
 
-				<section className="flex min-w-0 flex-1 flex-col rounded-md border border-border/80 bg-card/88 shadow-[0_24px_80px_rgba(0,0,0,0.34)]">
-					<header className="border-b border-border/70 px-4 py-4 sm:px-6">
+				<section className="flex min-w-0 flex-1 flex-col">
+					<header className="border-b border-border bg-card px-6 py-5 sm:px-8">
 						<div className={`${contentContainerClassName} flex flex-col gap-4`}>
-							<div className="flex items-start justify-between gap-4">
+							<div className="flex items-center justify-between gap-4">
 								<div className="min-w-0">
-									<h2 className="text-2xl font-semibold tracking-[-0.05em] text-foreground sm:text-3xl">
+									<h2 className="font-serif text-[1.65rem] font-normal tracking-[-0.02em] leading-[1.15] text-foreground sm:text-[1.85rem]">
 										{currentView.label}
 									</h2>
 								</div>
@@ -158,7 +171,7 @@ function AppRoute() {
 								<Button
 									asChild
 									className="hidden shrink-0 md:inline-flex"
-									size="lg"
+									size="sm"
 								>
 									<Link to={primaryAction.to}>
 										<PlusIcon data-icon="inline-start" />
@@ -178,7 +191,7 @@ function AppRoute() {
 						</div>
 					</header>
 
-					<div className="flex-1 px-4 py-4 sm:px-6 sm:py-6">
+					<div className="flex-1 px-6 py-6 sm:px-8">
 						<div className={contentContainerClassName}>
 							<Outlet />
 						</div>
@@ -195,7 +208,7 @@ function NavLink({
 }: {
 	compact?: boolean;
 	item: {
-		icon: ComponentType<{ className?: string }>;
+		icon: ComponentType<{ className?: string; weight?: string }>;
 		label: string;
 		matchPrefix: string;
 		to: (typeof navigationItems)[number]["to"];
@@ -215,27 +228,30 @@ function NavLink({
 				"aria-current": "page",
 			}}
 			className={cn(
-				"group flex items-center gap-3 rounded-sm border px-3 py-3 transition-colors",
-				compact ? "shrink-0 whitespace-nowrap py-2" : "w-full",
+				"group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors duration-150",
+				compact ? "shrink-0 whitespace-nowrap" : "w-full",
 				isActive
-					? "border-primary/30 bg-accent/70 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-					: "border-transparent text-muted-foreground hover:border-border/60 hover:bg-background/70 hover:text-foreground",
+					? "bg-secondary text-foreground font-medium"
+					: "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
 			)}
 			preload="intent"
 			to={item.to}
 		>
+			{isActive && !compact && (
+				<span className="absolute left-0 inset-y-1.5 w-0.5 rounded-full bg-foreground" />
+			)}
 			<span
 				className={cn(
-					"flex size-9 shrink-0 aspect-square items-center justify-center rounded-sm border text-foreground/80 transition-colors group-hover:text-foreground",
+					"flex size-7 shrink-0 items-center justify-center rounded-md transition-colors",
 					isActive
-						? "border-primary/25 bg-background/90 text-primary"
-						: "border-border/60 bg-background/80",
+						? "text-foreground"
+						: "text-muted-foreground/70 group-hover:text-muted-foreground",
 				)}
 			>
-				<Icon />
+				<Icon className="size-[0.95rem]" />
 			</span>
 
-			<span className="min-w-0 truncate text-sm font-medium">{item.label}</span>
+			<span className="min-w-0 truncate">{item.label}</span>
 		</Link>
 	);
 }
@@ -269,13 +285,13 @@ function getCurrentView(pathname: string) {
 function getPrimaryAction(pathname: string) {
 	if (pathname === "/app/projects") {
 		return {
-			label: "New Project",
+			label: "New project",
 			to: "/app/projects/new" as const,
 		};
 	}
 
 	return {
-		label: "New Task",
+		label: "New task",
 		to: "/app/tasks/new" as const,
 	};
 }

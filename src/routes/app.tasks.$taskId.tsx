@@ -1,49 +1,59 @@
 import {
-	createFileRoute,
-	Link,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router";
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { startTransition } from "react";
+import { ActivityPanel } from "#/components/activity-panel";
 import { TaskEditorForm } from "#/components/task-editor-form";
 import { TaskSubtasksPanel } from "#/components/task-subtasks-panel";
 import { Button } from "#/components/ui/button";
-import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
+import { activityLogsSnapshotQueryOptions } from "#/lib/activity.queries";
+import { queryKeys } from "#/lib/query-keys";
 import {
 	getTaskEditorReturnLink,
 	validateTaskEditorSearch,
 } from "#/lib/task-editor-routing";
 import {
-	getTaskById,
-	getTaskFormOptions,
 	getTaskFormValues,
-	listSubtasksForTask,
+	type TaskFormValues,
 	updateTask,
 } from "#/lib/tasks";
+import {
+	taskDetailLiveQueryOptions,
+	taskDetailSnapshotQueryOptions,
+	taskFormOptionsSnapshotQueryOptions,
+	taskSubtasksSnapshotQueryOptions,
+} from "#/lib/tasks.queries";
 
 export const Route = createFileRoute("/app/tasks/$taskId")({
 	validateSearch: validateTaskEditorSearch,
 	loader: async ({ context, location, params }) => {
 		const normalizedSearch = validateTaskEditorSearch(location.search);
-		const [task, options, subtasks] = await Promise.all([
-			getTaskById(context.auth, params.taskId, `/app/tasks/${params.taskId}`),
-			getTaskFormOptions(context.auth, `/app/tasks/${params.taskId}`),
-			listSubtasksForTask(
-				context.auth,
-				params.taskId,
-				`/app/tasks/${params.taskId}`,
-			),
+		await Promise.all([
+			context.queryClient.ensureQueryData({
+				...taskDetailSnapshotQueryOptions(context.auth, params.taskId),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...taskFormOptionsSnapshotQueryOptions(context.auth),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...taskSubtasksSnapshotQueryOptions(context.auth, params.taskId),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...activityLogsSnapshotQueryOptions({
+					taskId: params.taskId,
+				}),
+				revalidateIfStale: true,
+			}),
 		]);
 
 		return {
-			options: {
-				...options,
-				projects: mergeProjectOption(options.projects, task),
-				users: mergeUserOption(options.users, task),
-			},
 			search: normalizedSearch,
-			subtasks,
-			task,
 		};
 	},
 	component: EditTaskRoute,
@@ -52,17 +62,30 @@ export const Route = createFileRoute("/app/tasks/$taskId")({
 
 function EditTaskRoute() {
 	const navigate = useNavigate({ from: Route.fullPath });
-	const router = useRouter();
-	const { options, search, subtasks, task } = Route.useLoaderData();
+	const queryClient = useQueryClient();
+	const { auth } = Route.useRouteContext();
+	const { taskId } = Route.useParams();
+	const search = Route.useSearch();
+	const { data: task } = useSuspenseQuery({
+		...taskDetailLiveQueryOptions(auth, taskId),
+		enabled: search.editor !== "open",
+	});
+	const { data: baseOptions } = useSuspenseQuery(
+		taskFormOptionsSnapshotQueryOptions(auth),
+	);
+	const options = {
+		...baseOptions,
+		projects: mergeProjectOption(baseOptions.projects, task),
+		users: mergeUserOption(baseOptions.users, task),
+	};
 	const cancelLink = getTaskEditorReturnLink(
 		search,
 		search.projectId ?? task.project,
 	);
 
-	usePocketBaseRealtimeInvalidate({
-		collection: "tasks",
-		enabled: search.editor !== "open",
-		topic: task.id,
+	const updateTaskMutation = useMutation({
+		mutationFn: async (values: TaskFormValues) =>
+			updateTask(auth, task.id, values, task.completedAt),
 	});
 
 	return (
@@ -73,11 +96,11 @@ function EditTaskRoute() {
 				</Button>
 			}
 			editorOpen={search.editor === "open"}
-			eyebrow="Task Detail"
+			eyebrow="Task detail"
 			initialValues={getTaskFormValues(task)}
 			options={options}
-			submitLabel="Save Task"
-			title="Edit Task"
+			submitLabel="Save task"
+			title="Edit task"
 			onToggleEditor={(open) => {
 				startTransition(() => {
 					void navigate({
@@ -90,29 +113,34 @@ function EditTaskRoute() {
 				});
 			}}
 			onSubmit={async (values) => {
-				await updateTask(task.id, values, task.completedAt);
-
-				await router.invalidate();
+				const updatedTask = await updateTaskMutation.mutateAsync(values);
+				queryClient.setQueryData(queryKeys.tasks.detail(task.id), updatedTask);
 				await navigate(
 					getTaskEditorReturnLink(search, values.project || task.project),
 				);
 			}}
 		>
-			<TaskSubtasksPanel initialSubtasks={subtasks} taskId={task.id} />
+			<TaskSubtasksPanel key={task.id} auth={auth} taskId={task.id} />
+			<div className="mt-6 rounded-xl border border-border bg-card">
+				<div className="border-b border-border px-4 py-3">
+					<p className="text-sm font-medium text-foreground">Activity Log</p>
+				</div>
+				<ActivityPanel taskId={task.id} />
+			</div>
 		</TaskEditorForm>
 	);
 }
 
 function MissingTaskRoute() {
 	return (
-		<section className="rounded-md border border-border/80 bg-card/88 p-6 shadow-[0_22px_64px_rgba(0,0,0,0.34)]">
-			<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-				Task Detail
+		<section className="rounded-xl border border-border bg-card p-6">
+			<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
+				Task detail
 			</p>
-			<h3 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground">
-				Task Not Found
+			<h3 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-foreground">
+				Task not found
 			</h3>
-			<p className="mt-2 max-w-xl text-sm text-muted-foreground">
+			<p className="mt-1.5 max-w-md text-sm text-muted-foreground">
 				This task no longer exists or your session cannot access it.
 			</p>
 			<Button asChild className="mt-4" size="sm" variant="outline">

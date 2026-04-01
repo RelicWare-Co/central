@@ -1,26 +1,32 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TaskCollectionView } from "#/components/task-collection-view";
 import { Button } from "#/components/ui/button";
-import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
-import { listInboxTasks } from "#/lib/tasks";
+import {
+	inboxTasksLiveQueryOptions,
+	inboxTasksSnapshotQueryOptions,
+} from "#/lib/tasks.queries";
 
 export const Route = createFileRoute("/app/inbox")({
-	loader: async ({ context }) => listInboxTasks(context.auth),
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData({
+			...inboxTasksSnapshotQueryOptions(context.auth),
+			revalidateIfStale: true,
+		});
+	},
 	component: InboxRoute,
 });
 
 function InboxRoute() {
-	const { items, summary } = Route.useLoaderData();
-
-	usePocketBaseRealtimeInvalidate({
-		collection: "tasks",
-		topic: "*",
-	});
+	const { auth } = Route.useRouteContext();
+	const {
+		data: { items, summary },
+	} = useSuspenseQuery(inboxTasksLiveQueryOptions(auth));
 
 	return (
 		<TaskCollectionView
 			eyebrow="Inbox"
-			title="Unsorted Work"
+			title="Unsorted work"
 			headerAction={
 				<Button asChild size="sm">
 					<Link
@@ -29,7 +35,7 @@ function InboxRoute() {
 							source: "inbox",
 						}}
 					>
-						New Task
+						New task
 					</Link>
 				</Button>
 			}
@@ -44,14 +50,14 @@ function InboxRoute() {
 							source: "inbox",
 						}}
 					>
-						Edit Task
+						Edit
 					</Link>
 				</Button>
 			)}
 			tasks={items}
 			summary={summary}
 			emptyTitle="Inbox is clear"
-			emptyDescription="Cuando existan tareas sin proyecto en PocketBase, aparecerán aquí como punto de entrada para priorización y asignación."
+			emptyDescription="Tasks without a project will appear here as an entry point for prioritization."
 		/>
 	);
 }

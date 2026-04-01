@@ -134,7 +134,7 @@ Se usa para trazabilidad simple. Registra eventos de proyecto/tarea/subtarea con
 ## Cómo pensar el producto al implementar
 
 - Inbox significa tareas sin proyecto. No fuerces asignación inmediata.
-- “Hoy” debe priorizar vencidas, tareas para hoy, prioritarias y en progreso del usuario.
+- "Hoy" debe priorizar vencidas, tareas para hoy, prioritarias y en progreso del usuario.
 - Una tarea bloqueada debe exponer el motivo (`blockedReason`) cuando exista.
 - Subtareas ayudan a descomponer trabajo, pero no reemplazan la tarea principal.
 - Completar subtareas no debe completar automáticamente la tarea salvo que esa regla se defina explícitamente más adelante.
@@ -186,3 +186,18 @@ Se usa para trazabilidad simple. Registra eventos de proyecto/tarea/subtarea con
 Primero verifica que cualquier cambio siga respetando esta idea central: claridad operativa con mínima fricción. Si una solución se siente poderosa pero pesada, no es el producto correcto.
 
 Antes de ampliar el modelo, revisa las migraciones existentes en [`/Users/verzach3/Projects/central/pocketbase/pb_migrations/1773791658_create_internal_project_management_schema.js`](/Users/verzach3/Projects/central/pocketbase/pb_migrations/1773791658_create_internal_project_management_schema.js) y [`/Users/verzach3/Projects/central/pocketbase/pb_migrations/1773791839_add_activity_logs.js`](/Users/verzach3/Projects/central/pocketbase/pb_migrations/1773791839_add_activity_logs.js). La intención original ya está bastante clara ahí: app interna, simple, con estados explícitos y trazabilidad mínima.
+
+<!-- intent-skills:start -->
+# Skill mappings - when working in these areas, load the linked skill file into context.
+skills:
+  - task: "Building routes, navigation, data loading, auth guards, URL search params, and type-safe routing with TanStack Router"
+    load: "node_modules/@tanstack/router-core/skills/router-core/SKILL.md"
+  - task: "Adding, configuring, or composing shadcn/ui components"
+    load: "node_modules/radix-ui/skills/shadcn/SKILL.md"
+  - task: "Designing, reviewing, or auditing UI for premium visual design and accessibility"
+    load: "node_modules/@kilo-org/kilocode/skills/design-taste-frontend/SKILL.md"
+  - task: "Setting up, extending, or debugging Tiptap rich text editor in React"
+    # To load this skill, run: npx @tanstack/intent@latest list | grep tiptap
+  - task: "Working with PocketBase collections, auth, API rules, file storage, or JS hooks"
+    # To load this skill, run: npx @tanstack/intent@latest list | grep pocketbase
+<!-- intent-skills:end -->

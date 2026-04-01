@@ -1,10 +1,13 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
 import { createAuthContext } from "#/lib/auth";
+import { createAppQueryClient } from "#/lib/query-client";
 import { getRouter } from "#/router";
 
 const auth = createAuthContext();
-const router = getRouter(auth);
+const queryClient = createAppQueryClient();
+const router = getRouter({ auth, queryClient });
 
 const rootElement = document.getElementById("app");
 if (!rootElement) {
@@ -13,5 +16,9 @@ if (!rootElement) {
 
 if (!rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement);
-	root.render(<RouterProvider router={router} context={{ auth }} />);
+	root.render(
+		<QueryClientProvider client={queryClient}>
+			<RouterProvider router={router} context={{ auth, queryClient }} />
+		</QueryClientProvider>,
+	);
 }

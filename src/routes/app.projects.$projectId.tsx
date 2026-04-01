@@ -1,4 +1,6 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ActivityPanel } from "#/components/activity-panel";
 import { RichTextContent } from "#/components/rich-text-content";
 import { TaskCollectionView } from "#/components/task-collection-view";
 import { Badge } from "#/components/ui/badge";
@@ -11,78 +13,72 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
-import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
+import { activityLogsSnapshotQueryOptions } from "#/lib/activity.queries";
 import { formatDateLabel, formatDueDateLabel } from "#/lib/formatting";
+import type { ProjectRecord, ProjectStatus } from "#/lib/projects";
 import {
-	getProjectById,
-	type ProjectRecord,
-	type ProjectStatus,
-} from "#/lib/projects";
-import { listProjectTasks } from "#/lib/tasks";
+	projectDetailLiveQueryOptions,
+	projectDetailSnapshotQueryOptions,
+} from "#/lib/projects.queries";
+import {
+	projectTasksLiveQueryOptions,
+	projectTasksSnapshotQueryOptions,
+} from "#/lib/tasks.queries";
 
 export const Route = createFileRoute("/app/projects/$projectId")({
 	loader: async ({ context, params }) => {
-		const [project, tasks] = await Promise.all([
-			getProjectById(
-				context.auth,
-				params.projectId,
-				`/app/projects/${params.projectId}`,
-			),
-			listProjectTasks(
-				context.auth,
-				params.projectId,
-				`/app/projects/${params.projectId}`,
-			),
+		await Promise.all([
+			context.queryClient.ensureQueryData({
+				...projectDetailSnapshotQueryOptions(context.auth, params.projectId),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...projectTasksSnapshotQueryOptions(context.auth, params.projectId),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...activityLogsSnapshotQueryOptions({
+					projectId: params.projectId,
+				}),
+				revalidateIfStale: true,
+			}),
 		]);
-
-		return {
-			project,
-			tasks,
-		};
 	},
 	component: ProjectDetailRoute,
 	notFoundComponent: MissingProjectRoute,
 });
 
 function ProjectDetailRoute() {
-	const { project, tasks } = Route.useLoaderData();
+	const { auth } = Route.useRouteContext();
+	const { projectId } = Route.useParams();
+	const { data: project } = useSuspenseQuery(
+		projectDetailLiveQueryOptions(auth, projectId),
+	);
+	const { data: tasks } = useSuspenseQuery(
+		projectTasksLiveQueryOptions(auth, projectId),
+	);
 	const openTasks = tasks.items.filter(
 		(task) => task.status !== "completed" && task.status !== "canceled",
 	).length;
 
-	usePocketBaseRealtimeInvalidate({
-		collection: "projects",
-		topic: project.id,
-	});
-
-	usePocketBaseRealtimeInvalidate({
-		collection: "tasks",
-		topic: "*",
-	});
-
 	return (
-		<div className="flex flex-col gap-4">
-			<Card className="border border-border/70 bg-card/70 ring-0">
-				<CardHeader className="border-b border-border/70">
+		<div className="flex flex-col gap-5">
+			<Card>
+				<CardHeader className="border-b border-border">
 					<div>
-						<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+						<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 							{project.slug}
 						</p>
-						<div className="mt-2 flex flex-wrap items-center gap-2">
-							<CardTitle className="text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
+						<div className="mt-1.5 flex flex-wrap items-center gap-2">
+							<CardTitle className="font-serif text-xl font-normal tracking-[-0.02em] sm:text-2xl">
 								{project.name}
 							</CardTitle>
 							<StatusBadge status={project.status} />
 						</div>
-						<CardDescription className="mt-2 max-w-3xl">
+						<CardDescription className="mt-2 max-w-2xl">
 							<RichTextContent
 								className="text-sm text-muted-foreground"
-								fallback={
-									<p>
-										No description yet. This project is ready for tasks,
-										ownership and explicit state tracking.
-									</p>
-								}
+								fallback={<p>No description yet.</p>}
 								value={project.description}
 							/>
 						</CardDescription>
@@ -100,28 +96,44 @@ function ProjectDetailRoute() {
 								}}
 								to="/app/tasks/new"
 							>
-								New Task
+								New task
 							</Link>
 						</Button>
 					</CardAction>
 				</CardHeader>
 
 				<CardContent className="flex flex-wrap gap-2 py-4">
-					<SummaryBadge label="Open tasks" value={openTasks} />
-					<SummaryBadge label="Blocked" value={tasks.summary.blocked} />
-					<SummaryBadge label="Due today" value={tasks.summary.dueToday} />
-					<SummaryBadge label="Overdue" value={tasks.summary.overdue} />
+					<SummaryBadge
+						label="Open tasks"
+						value={openTasks}
+						variant="default"
+					/>
+					<SummaryBadge
+						label="Blocked"
+						value={tasks.summary.blocked}
+						variant="danger"
+					/>
+					<SummaryBadge
+						label="Due today"
+						value={tasks.summary.dueToday}
+						variant="warning"
+					/>
+					<SummaryBadge
+						label="Overdue"
+						value={tasks.summary.overdue}
+						variant="danger"
+					/>
 				</CardContent>
 			</Card>
 
-			<div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_320px]">
-				<Card className="border border-border/70 bg-card/70 ring-0">
-					<CardHeader className="border-b border-border/70">
+			<div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_300px]">
+				<Card>
+					<CardHeader className="border-b border-border">
 						<div>
-							<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
+							<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 								Snapshot
 							</p>
-							<CardTitle className="mt-2 text-lg font-semibold text-foreground">
+							<CardTitle className="mt-1 text-base font-semibold">
 								Operating context
 							</CardTitle>
 						</div>
@@ -144,36 +156,28 @@ function ProjectDetailRoute() {
 					</CardContent>
 				</Card>
 
-				<Card className="border border-border/70 bg-card/70 ring-0">
-					<CardHeader className="border-b border-border/70">
+				<Card>
+					<CardHeader className="border-b border-border">
 						<div>
-							<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-								Principles
+							<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
+								History
 							</p>
-							<CardTitle className="mt-2 text-lg font-semibold text-foreground">
-								Keep work visible
+							<CardTitle className="mt-1 text-base font-semibold">
+								Activity Log
 							</CardTitle>
 						</div>
 					</CardHeader>
 
-					<CardContent className="flex flex-col gap-3 py-4 text-sm text-muted-foreground">
-						<p>
-							Use this surface to review ownership, blockers and due dates
-							together.
-						</p>
-						<p>Blocked tasks should expose the reason directly in the list.</p>
-						<p>
-							Capture unclear work in Inbox first and move it here only when it
-							has context.
-						</p>
+					<CardContent className="p-0">
+						<ActivityPanel projectId={project.id} />
 					</CardContent>
 				</Card>
 			</div>
 
 			<TaskCollectionView
-				emptyDescription="Create the first task for this project to make ownership, status and next steps visible."
+				emptyDescription="Create the first task for this project."
 				emptyTitle="No project tasks yet"
-				eyebrow="Project Tasks"
+				eyebrow="Project tasks"
 				headerAction={
 					<Button asChild size="sm" variant="outline">
 						<Link
@@ -183,7 +187,7 @@ function ProjectDetailRoute() {
 							}}
 							to="/app/tasks/new"
 						>
-							Add Task
+							Add task
 						</Link>
 					</Button>
 				}
@@ -199,13 +203,13 @@ function ProjectDetailRoute() {
 							}}
 							to="/app/tasks/$taskId"
 						>
-							Edit Task
+							Edit
 						</Link>
 					</Button>
 				)}
 				summary={tasks.summary}
 				tasks={tasks.items}
-				title="Associated Work"
+				title="Associated work"
 			/>
 		</div>
 	);
@@ -213,16 +217,16 @@ function ProjectDetailRoute() {
 
 function MissingProjectRoute() {
 	return (
-		<Card className="border border-border/70 bg-card/70 ring-0">
-			<CardHeader className="border-b border-border/70">
+		<Card>
+			<CardHeader className="border-b border-border">
 				<div>
-					<p className="text-[0.65rem] uppercase tracking-[0.24em] text-accent-foreground">
-						Project Detail
+					<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
+						Project detail
 					</p>
-					<CardTitle className="mt-2 text-xl font-semibold text-foreground">
-						Project Not Found
+					<CardTitle className="mt-1 text-lg font-semibold">
+						Project not found
 					</CardTitle>
-					<CardDescription className="mt-2 text-sm text-muted-foreground">
+					<CardDescription className="mt-1 text-sm text-muted-foreground">
 						This project no longer exists or your session cannot access it.
 					</CardDescription>
 				</div>
@@ -230,7 +234,7 @@ function MissingProjectRoute() {
 
 			<CardContent className="py-4">
 				<Button asChild size="sm" variant="outline">
-					<Link to="/app/projects">Back to Projects</Link>
+					<Link to="/app/projects">Back to projects</Link>
 				</Button>
 			</CardContent>
 		</Card>
@@ -240,20 +244,39 @@ function MissingProjectRoute() {
 function MetaItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div>
-			<dt className="text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
-				{label}
-			</dt>
-			<dd className="mt-1 text-sm text-foreground">{value}</dd>
+			<dt className="text-xs text-muted-foreground">{label}</dt>
+			<dd className="mt-0.5 text-sm font-medium text-foreground">{value}</dd>
 		</div>
 	);
 }
 
-function SummaryBadge({ label, value }: { label: string; value: number }) {
+function SummaryBadge({
+	label,
+	value,
+	variant = "default",
+}: {
+	label: string;
+	value: number;
+	variant?: "default" | "info" | "success" | "warning" | "danger";
+}) {
+	const palette = {
+		default: "border-border bg-secondary text-foreground",
+		info: "border-[oklch(0.85_0.04_230)] bg-[oklch(0.95_0.025_230)] text-[oklch(0.42_0.10_230)]",
+		success:
+			"border-[oklch(0.87_0.035_148)] bg-[oklch(0.955_0.02_148)] text-[oklch(0.40_0.10_148)]",
+		warning:
+			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
+		danger:
+			"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
+	};
+
 	return (
-		<div className="rounded-sm border border-border/80 bg-background/85 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground">
-			<span className="font-medium text-foreground">
+		<div
+			className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs ${palette[variant]}`}
+		>
+			<span className="font-semibold tabular-nums">
 				{String(value).padStart(2, "0")}
-			</span>{" "}
+			</span>
 			{label}
 		</div>
 	);
@@ -261,11 +284,15 @@ function SummaryBadge({ label, value }: { label: string; value: number }) {
 
 function StatusBadge({ status }: { status: ProjectStatus }) {
 	const palette = {
-		active: "border-sky-500/20 bg-sky-500/10 text-sky-300",
-		archived: "border-border bg-background/70 text-muted-foreground",
-		blocked: "border-destructive/20 bg-destructive/10 text-destructive",
-		completed: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
-		paused: "border-amber-500/20 bg-amber-500/10 text-amber-300",
+		active:
+			"border-[oklch(0.85_0.04_230)] bg-[oklch(0.95_0.025_230)] text-[oklch(0.42_0.10_230)]",
+		archived: "border-border bg-secondary text-muted-foreground",
+		blocked:
+			"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
+		completed:
+			"border-[oklch(0.87_0.035_148)] bg-[oklch(0.955_0.02_148)] text-[oklch(0.40_0.10_148)]",
+		paused:
+			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
 	} satisfies Record<ProjectStatus, string>;
 
 	return (
