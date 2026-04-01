@@ -64,7 +64,7 @@ function ProjectDetailRoute() {
 	return (
 		<div className="flex flex-col gap-5">
 			<Card>
-				<CardHeader className="border-b border-border/30">
+				<CardHeader className="border-b border-border/50">
 					<div>
 						<p className="text-xs font-medium text-muted-foreground">
 							{project.slug}
@@ -128,7 +128,7 @@ function ProjectDetailRoute() {
 
 			<div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_300px]">
 				<Card>
-					<CardHeader className="border-b border-border/30">
+					<CardHeader className="border-b border-border/50">
 						<div>
 							<p className="text-xs font-medium text-muted-foreground">
 								Snapshot
@@ -157,7 +157,7 @@ function ProjectDetailRoute() {
 				</Card>
 
 				<Card>
-					<CardHeader className="border-b border-border/30">
+					<CardHeader className="border-b border-border/50">
 						<div>
 							<p className="text-xs font-medium text-muted-foreground">
 								History
@@ -218,7 +218,7 @@ function ProjectDetailRoute() {
 function MissingProjectRoute() {
 	return (
 		<Card>
-			<CardHeader className="border-b border-border/30">
+			<CardHeader className="border-b border-border/50">
 				<div>
 					<p className="text-xs font-medium text-muted-foreground">
 						Project detail
@@ -260,14 +260,14 @@ function SummaryBadge({
 	variant?: "default" | "info" | "success" | "warning" | "danger";
 }) {
 	const palette = {
-		default: "border-border/30 bg-card/50 text-foreground",
-		info: "border-oklch(0.6 0.12 220 / 0.3) bg-oklch(0.6 0.12 220 / 0.08) text-oklch(0.75 0.1 220)",
+		default: "border-border/70 bg-card/90 text-foreground",
+		info: "border-[oklch(0.72_0.19_195/0.55)] bg-[oklch(0.72_0.19_195/0.14)] text-[oklch(0.82_0.14_195)]",
 		success:
-			"border-oklch(0.65 0.14 145 / 0.3) bg-oklch(0.65 0.14 145 / 0.08) text-oklch(0.8 0.1 145)",
+			"border-[oklch(0.68_0.19_148/0.55)] bg-[oklch(0.68_0.19_148/0.14)] text-[oklch(0.80_0.14_148)]",
 		warning:
-			"border-oklch(0.72 0.14 85 / 0.3) bg-oklch(0.72 0.14 85 / 0.08) text-oklch(0.85 0.1 85)",
+			"border-[oklch(0.76_0.175_72/0.55)] bg-[oklch(0.76_0.175_72/0.14)] text-[oklch(0.88_0.13_72)]",
 		danger:
-			"border-oklch(0.55 0.16 25 / 0.3) bg-oklch(0.55 0.16 25 / 0.08) text-oklch(0.75 0.12 25)",
+			"border-[oklch(0.63_0.22_12/0.55)] bg-[oklch(0.63_0.22_12/0.14)] text-[oklch(0.78_0.16_12)]",
 	};
 
 	return (
@@ -285,15 +285,15 @@ function SummaryBadge({
 function StatusBadge({ status }: { status: ProjectStatus }) {
 	const palette = {
 		active:
-			"border-oklch(0.6 0.12 220 / 0.4) bg-oklch(0.6 0.12 220 / 0.12) text-oklch(0.75 0.1 220)",
+			"border-[oklch(0.76_0.2_192/0.55)] bg-[oklch(0.76_0.2_192/0.16)] text-[oklch(0.82_0.15_192)]",
 		archived:
-			"border-oklch(0.35 0.02 280 / 0.3) bg-oklch(0.28 0.02 280 / 0.1) text-oklch(0.6 0.02 280)",
+			"border-[oklch(0.45_0.03_265/0.5)] bg-[oklch(0.30_0.025_265/0.5)] text-[oklch(0.62_0.025_265)]",
 		blocked:
-			"border-oklch(0.55 0.16 25 / 0.4) bg-oklch(0.55 0.16 25 / 0.12) text-oklch(0.75 0.12 25)",
+			"border-[oklch(0.63_0.22_12/0.55)] bg-[oklch(0.63_0.22_12/0.16)] text-[oklch(0.78_0.16_12)]",
 		completed:
-			"border-oklch(0.65 0.14 145 / 0.4) bg-oklch(0.65 0.14 145 / 0.12) text-oklch(0.8 0.1 145)",
+			"border-[oklch(0.68_0.19_148/0.55)] bg-[oklch(0.68_0.19_148/0.16)] text-[oklch(0.80_0.14_148)]",
 		paused:
-			"border-oklch(0.72 0.14 85 / 0.4) bg-oklch(0.72 0.14 85 / 0.12) text-oklch(0.85 0.1 85)",
+			"border-[oklch(0.76_0.175_72/0.55)] bg-[oklch(0.76_0.175_72/0.16)] text-[oklch(0.88_0.13_72)]",
 	} satisfies Record<ProjectStatus, string>;
 
 	return (

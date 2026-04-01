@@ -59,7 +59,7 @@ function LoginRoute() {
 
 	return (
 		<main className="relative flex min-h-screen items-center justify-center bg-background text-foreground">
-			<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,oklch(0.72_0.14_55/0.08),transparent)]" />
+			<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,oklch(0.76_0.2_192/0.10),transparent)]" />
 
 			<section className="relative mx-auto w-full max-w-[440px] px-5 py-12">
 				<div className="mb-8 text-center">

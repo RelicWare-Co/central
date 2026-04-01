@@ -144,7 +144,7 @@ export function TaskCollectionView({
 			</div>
 
 			{tasks.length > 0 ? (
-				<div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-card/50 p-3 sm:p-4">
+				<div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-card/80 p-3 sm:p-4">
 					<div className="min-w-[200px] flex-1">
 						<Input
 							placeholder="Search tasks..."
@@ -213,7 +213,7 @@ export function TaskCollectionView({
 			) : null}
 
 			{filteredTasks.length === 0 ? (
-				<Empty className="min-h-[200px] border-border/30 bg-card/30">
+				<Empty className="min-h-[200px] border-border/50 bg-card/60">
 					<EmptyHeader>
 						<EmptyTitle className="text-sm font-medium text-foreground">
 							{emptyTitle}
@@ -228,8 +228,9 @@ export function TaskCollectionView({
 					{filteredTasks.map((task) => (
 						<article
 							key={task.id}
-							className="group rounded-xl border border-border/30 bg-card/40 px-4 py-4 transition-colors hover:border-border/50 hover:bg-card/60 sm:px-5"
+							className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/70 px-4 py-4 transition-all duration-200 hover:border-border/80 hover:bg-card/90 sm:px-5"
 						>
+							<span className={cn("absolute inset-y-0 left-0 w-0.5", getTaskAccentClass(task))} />
 							<div className="grid gap-3 lg:grid-cols-[minmax(0,2.2fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(9rem,1fr)_auto] lg:items-start lg:gap-4">
 								<div className="min-w-0">
 									<p className="text-xs text-muted-foreground">
@@ -319,14 +320,14 @@ function SummaryBadge({
 	variant?: "default" | "info" | "success" | "warning" | "danger";
 }) {
 	const palette = {
-		default: "border-border/30 bg-card/50 text-foreground",
-		info: "border-oklch(0.6 0.12 220 / 0.3) bg-oklch(0.6 0.12 220 / 0.08) text-oklch(0.75 0.1 220)",
+		default: "border-border/70 bg-card/90 text-foreground",
+		info: "border-[oklch(0.72_0.19_195/0.55)] bg-[oklch(0.72_0.19_195/0.14)] text-[oklch(0.82_0.14_195)]",
 		success:
-			"border-oklch(0.65 0.14 145 / 0.3) bg-oklch(0.65 0.14 145 / 0.08) text-oklch(0.8 0.1 145)",
+			"border-[oklch(0.68_0.19_148/0.55)] bg-[oklch(0.68_0.19_148/0.14)] text-[oklch(0.80_0.14_148)]",
 		warning:
-			"border-oklch(0.72 0.14 85 / 0.3) bg-oklch(0.72 0.14 85 / 0.08) text-oklch(0.85 0.1 85)",
+			"border-[oklch(0.76_0.175_72/0.55)] bg-[oklch(0.76_0.175_72/0.14)] text-[oklch(0.88_0.13_72)]",
 		danger:
-			"border-oklch(0.55 0.16 25 / 0.3) bg-oklch(0.55 0.16 25 / 0.08) text-oklch(0.75 0.12 25)",
+			"border-[oklch(0.63_0.22_12/0.55)] bg-[oklch(0.63_0.22_12/0.14)] text-[oklch(0.78_0.16_12)]",
 	};
 
 	return (
@@ -344,15 +345,15 @@ function SummaryBadge({
 function StatusBadge({ status }: { status: TaskStatus }) {
 	const palette = {
 		blocked:
-			"border-oklch(0.55 0.16 25 / 0.4) bg-oklch(0.55 0.16 25 / 0.12) text-oklch(0.75 0.12 25)",
+			"border-[oklch(0.63_0.22_12/0.55)] bg-[oklch(0.63_0.22_12/0.16)] text-[oklch(0.78_0.16_12)]",
 		canceled:
-			"border-oklch(0.35 0.02 280 / 0.3) bg-oklch(0.28 0.02 280 / 0.1) text-oklch(0.6 0.02 280)",
+			"border-[oklch(0.45_0.03_265/0.5)] bg-[oklch(0.30_0.025_265/0.5)] text-[oklch(0.62_0.025_265)]",
 		completed:
-			"border-oklch(0.65 0.14 145 / 0.4) bg-oklch(0.65 0.14 145 / 0.12) text-oklch(0.8 0.1 145)",
+			"border-[oklch(0.68_0.19_148/0.55)] bg-[oklch(0.68_0.19_148/0.16)] text-[oklch(0.80_0.14_148)]",
 		in_progress:
-			"border-oklch(0.6 0.12 220 / 0.4) bg-oklch(0.6 0.12 220 / 0.12) text-oklch(0.75 0.1 220)",
+			"border-[oklch(0.76_0.2_192/0.55)] bg-[oklch(0.76_0.2_192/0.16)] text-[oklch(0.82_0.15_192)]",
 		pending:
-			"border-oklch(0.72 0.14 85 / 0.4) bg-oklch(0.72 0.14 85 / 0.12) text-oklch(0.85 0.1 85)",
+			"border-[oklch(0.76_0.175_72/0.55)] bg-[oklch(0.76_0.175_72/0.16)] text-[oklch(0.88_0.13_72)]",
 	} satisfies Record<TaskStatus, string>;
 
 	return (
@@ -364,10 +365,10 @@ function StatusBadge({ status }: { status: TaskStatus }) {
 
 function PriorityBadge({ priority }: { priority: TaskPriority }) {
 	const palette = {
-		high: "border-oklch(0.55 0.14 280 / 0.4) bg-oklch(0.55 0.14 280 / 0.12) text-oklch(0.75 0.12 280)",
-		low: "border-oklch(0.5 0.08 220 / 0.3) bg-oklch(0.45 0.06 220 / 0.1) text-oklch(0.65 0.06 220)",
+		high: "border-[oklch(0.70_0.18_290/0.55)] bg-[oklch(0.70_0.18_290/0.16)] text-[oklch(0.82_0.14_290)]",
+		low: "border-[oklch(0.55_0.04_265/0.5)] bg-[oklch(0.45_0.03_265/0.4)] text-[oklch(0.68_0.04_265)]",
 		medium:
-			"border-oklch(0.72 0.16 55 / 0.35) bg-oklch(0.72 0.16 55 / 0.1) text-oklch(0.85 0.12 55)",
+			"border-[oklch(0.76_0.2_192/0.45)] bg-[oklch(0.76_0.2_192/0.12)] text-[oklch(0.82_0.15_192)]",
 	} satisfies Record<TaskPriority, string>;
 
 	return (
@@ -375,6 +376,15 @@ function PriorityBadge({ priority }: { priority: TaskPriority }) {
 			{priority}
 		</Badge>
 	);
+}
+
+function getTaskAccentClass(task: TaskRecord) {
+	if (task.status === "blocked") return "bg-[oklch(0.63_0.22_12)]";
+	if (task.status === "completed") return "bg-[oklch(0.68_0.19_148)]";
+	if (task.status === "canceled") return "bg-[oklch(0.45_0.03_265)]";
+	if (task.priority === "high") return "bg-[oklch(0.70_0.18_290)]";
+	if (task.status === "in_progress") return "bg-primary";
+	return "bg-border/50";
 }
 
 function getTaskScopeLabel(task: TaskRecord) {

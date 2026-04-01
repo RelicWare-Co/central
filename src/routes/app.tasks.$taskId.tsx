@@ -100,8 +100,8 @@ function EditTaskRoute() {
 			}}
 		>
 			<TaskSubtasksPanel initialSubtasks={subtasks} taskId={task.id} />
-			<div className="mt-6 rounded-xl border border-border/30 bg-card/30">
-				<div className="border-b border-border/30 px-4 py-3">
+			<div className="mt-6 rounded-xl border border-border/50 bg-card/70">
+				<div className="border-b border-border/50 px-4 py-3">
 					<p className="text-sm font-medium text-foreground">Activity Log</p>
 				</div>
 				<ActivityPanel taskId={task.id} />
@@ -112,7 +112,7 @@ function EditTaskRoute() {
 
 function MissingTaskRoute() {
 	return (
-		<section className="rounded-xl border border-border/30 bg-card/50 p-6">
+		<section className="rounded-xl border border-border/50 bg-card/70 p-6">
 			<p className="text-xs font-medium text-muted-foreground">Task detail</p>
 			<h3 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-foreground">
 				Task not found

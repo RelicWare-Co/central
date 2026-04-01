@@ -103,13 +103,13 @@ function AppRoute() {
 	return (
 		<main className="min-h-screen bg-background text-foreground">
 			<div className="mx-auto flex min-h-screen max-w-[1600px] flex-col gap-3 p-3 md:flex-row md:p-4">
-				<aside className="hidden w-60 shrink-0 flex-col overflow-hidden rounded-xl border border-border/40 bg-card/60 p-3 md:flex md:sticky md:top-4 md:max-h-[calc(100dvh-2rem)] md:h-[calc(100dvh-2rem)]">
+				<aside className="hidden w-60 shrink-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-sidebar p-3 md:flex md:sticky md:top-4 md:max-h-[calc(100dvh-2rem)] md:h-[calc(100dvh-2rem)]">
 					<div className="flex items-center gap-3 px-2 pb-4">
-						<div className="flex size-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+						<div className="relative flex size-8 items-center justify-center rounded-lg bg-primary/20 text-primary shadow-[0_0_12px_oklch(0.76_0.2_192/0.3)]">
 							<StackIcon className="size-4" />
 						</div>
 						<div>
-							<p className="text-xs font-medium tracking-[-0.01em] text-foreground">
+							<p className="text-xs font-semibold tracking-wide text-foreground">
 								Central
 							</p>
 							<p className="text-[0.68rem] text-muted-foreground">Workspace</p>
@@ -134,7 +134,7 @@ function AppRoute() {
 						))}
 					</nav>
 
-					<div className="mt-4 flex items-center justify-between gap-2 border-t border-border/30 px-2 pt-4">
+					<div className="mt-4 flex items-center justify-between gap-2 border-t border-border/50 px-2 pt-4">
 						<div className="min-w-0 flex-1">
 							<p className="truncate text-sm font-medium text-foreground">
 								{authState.user?.name ||
@@ -158,8 +158,9 @@ function AppRoute() {
 					</div>
 				</aside>
 
-				<section className="flex min-w-0 flex-1 flex-col rounded-xl border border-border/40 bg-card/50">
-					<header className="border-b border-border/30 px-5 py-4 sm:px-6">
+				<section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/60 bg-card/80">
+					<header className="relative border-b border-border/50 px-5 py-4 sm:px-6">
+						<div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 						<div className={`${contentContainerClassName} flex flex-col gap-4`}>
 							<div className="flex items-center justify-between gap-4">
 								<div className="min-w-0">
@@ -228,20 +229,23 @@ function NavLink({
 				"aria-current": "page",
 			}}
 			className={cn(
-				"group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+				"group relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-all duration-150",
 				compact ? "shrink-0 whitespace-nowrap" : "w-full",
 				isActive
-					? "bg-accent/60 text-foreground"
-					: "text-muted-foreground hover:bg-accent/30 hover:text-foreground",
+					? "bg-primary/10 text-foreground"
+					: "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
 			)}
 			preload="intent"
 			to={item.to}
 		>
+			{isActive && !compact && (
+				<span className="absolute left-0 inset-y-1.5 w-0.5 rounded-full bg-primary shadow-[0_0_6px_oklch(0.76_0.2_192/0.8)]" />
+			)}
 			<span
 				className={cn(
 					"flex size-7 shrink-0 items-center justify-center rounded-md transition-colors",
 					isActive
-						? "bg-secondary/20 text-secondary-foreground"
+						? "bg-primary/20 text-primary"
 						: "text-muted-foreground/70 group-hover:text-muted-foreground",
 				)}
 			>
