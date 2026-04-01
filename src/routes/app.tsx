@@ -159,7 +159,7 @@ function AppRoute() {
 				</aside>
 
 				<section className="flex min-w-0 flex-1 flex-col">
-					<header className="border-b border-border bg-card px-6 py-5 sm:px-8">
+					<header className="border-b border-border bg-card px-4 py-5 sm:px-8">
 						<div className={`${contentContainerClassName} flex flex-col gap-4`}>
 							<div className="flex items-center justify-between gap-4">
 								<div className="min-w-0">
@@ -191,7 +191,7 @@ function AppRoute() {
 						</div>
 					</header>
 
-					<div className="flex-1 px-6 py-6 sm:px-8">
+					<div className="flex-1 px-4 py-6 sm:px-8">
 						<div className={contentContainerClassName}>
 							<Outlet />
 						</div>
