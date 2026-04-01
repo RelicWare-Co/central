@@ -83,9 +83,11 @@ export async function getActivityLogs(options?: {
 		filters.push(`targetUser = "${options.targetUserId}"`);
 	}
 
-	return pb.collection("activity_logs").getList<ActivityLogRecord>(1, options?.limit || 20, {
-		sort: "-eventAt",
-		filter: filters.join(" && "),
-		expand: "actor,targetUser,task,project",
-	});
+	return pb
+		.collection("activity_logs")
+		.getList<ActivityLogRecord>(1, options?.limit || 20, {
+			sort: "-eventAt",
+			filter: filters.join(" && "),
+			expand: "actor,targetUser,task,project",
+		});
 }

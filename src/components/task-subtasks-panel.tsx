@@ -122,7 +122,9 @@ export function TaskSubtasksPanel({
 	return (
 		<section aria-label="Subtasks" className="flex flex-col gap-3">
 			<div>
-				<p className="text-xs font-medium text-muted-foreground">Subtasks</p>
+				<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
+					Subtasks
+				</p>
 				<p className="mt-0.5 text-sm text-muted-foreground">
 					{subtasks.length > 0
 						? `${completedCount} of ${subtasks.length} completed`
@@ -130,9 +132,9 @@ export function TaskSubtasksPanel({
 				</p>
 			</div>
 
-			<div className="overflow-hidden rounded-xl border border-border/30 bg-card/30">
+			<div className="overflow-hidden rounded-xl border border-border bg-card">
 				<form
-					className="border-b border-border/30 px-4 py-3"
+					className="border-b border-border px-4 py-3"
 					noValidate
 					onSubmit={handleCreate}
 				>
@@ -177,7 +179,7 @@ export function TaskSubtasksPanel({
 						</p>
 					</div>
 				) : (
-					<div className="divide-y divide-border/20">
+					<div className="divide-y divide-border">
 						{subtasks.map((subtask) => {
 							const isBusy = activeSubtaskId === subtask.id;
 

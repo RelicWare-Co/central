@@ -121,14 +121,14 @@ export function TaskEditorForm({
 	return (
 		<div className="flex flex-col gap-4">
 			<Card>
-				<CardHeader className="border-b border-border/30">
+				<CardHeader className="border-b border-border">
 					<div className="flex flex-col gap-4">
 						<div className="flex items-start justify-between gap-4">
 							<div className="min-w-0">
-								<p className="text-xs font-medium text-muted-foreground">
+								<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 									{eyebrow}
 								</p>
-								<CardTitle className="mt-1 text-lg font-semibold tracking-[-0.02em] sm:text-xl">
+								<CardTitle className="mt-1 font-serif text-lg font-normal tracking-[-0.02em] sm:text-xl">
 									{summaryTitle}
 								</CardTitle>
 								{description ? (
@@ -173,7 +173,7 @@ export function TaskEditorForm({
 						</dl>
 
 						{values.status === "blocked" && values.blockedReason.trim() ? (
-							<div className="rounded-lg border border-border/30 bg-destructive/5 px-3.5 py-2.5">
+							<div className="rounded-lg border border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] px-3.5 py-2.5">
 								<p className="text-xs font-medium text-muted-foreground">
 									Blocked reason
 								</p>
@@ -186,7 +186,7 @@ export function TaskEditorForm({
 				</CardHeader>
 
 				<Collapsible open={isEditorOpen} onOpenChange={handleToggleEditor}>
-					<CollapsibleContent className="overflow-hidden border-b border-border/30 data-[state=closed]:animate-out data-[state=open]:animate-in">
+					<CollapsibleContent className="overflow-hidden border-b border-border data-[state=closed]:animate-out data-[state=open]:animate-in">
 						<CardContent className="py-5">
 							<FieldGroup className="grid gap-4 lg:grid-cols-2">
 								<Field className="lg:col-span-2">
@@ -403,21 +403,21 @@ export function TaskEditorForm({
 							{error ? error : null}
 						</div>
 
-						<div className="flex flex-col gap-3 border-t border-border/30 pt-4 sm:flex-row sm:items-center sm:justify-between">
+						<div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
 							<p className="text-sm text-muted-foreground">
 								Leave Project empty to send to Inbox. Blocked tasks need a
 								reason.
 							</p>
 
 							<Button disabled={isSubmitting} size="lg" type="submit">
-								{isSubmitting ? "Saving…" : submitLabel}
+								{isSubmitting ? "Saving..." : submitLabel}
 							</Button>
 						</div>
 					</form>
 				</CardContent>
 
 				{children ? (
-					<CardContent className="border-t border-border/30 py-5">
+					<CardContent className="border-t border-border py-5">
 						{children}
 					</CardContent>
 				) : null}
@@ -428,7 +428,7 @@ export function TaskEditorForm({
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="rounded-lg border border-border/30 bg-card/50 px-3.5 py-2">
+		<div className="rounded-lg border border-border bg-secondary/50 px-3.5 py-2">
 			<dt className="text-xs text-muted-foreground">{label}</dt>
 			<dd className="mt-0.5 truncate text-sm font-medium text-foreground">
 				{value}

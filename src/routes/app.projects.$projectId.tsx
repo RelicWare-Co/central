@@ -64,13 +64,13 @@ function ProjectDetailRoute() {
 	return (
 		<div className="flex flex-col gap-5">
 			<Card>
-				<CardHeader className="border-b border-border/50">
+				<CardHeader className="border-b border-border">
 					<div>
-						<p className="text-xs font-medium text-muted-foreground">
+						<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 							{project.slug}
 						</p>
 						<div className="mt-1.5 flex flex-wrap items-center gap-2">
-							<CardTitle className="text-xl font-semibold tracking-[-0.03em] sm:text-2xl">
+							<CardTitle className="font-serif text-xl font-normal tracking-[-0.02em] sm:text-2xl">
 								{project.name}
 							</CardTitle>
 							<StatusBadge status={project.status} />
@@ -128,9 +128,9 @@ function ProjectDetailRoute() {
 
 			<div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_300px]">
 				<Card>
-					<CardHeader className="border-b border-border/50">
+					<CardHeader className="border-b border-border">
 						<div>
-							<p className="text-xs font-medium text-muted-foreground">
+							<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 								Snapshot
 							</p>
 							<CardTitle className="mt-1 text-base font-semibold">
@@ -157,9 +157,9 @@ function ProjectDetailRoute() {
 				</Card>
 
 				<Card>
-					<CardHeader className="border-b border-border/50">
+					<CardHeader className="border-b border-border">
 						<div>
-							<p className="text-xs font-medium text-muted-foreground">
+							<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 								History
 							</p>
 							<CardTitle className="mt-1 text-base font-semibold">
@@ -218,9 +218,9 @@ function ProjectDetailRoute() {
 function MissingProjectRoute() {
 	return (
 		<Card>
-			<CardHeader className="border-b border-border/50">
+			<CardHeader className="border-b border-border">
 				<div>
-					<p className="text-xs font-medium text-muted-foreground">
+					<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 						Project detail
 					</p>
 					<CardTitle className="mt-1 text-lg font-semibold">
@@ -260,14 +260,14 @@ function SummaryBadge({
 	variant?: "default" | "info" | "success" | "warning" | "danger";
 }) {
 	const palette = {
-		default: "border-border/70 bg-card/90 text-foreground",
-		info: "border-[oklch(0.72_0.19_195/0.55)] bg-[oklch(0.72_0.19_195/0.14)] text-[oklch(0.82_0.14_195)]",
+		default: "border-border bg-secondary text-foreground",
+		info: "border-[oklch(0.85_0.04_230)] bg-[oklch(0.95_0.025_230)] text-[oklch(0.42_0.10_230)]",
 		success:
-			"border-[oklch(0.68_0.19_148/0.55)] bg-[oklch(0.68_0.19_148/0.14)] text-[oklch(0.80_0.14_148)]",
+			"border-[oklch(0.87_0.035_148)] bg-[oklch(0.955_0.02_148)] text-[oklch(0.40_0.10_148)]",
 		warning:
-			"border-[oklch(0.76_0.175_72/0.55)] bg-[oklch(0.76_0.175_72/0.14)] text-[oklch(0.88_0.13_72)]",
+			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
 		danger:
-			"border-[oklch(0.63_0.22_12/0.55)] bg-[oklch(0.63_0.22_12/0.14)] text-[oklch(0.78_0.16_12)]",
+			"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
 	};
 
 	return (
@@ -285,15 +285,14 @@ function SummaryBadge({
 function StatusBadge({ status }: { status: ProjectStatus }) {
 	const palette = {
 		active:
-			"border-[oklch(0.76_0.2_192/0.55)] bg-[oklch(0.76_0.2_192/0.16)] text-[oklch(0.82_0.15_192)]",
-		archived:
-			"border-[oklch(0.45_0.03_265/0.5)] bg-[oklch(0.30_0.025_265/0.5)] text-[oklch(0.62_0.025_265)]",
+			"border-[oklch(0.85_0.04_230)] bg-[oklch(0.95_0.025_230)] text-[oklch(0.42_0.10_230)]",
+		archived: "border-border bg-secondary text-muted-foreground",
 		blocked:
-			"border-[oklch(0.63_0.22_12/0.55)] bg-[oklch(0.63_0.22_12/0.16)] text-[oklch(0.78_0.16_12)]",
+			"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
 		completed:
-			"border-[oklch(0.68_0.19_148/0.55)] bg-[oklch(0.68_0.19_148/0.16)] text-[oklch(0.80_0.14_148)]",
+			"border-[oklch(0.87_0.035_148)] bg-[oklch(0.955_0.02_148)] text-[oklch(0.40_0.10_148)]",
 		paused:
-			"border-[oklch(0.76_0.175_72/0.55)] bg-[oklch(0.76_0.175_72/0.16)] text-[oklch(0.88_0.13_72)]",
+			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
 	} satisfies Record<ProjectStatus, string>;
 
 	return (

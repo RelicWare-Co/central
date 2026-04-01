@@ -85,12 +85,12 @@ function NewProjectRoute() {
 	return (
 		<div className="flex flex-col gap-4">
 			<Card>
-				<CardHeader className="border-b border-border/30">
+				<CardHeader className="border-b border-border">
 					<div>
-						<p className="text-xs font-medium text-muted-foreground">
+						<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 							New project
 						</p>
-						<CardTitle className="mt-1 text-xl font-semibold tracking-[-0.03em] sm:text-2xl">
+						<CardTitle className="mt-1 font-serif text-xl font-normal tracking-[-0.02em] sm:text-2xl">
 							Create project
 						</CardTitle>
 						<CardDescription className="mt-1.5 max-w-xl text-sm">
@@ -262,7 +262,7 @@ function NewProjectRoute() {
 							{error ? error : null}
 						</div>
 
-						<div className="flex justify-end border-t border-border/30 pt-4">
+						<div className="flex justify-end border-t border-border pt-4">
 							<Button disabled={isSubmitting} size="lg" type="submit">
 								{isSubmitting ? "Creating…" : "Create project"}
 							</Button>

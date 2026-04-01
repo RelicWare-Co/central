@@ -5,8 +5,8 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { startTransition } from "react";
-import { TaskEditorForm } from "#/components/task-editor-form";
 import { ActivityPanel } from "#/components/activity-panel";
+import { TaskEditorForm } from "#/components/task-editor-form";
 import { TaskSubtasksPanel } from "#/components/task-subtasks-panel";
 import { Button } from "#/components/ui/button";
 import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
@@ -100,8 +100,8 @@ function EditTaskRoute() {
 			}}
 		>
 			<TaskSubtasksPanel initialSubtasks={subtasks} taskId={task.id} />
-			<div className="mt-6 rounded-xl border border-border/50 bg-card/70">
-				<div className="border-b border-border/50 px-4 py-3">
+			<div className="mt-6 rounded-xl border border-border bg-card">
+				<div className="border-b border-border px-4 py-3">
 					<p className="text-sm font-medium text-foreground">Activity Log</p>
 				</div>
 				<ActivityPanel taskId={task.id} />
@@ -112,8 +112,10 @@ function EditTaskRoute() {
 
 function MissingTaskRoute() {
 	return (
-		<section className="rounded-xl border border-border/50 bg-card/70 p-6">
-			<p className="text-xs font-medium text-muted-foreground">Task detail</p>
+		<section className="rounded-xl border border-border bg-card p-6">
+			<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
+				Task detail
+			</p>
 			<h3 className="mt-1 text-lg font-semibold tracking-[-0.02em] text-foreground">
 				Task not found
 			</h3>

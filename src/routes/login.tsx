@@ -2,7 +2,6 @@ import { ArrowRightIcon, WarningOctagonIcon } from "@phosphor-icons/react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "#/components/ui/button";
-import { Card, CardContent } from "#/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 
@@ -58,15 +57,13 @@ function LoginRoute() {
 	}
 
 	return (
-		<main className="relative flex min-h-screen items-center justify-center bg-background text-foreground">
-			<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,oklch(0.76_0.2_192/0.10),transparent)]" />
-
-			<section className="relative mx-auto w-full max-w-[440px] px-5 py-12">
-				<div className="mb-8 text-center">
-					<p className="text-sm font-medium tracking-[-0.01em] text-foreground">
+		<main className="flex min-h-screen items-center justify-center bg-background text-foreground">
+			<section className="mx-auto w-full max-w-[400px] px-5 py-12">
+				<div className="mb-10 text-center">
+					<p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
 						Central
 					</p>
-					<h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-foreground">
+					<h1 className="mt-3 font-serif text-3xl font-normal tracking-[-0.02em] leading-[1.15] text-foreground">
 						Sign in to your workspace
 					</h1>
 					<p className="mt-2 text-sm text-muted-foreground">
@@ -74,73 +71,71 @@ function LoginRoute() {
 					</p>
 				</div>
 
-				<Card>
-					<CardContent className="pt-6">
-						<form
-							className="flex flex-col gap-5"
-							noValidate
-							onSubmit={handleSubmit}
+				<div className="rounded-xl border border-border bg-card p-6">
+					<form
+						className="flex flex-col gap-5"
+						noValidate
+						onSubmit={handleSubmit}
+					>
+						<FieldGroup>
+							<Field>
+								<FieldLabel htmlFor="identity">Email</FieldLabel>
+								<Input
+									autoComplete="email"
+									id="identity"
+									inputMode="email"
+									name="identity"
+									placeholder="you@company.com"
+									required
+									spellCheck={false}
+									type="email"
+									value={identity}
+									onChange={(event) => setIdentity(event.target.value)}
+								/>
+							</Field>
+
+							<Field>
+								<FieldLabel htmlFor="password">Password</FieldLabel>
+								<Input
+									autoComplete="current-password"
+									id="password"
+									name="password"
+									placeholder="Enter your password"
+									required
+									type="password"
+									value={password}
+									onChange={(event) => setPassword(event.target.value)}
+								/>
+							</Field>
+						</FieldGroup>
+
+						<div
+							aria-live="polite"
+							className="min-h-5 text-sm text-destructive"
 						>
-							<FieldGroup>
-								<Field>
-									<FieldLabel htmlFor="identity">Email</FieldLabel>
-									<Input
-										autoComplete="email"
-										id="identity"
-										inputMode="email"
-										name="identity"
-										placeholder="operator@central.io"
-										required
-										spellCheck={false}
-										type="email"
-										value={identity}
-										onChange={(event) => setIdentity(event.target.value)}
+							{error ? (
+								<p className="flex items-start gap-2">
+									<WarningOctagonIcon
+										aria-hidden="true"
+										className="mt-0.5 size-4 shrink-0"
 									/>
-								</Field>
+									<span>{error}</span>
+								</p>
+							) : null}
+						</div>
 
-								<Field>
-									<FieldLabel htmlFor="password">Password</FieldLabel>
-									<Input
-										autoComplete="current-password"
-										id="password"
-										name="password"
-										placeholder="Enter your password"
-										required
-										type="password"
-										value={password}
-										onChange={(event) => setPassword(event.target.value)}
-									/>
-								</Field>
-							</FieldGroup>
-
-							<div
-								aria-live="polite"
-								className="min-h-5 text-sm text-destructive"
-							>
-								{error ? (
-									<p className="flex items-start gap-2">
-										<WarningOctagonIcon
-											aria-hidden="true"
-											className="mt-0.5 size-4 shrink-0"
-										/>
-										<span>{error}</span>
-									</p>
-								) : null}
-							</div>
-
-							<Button disabled={isSubmitting} size="lg" type="submit">
-								{isSubmitting ? (
-									"Signing in…"
-								) : (
-									<>
-										Sign in
-										<ArrowRightIcon data-icon="inline-end" />
-									</>
-								)}
-							</Button>
-						</form>
-					</CardContent>
-				</Card>
+						<Button disabled={isSubmitting} size="lg" type="submit">
+							{isSubmitting ? (
+								"Signing in..."
+							) : (
+								<>
+									Sign in
+									<ArrowRightIcon data-icon="inline-end" />
+								</>
+							)}
+						</Button>
+					</form>
+				</div>
 
 				<p className="mt-6 text-center text-xs text-muted-foreground">
 					Use your credentials from the PocketBase users collection.

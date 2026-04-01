@@ -49,7 +49,7 @@ export function ActivityPanel({
 		<div className="flex flex-col gap-4 px-4 py-3">
 			{logs.map((log) => (
 				<div key={log.id} className="flex gap-3 text-sm">
-					<div className="mt-1.5 size-2 shrink-0 rounded-full bg-primary/20" />
+					<div className="mt-1.5 size-2 shrink-0 rounded-full bg-border" />
 					<div className="min-w-0 flex-1">
 						<p className="text-foreground">
 							<span className="font-medium text-foreground">

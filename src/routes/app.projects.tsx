@@ -90,11 +90,13 @@ function ProjectsRoute() {
 	}
 
 	return (
-		<section className="flex flex-col gap-5">
+		<section className="flex flex-col gap-6">
 			<div className="flex flex-wrap items-end justify-between gap-3">
 				<div>
-					<p className="text-xs font-medium text-muted-foreground">Projects</p>
-					<h3 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground sm:text-2xl">
+					<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
+						Projects
+					</p>
+					<h3 className="mt-1.5 font-serif text-xl font-normal tracking-[-0.02em] text-foreground sm:text-2xl">
 						Current portfolio
 					</h3>
 				</div>
@@ -124,18 +126,18 @@ function ProjectsRoute() {
 			</div>
 
 			{items.length > 0 ? (
-				<div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-card/80 p-3 sm:p-4">
+				<div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 sm:p-4">
 					<div className="min-w-[200px] flex-1">
 						<Input
 							placeholder="Search projects..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="h-9 w-full bg-background"
+							className="h-9 w-full"
 						/>
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
 						<Select value={statusFilter} onValueChange={setStatusFilter}>
-							<SelectTrigger className="h-9 w-[130px] bg-background">
+							<SelectTrigger className="h-9 w-[130px]">
 								<SelectValue placeholder="Status" />
 							</SelectTrigger>
 							<SelectContent>
@@ -148,7 +150,7 @@ function ProjectsRoute() {
 							</SelectContent>
 						</Select>
 						<Select value={ownerFilter} onValueChange={setOwnerFilter}>
-							<SelectTrigger className="h-9 w-[140px] bg-background">
+							<SelectTrigger className="h-9 w-[140px]">
 								<SelectValue placeholder="Owner" />
 							</SelectTrigger>
 							<SelectContent>
@@ -166,7 +168,7 @@ function ProjectsRoute() {
 			) : null}
 
 			{filteredItems.length === 0 ? (
-				<Empty className="min-h-[200px] border-border/50 bg-card/60">
+				<Empty className="min-h-[200px]">
 					<EmptyHeader>
 						<EmptyTitle className="text-sm font-medium text-foreground">
 							No active projects
@@ -178,21 +180,29 @@ function ProjectsRoute() {
 					</EmptyHeader>
 				</Empty>
 			) : (
-				<div className="flex flex-col gap-2">
-					{filteredItems.map((project) => (
+				<div className="flex flex-col">
+					{filteredItems.map((project, index) => (
 						<article
 							key={project.id}
-							className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/70 px-4 py-4 transition-all duration-200 hover:border-border/80 hover:bg-card/90 sm:px-5"
+							className={cn(
+								"group relative px-4 py-4 transition-colors duration-150 hover:bg-secondary/50 sm:px-5",
+								index !== 0 && "border-t border-border",
+							)}
 						>
-							<span className={cn("absolute inset-y-0 left-0 w-0.5 transition-opacity", getProjectAccentClass(project.status))} />
+							<span
+								className={cn(
+									"absolute inset-y-0 left-0 w-0.5 transition-opacity",
+									getProjectAccentClass(project.status),
+								)}
+							/>
 							<div className="grid gap-4 lg:grid-cols-[minmax(0,2.2fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(9rem,1fr)_auto] lg:items-start lg:gap-5">
 								<div className="min-w-0">
 									<p className="text-xs text-muted-foreground">
 										{project.slug}
 									</p>
-									<h3 className="mt-1 text-pretty text-base font-semibold tracking-[-0.02em] text-foreground">
+									<h3 className="mt-1 text-pretty text-sm font-semibold tracking-[-0.01em] text-foreground">
 										<Link
-											className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+											className="transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20"
 											params={{
 												projectId: project.id,
 											}}
@@ -201,7 +211,7 @@ function ProjectsRoute() {
 											{project.name}
 										</Link>
 									</h3>
-									<p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
+									<p className="mt-1 max-w-xl text-sm text-muted-foreground">
 										{getRichTextPreview(
 											project.description,
 											"No description yet.",
@@ -276,14 +286,14 @@ function SummaryBadge({
 	variant?: "default" | "info" | "success" | "warning" | "danger";
 }) {
 	const palette = {
-		default: "border-border/70 bg-card/90 text-foreground",
-		info: "border-[oklch(0.72_0.19_195/0.55)] bg-[oklch(0.72_0.19_195/0.14)] text-[oklch(0.82_0.14_195)]",
+		default: "border-border bg-secondary text-foreground",
+		info: "border-[oklch(0.85_0.04_230)] bg-[oklch(0.95_0.025_230)] text-[oklch(0.42_0.10_230)]",
 		success:
-			"border-[oklch(0.68_0.19_148/0.55)] bg-[oklch(0.68_0.19_148/0.14)] text-[oklch(0.80_0.14_148)]",
+			"border-[oklch(0.87_0.035_148)] bg-[oklch(0.955_0.02_148)] text-[oklch(0.40_0.10_148)]",
 		warning:
-			"border-[oklch(0.76_0.175_72/0.55)] bg-[oklch(0.76_0.175_72/0.14)] text-[oklch(0.88_0.13_72)]",
+			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
 		danger:
-			"border-[oklch(0.63_0.22_12/0.55)] bg-[oklch(0.63_0.22_12/0.14)] text-[oklch(0.78_0.16_12)]",
+			"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
 	};
 
 	return (
@@ -301,15 +311,14 @@ function SummaryBadge({
 function StatusBadge({ status }: { status: ProjectStatus }) {
 	const palette = {
 		active:
-			"border-[oklch(0.76_0.2_192/0.55)] bg-[oklch(0.76_0.2_192/0.16)] text-[oklch(0.82_0.15_192)]",
-		archived:
-			"border-[oklch(0.45_0.03_265/0.5)] bg-[oklch(0.30_0.025_265/0.5)] text-[oklch(0.62_0.025_265)]",
+			"border-[oklch(0.85_0.04_230)] bg-[oklch(0.95_0.025_230)] text-[oklch(0.42_0.10_230)]",
+		archived: "border-border bg-secondary text-muted-foreground",
 		blocked:
-			"border-[oklch(0.63_0.22_12/0.55)] bg-[oklch(0.63_0.22_12/0.16)] text-[oklch(0.78_0.16_12)]",
+			"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
 		completed:
-			"border-[oklch(0.68_0.19_148/0.55)] bg-[oklch(0.68_0.19_148/0.16)] text-[oklch(0.80_0.14_148)]",
+			"border-[oklch(0.87_0.035_148)] bg-[oklch(0.955_0.02_148)] text-[oklch(0.40_0.10_148)]",
 		paused:
-			"border-[oklch(0.76_0.175_72/0.55)] bg-[oklch(0.76_0.175_72/0.16)] text-[oklch(0.88_0.13_72)]",
+			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
 	} satisfies Record<ProjectStatus, string>;
 
 	return (
@@ -321,11 +330,11 @@ function StatusBadge({ status }: { status: ProjectStatus }) {
 
 function getProjectAccentClass(status: ProjectStatus) {
 	const map: Record<ProjectStatus, string> = {
-		active: "bg-[oklch(0.76_0.2_192)]",
-		paused: "bg-[oklch(0.76_0.175_72)]",
-		blocked: "bg-[oklch(0.63_0.22_12)]",
-		completed: "bg-[oklch(0.68_0.19_148)]",
-		archived: "bg-[oklch(0.45_0.03_265)]",
+		active: "bg-[oklch(0.55_0.12_230)]",
+		paused: "bg-[oklch(0.60_0.14_72)]",
+		blocked: "bg-[oklch(0.50_0.155_15)]",
+		completed: "bg-[oklch(0.50_0.13_148)]",
+		archived: "bg-[oklch(0.75_0.005_80)]",
 	};
 	return map[status];
 }
