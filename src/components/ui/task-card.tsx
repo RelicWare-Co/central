@@ -176,9 +176,9 @@ export function TaskCard({
 			/>
 
 			{/* Main Content Area */}
-			<div className="flex flex-1 items-center gap-4 min-w-0 pl-[3px]">
+			<div className="flex flex-col sm:flex-row flex-1 items-start sm:items-center gap-3 sm:gap-4 min-w-0 pl-[3px] py-1 sm:py-0">
 				{/* Task Identity - Icon + Title */}
-				<div className="flex items-center gap-3 min-w-0 flex-1">
+				<div className="flex items-center gap-3 min-w-0 flex-1 w-full sm:w-auto">
 					{/* Task Icon */}
 					<div
 						className={cn(
@@ -239,8 +239,9 @@ export function TaskCard({
 				</div>
 
 				{/* Badges - Priority & Status */}
-				<div className="flex flex-col gap-1.5 flex-shrink-0">
-					<Badge
+				<div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
+					<div className="flex sm:flex-col gap-1.5 flex-shrink-0 flex-row">
+						<Badge
 						variant="outline"
 						className={cn(
 							priorityColors.badge,
@@ -362,6 +363,7 @@ export function TaskCard({
 							</Link>
 						</Button>
 					)}
+				</div>
 				</div>
 			</div>
 		</article>
