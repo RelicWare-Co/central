@@ -71,23 +71,35 @@ export async function getActivityLogs(options?: {
 	targetUserId?: string;
 	taskId?: string;
 }) {
-	const filters = [];
+	try {
+		const filters = [];
 
-	if (options?.projectId) {
-		filters.push(`project = "${options.projectId}"`);
-	}
-	if (options?.taskId) {
-		filters.push(`task = "${options.taskId}"`);
-	}
-	if (options?.targetUserId) {
-		filters.push(`targetUser = "${options.targetUserId}"`);
-	}
+		if (options?.projectId) {
+			filters.push(`project = "${options.projectId}"`);
+		}
+		if (options?.taskId) {
+			filters.push(`task = "${options.taskId}"`);
+		}
+		if (options?.targetUserId) {
+			filters.push(`targetUser = "${options.targetUserId}"`);
+		}
 
-	return pb
-		.collection("activity_logs")
-		.getList<ActivityLogRecord>(1, options?.limit || 20, {
-			sort: "-eventAt",
-			filter: filters.join(" && "),
-			expand: "actor,targetUser,task,project",
-		});
+		return await pb
+			.collection("activity_logs")
+			.getList<ActivityLogRecord>(1, options?.limit || 20, {
+				sort: "-eventAt",
+				filter: filters.join(" && "),
+				expand: "actor,targetUser,task,project",
+			});
+	} catch (error) {
+		console.error("Failed to get activity logs", error);
+		// Return empty list on error so UI doesn't break
+		return {
+			items: [],
+			totalItems: 0,
+			totalPages: 0,
+			page: 1,
+			perPage: options?.limit || 20,
+		};
+	}
 }

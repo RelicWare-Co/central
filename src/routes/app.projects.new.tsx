@@ -48,6 +48,7 @@ export const Route = createFileRoute("/app/projects/new")({
 		return {
 			defaults: getDefaultProjectFormValues(options.currentUserId),
 			options,
+			auth: context.auth,
 		};
 	},
 	component: NewProjectRoute,
@@ -56,7 +57,7 @@ export const Route = createFileRoute("/app/projects/new")({
 function NewProjectRoute() {
 	const navigate = useNavigate({ from: Route.fullPath });
 	const router = useRouter();
-	const { defaults, options } = Route.useLoaderData();
+	const { auth, defaults, options } = Route.useLoaderData();
 	const [values, setValues] = useState<ProjectFormValues>(defaults);
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,7 +68,7 @@ function NewProjectRoute() {
 		setIsSubmitting(true);
 
 		try {
-			const project = await createProject(values);
+			const project = await createProject(auth, values);
 
 			await router.invalidate();
 			await navigate({

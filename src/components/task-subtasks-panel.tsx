@@ -3,6 +3,7 @@ import { Button } from "#/components/ui/button";
 import { Checkbox } from "#/components/ui/checkbox";
 import { Input } from "#/components/ui/input";
 import { usePocketBaseRealtimeSubscription } from "#/hooks/use-pocketbase-realtime";
+import type { AuthContext } from "#/lib/auth";
 import { formatDateLabel } from "#/lib/formatting";
 import { pb } from "#/lib/pocketbase";
 import {
@@ -13,11 +14,13 @@ import {
 } from "#/lib/tasks";
 
 type TaskSubtasksPanelProps = {
+	auth: AuthContext;
 	initialSubtasks: SubtaskRecord[];
 	taskId: string;
 };
 
 export function TaskSubtasksPanel({
+	auth,
 	initialSubtasks,
 	taskId,
 }: TaskSubtasksPanelProps) {
@@ -74,6 +77,7 @@ export function TaskSubtasksPanel({
 
 		try {
 			const record = await createSubtask(
+				auth,
 				taskId,
 				nextTitle,
 				getNextPosition(subtasks),
@@ -93,7 +97,11 @@ export function TaskSubtasksPanel({
 		setActiveSubtaskId(subtask.id);
 
 		try {
-			const updated = await updateSubtaskCompletion(subtask.id, isCompleted);
+			const updated = await updateSubtaskCompletion(
+				auth,
+				subtask.id,
+				isCompleted,
+			);
 
 			setSubtasks((current) =>
 				current.map((item) => (item.id === updated.id ? updated : item)),
@@ -110,7 +118,7 @@ export function TaskSubtasksPanel({
 		setActiveSubtaskId(subtaskId);
 
 		try {
-			await deleteSubtask(subtaskId);
+			await deleteSubtask(auth, subtaskId);
 			setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
 		} catch (caughtError) {
 			setError(getErrorMessage(caughtError));

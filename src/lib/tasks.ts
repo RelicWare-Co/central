@@ -301,50 +301,152 @@ export async function listSubtasksForTask(
 }
 
 export async function createTask(
+	auth: AuthContext,
 	currentUserId: string,
 	values: TaskFormValues,
+	redirectTo = "/app/tasks/new",
 ) {
-	return pb.collection("tasks").create<TaskRecord>({
-		...buildTaskPayload(values),
-		createdBy: currentUserId,
-	});
+	try {
+		return await pb.collection("tasks").create<TaskRecord>({
+			...buildTaskPayload(values),
+			createdBy: currentUserId,
+		});
+	} catch (error) {
+		if (isUnauthorizedError(error)) {
+			auth.logout();
+
+			throw redirect({
+				to: "/login",
+				search: {
+					redirect: redirectTo,
+				},
+			});
+		}
+
+		throw error;
+	}
 }
 
 export async function updateTask(
+	auth: AuthContext,
 	taskId: string,
 	values: TaskFormValues,
 	existingCompletedAt?: string,
+	redirectTo = `/app/tasks/${taskId}`,
 ) {
-	return pb
-		.collection("tasks")
-		.update<TaskRecord>(taskId, buildTaskPayload(values, existingCompletedAt));
+	try {
+		return await pb
+			.collection("tasks")
+			.update<TaskRecord>(
+				taskId,
+				buildTaskPayload(values, existingCompletedAt),
+			);
+	} catch (error) {
+		if (isUnauthorizedError(error)) {
+			auth.logout();
+
+			throw redirect({
+				to: "/login",
+				search: {
+					redirect: redirectTo,
+				},
+			});
+		}
+
+		if (isNotFoundError(error)) {
+			throw notFound();
+		}
+
+		throw error;
+	}
 }
 
 export async function createSubtask(
+	auth: AuthContext,
 	taskId: string,
 	title: string,
 	position: number,
+	redirectTo = `/app/tasks/${taskId}`,
 ) {
-	return pb.collection("subtasks").create<SubtaskRecord>({
-		isCompleted: false,
-		position,
-		task: taskId,
-		title: title.trim(),
-	});
+	try {
+		return await pb.collection("subtasks").create<SubtaskRecord>({
+			isCompleted: false,
+			position,
+			task: taskId,
+			title: title.trim(),
+		});
+	} catch (error) {
+		if (isUnauthorizedError(error)) {
+			auth.logout();
+
+			throw redirect({
+				to: "/login",
+				search: {
+					redirect: redirectTo,
+				},
+			});
+		}
+
+		throw error;
+	}
 }
 
 export async function updateSubtaskCompletion(
+	auth: AuthContext,
 	subtaskId: string,
 	isCompleted: boolean,
+	redirectTo = "/app/tasks",
 ) {
-	return pb.collection("subtasks").update<SubtaskRecord>(subtaskId, {
-		completedAt: isCompleted ? new Date().toISOString() : null,
-		isCompleted,
-	});
+	try {
+		return await pb.collection("subtasks").update<SubtaskRecord>(subtaskId, {
+			completedAt: isCompleted ? new Date().toISOString() : null,
+			isCompleted,
+		});
+	} catch (error) {
+		if (isUnauthorizedError(error)) {
+			auth.logout();
+
+			throw redirect({
+				to: "/login",
+				search: {
+					redirect: redirectTo,
+				},
+			});
+		}
+
+		if (isNotFoundError(error)) {
+			throw notFound();
+		}
+
+		throw error;
+	}
 }
 
-export async function deleteSubtask(subtaskId: string) {
-	return pb.collection("subtasks").delete(subtaskId);
+export async function deleteSubtask(
+	auth: AuthContext,
+	subtaskId: string,
+	redirectTo = "/app/tasks",
+) {
+	try {
+		return await pb.collection("subtasks").delete(subtaskId);
+	} catch (error) {
+		if (isUnauthorizedError(error)) {
+			auth.logout();
+
+			throw redirect({
+				to: "/login",
+				search: {
+					redirect: redirectTo,
+				},
+			});
+		}
+
+		if (isNotFoundError(error)) {
+			throw notFound();
+		}
+
+		throw error;
+	}
 }
 
 export function getDefaultTaskFormValues(

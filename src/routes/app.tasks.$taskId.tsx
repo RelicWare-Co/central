@@ -45,6 +45,7 @@ export const Route = createFileRoute("/app/tasks/$taskId")({
 			search: normalizedSearch,
 			subtasks,
 			task,
+			auth: context.auth,
 		};
 	},
 	component: EditTaskRoute,
@@ -54,7 +55,7 @@ export const Route = createFileRoute("/app/tasks/$taskId")({
 function EditTaskRoute() {
 	const navigate = useNavigate({ from: Route.fullPath });
 	const router = useRouter();
-	const { options, search, subtasks, task } = Route.useLoaderData();
+	const { auth, options, search, subtasks, task } = Route.useLoaderData();
 	const cancelLink = getTaskEditorReturnLink(
 		search,
 		search.projectId ?? task.project,
@@ -91,7 +92,7 @@ function EditTaskRoute() {
 				});
 			}}
 			onSubmit={async (values) => {
-				await updateTask(task.id, values, task.completedAt);
+				await updateTask(auth, task.id, values, task.completedAt);
 
 				await router.invalidate();
 				await navigate(
@@ -99,7 +100,11 @@ function EditTaskRoute() {
 				);
 			}}
 		>
-			<TaskSubtasksPanel initialSubtasks={subtasks} taskId={task.id} />
+			<TaskSubtasksPanel
+				auth={auth}
+				initialSubtasks={subtasks}
+				taskId={task.id}
+			/>
 			<div className="mt-6 rounded-xl border border-border bg-card">
 				<div className="border-b border-border px-4 py-3">
 					<p className="text-sm font-medium text-foreground">Activity Log</p>

@@ -29,6 +29,7 @@ export const Route = createFileRoute("/app/tasks/new")({
 			}),
 			options,
 			search: normalizedSearch,
+			auth: context.auth,
 		};
 	},
 	component: NewTaskRoute,
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/app/tasks/new")({
 function NewTaskRoute() {
 	const navigate = useNavigate({ from: Route.fullPath });
 	const router = useRouter();
-	const { defaults, options, search } = Route.useLoaderData();
+	const { auth, defaults, options, search } = Route.useLoaderData();
 	const cancelLink = getTaskEditorReturnLink(search, search.projectId);
 
 	return (
@@ -67,7 +68,7 @@ function NewTaskRoute() {
 				});
 			}}
 			onSubmit={async (values) => {
-				const task = await createTask(options.currentUserId, values);
+				const task = await createTask(auth, options.currentUserId, values);
 
 				await router.invalidate();
 				await navigate(
