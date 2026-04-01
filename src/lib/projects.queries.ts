@@ -22,20 +22,19 @@ type ProjectCollectionStreamChunk =
 			kind: "snapshot";
 			data: ProjectCollectionData;
 	  }
-	| {
-			kind: "event";
-			event: PocketBaseRealtimeEvent<ProjectRecord>;
-	  };
+	| ProjectEventStreamChunk;
 
 type ProjectRecordStreamChunk =
 	| {
 			kind: "snapshot";
 			data: ProjectRecord;
 	  }
-	| {
-			kind: "event";
-			event: PocketBaseRealtimeEvent<ProjectRecord>;
-	  };
+	| ProjectEventStreamChunk;
+
+type ProjectEventStreamChunk = {
+	kind: "event";
+	event: PocketBaseRealtimeEvent<ProjectRecord>;
+};
 
 export function projectsListSnapshotQueryOptions(auth: AuthContext) {
 	return queryOptions({
@@ -47,6 +46,7 @@ export function projectsListSnapshotQueryOptions(auth: AuthContext) {
 export function projectsListLiveQueryOptions(auth: AuthContext) {
 	return queryOptions({
 		queryKey: queryKeys.projects.list,
+		refetchOnMount: "always",
 		queryFn: streamedQuery<ProjectCollectionStreamChunk, ProjectCollectionData>(
 			{
 				initialValue: getEmptyProjectCollectionData(),
@@ -90,6 +90,7 @@ export function projectDetailLiveQueryOptions(
 ) {
 	return queryOptions({
 		queryKey: queryKeys.projects.detail(projectId),
+		refetchOnMount: "always",
 		queryFn: streamedQuery<ProjectRecordStreamChunk, ProjectRecord>({
 			initialValue: {} as ProjectRecord,
 			refetchMode: "append",
@@ -244,13 +245,21 @@ function sortProjects(items: ProjectRecord[]) {
 	});
 }
 
-function createProjectEventsStream(signal?: AbortSignal, topic = "*") {
-	return createPocketBaseRealtimeStream<ProjectRecord>(
+async function* createProjectEventsStream(
+	signal?: AbortSignal,
+	topic = "*",
+): AsyncIterable<ProjectEventStreamChunk> {
+	for await (const event of createPocketBaseRealtimeStream<ProjectRecord>(
 		"projects",
 		topic,
 		{
 			expand: "owner",
 		},
 		signal,
-	);
+	)) {
+		yield {
+			kind: "event",
+			event,
+		};
+	}
 }

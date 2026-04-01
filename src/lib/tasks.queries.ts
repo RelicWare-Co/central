@@ -28,30 +28,31 @@ type TaskCollectionStreamChunk =
 			kind: "snapshot";
 			data: TaskCollectionData;
 	  }
-	| {
-			kind: "event";
-			event: PocketBaseRealtimeEvent<TaskRecord>;
-	  };
+	| TaskEventStreamChunk;
 
 type TaskRecordStreamChunk =
 	| {
 			kind: "snapshot";
 			data: TaskRecord;
 	  }
-	| {
-			kind: "event";
-			event: PocketBaseRealtimeEvent<TaskRecord>;
-	  };
+	| TaskEventStreamChunk;
 
 type SubtaskStreamChunk =
 	| {
 			kind: "snapshot";
 			data: SubtaskRecord[];
 	  }
-	| {
-			kind: "event";
-			event: PocketBaseRealtimeEvent<SubtaskRecord>;
-	  };
+	| SubtaskEventStreamChunk;
+
+type TaskEventStreamChunk = {
+	kind: "event";
+	event: PocketBaseRealtimeEvent<TaskRecord>;
+};
+
+type SubtaskEventStreamChunk = {
+	kind: "event";
+	event: PocketBaseRealtimeEvent<SubtaskRecord>;
+};
 
 export function inboxTasksSnapshotQueryOptions(auth: AuthContext) {
 	return taskListSnapshotQueryOptions(auth, {
@@ -160,6 +161,7 @@ export function taskDetailSnapshotQueryOptions(
 export function taskDetailLiveQueryOptions(auth: AuthContext, taskId: string) {
 	return queryOptions({
 		queryKey: queryKeys.tasks.detail(taskId),
+		refetchOnMount: "always",
 		queryFn: streamedQuery<TaskRecordStreamChunk, TaskRecord>({
 			initialValue: {} as TaskRecord,
 			refetchMode: "append",
@@ -207,6 +209,7 @@ export function taskSubtasksLiveQueryOptions(
 ) {
 	return queryOptions({
 		queryKey: queryKeys.tasks.subtasks(taskId),
+		refetchOnMount: "always",
 		queryFn: streamedQuery<SubtaskStreamChunk, SubtaskRecord[]>({
 			initialValue: [],
 			refetchMode: "append",
@@ -289,6 +292,7 @@ function taskListLiveQueryOptions(
 ) {
 	return queryOptions({
 		queryKey: queryKeys.tasks.list(scope),
+		refetchOnMount: "always",
 		queryFn: streamedQuery<TaskCollectionStreamChunk, TaskCollectionData>({
 			initialValue: getEmptyTaskCollectionData(),
 			refetchMode: "append",
@@ -605,26 +609,42 @@ function sortSubtasks(items: SubtaskRecord[]) {
 	});
 }
 
-function createTaskEventsStream(signal?: AbortSignal, topic = "*") {
-	return createPocketBaseRealtimeStream<TaskRecord>(
+async function* createTaskEventsStream(
+	signal?: AbortSignal,
+	topic = "*",
+): AsyncIterable<TaskEventStreamChunk> {
+	for await (const event of createPocketBaseRealtimeStream<TaskRecord>(
 		"tasks",
 		topic,
 		{
 			expand: "project,assignee,createdBy",
 		},
 		signal,
-	);
+	)) {
+		yield {
+			kind: "event",
+			event,
+		};
+	}
 }
 
-function createSubtaskEventsStream(signal?: AbortSignal, taskId: string) {
-	return createPocketBaseRealtimeStream<SubtaskRecord>(
+async function* createSubtaskEventsStream(
+	signal: AbortSignal | undefined,
+	taskId: string,
+): AsyncIterable<SubtaskEventStreamChunk> {
+	for await (const event of createPocketBaseRealtimeStream<SubtaskRecord>(
 		"subtasks",
 		"*",
 		{
 			filter: pb.filter("task = {:task}", { task: taskId }),
 		},
 		signal,
-	);
+	)) {
+		yield {
+			kind: "event",
+			event,
+		};
+	}
 }
 
 function getCurrentUserIdOrEmpty(auth: AuthContext) {

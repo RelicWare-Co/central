@@ -12,10 +12,12 @@ type ActivityStreamChunk =
 			kind: "snapshot";
 			data: ActivityLogRecord[];
 	  }
-	| {
-			kind: "event";
-			event: PocketBaseRealtimeEvent<ActivityLogRecord>;
-	  };
+	| ActivityEventStreamChunk;
+
+type ActivityEventStreamChunk = {
+	kind: "event";
+	event: PocketBaseRealtimeEvent<ActivityLogRecord>;
+};
 
 export function activityLogsSnapshotQueryOptions(scope: ActivityScope) {
 	return queryOptions({
@@ -27,6 +29,7 @@ export function activityLogsSnapshotQueryOptions(scope: ActivityScope) {
 export function activityLogsLiveQueryOptions(scope: ActivityScope) {
 	return queryOptions({
 		queryKey: queryKeys.activity.list(scope),
+		refetchOnMount: "always",
 		queryFn: streamedQuery<ActivityStreamChunk, ActivityLogRecord[]>({
 			initialValue: [],
 			refetchMode: "append",
@@ -82,13 +85,13 @@ function sortActivityLogs(items: ActivityLogRecord[]) {
 	});
 }
 
-function createActivityLogsStream(
+async function* createActivityLogsStream(
 	signal: AbortSignal | undefined,
 	scope: ActivityScope,
-) {
+): AsyncIterable<ActivityEventStreamChunk> {
 	const filter = buildActivityFilter(scope);
 
-	return createPocketBaseRealtimeStream<ActivityLogRecord>(
+	for await (const event of createPocketBaseRealtimeStream<ActivityLogRecord>(
 		"activity_logs",
 		"*",
 		{
@@ -96,7 +99,12 @@ function createActivityLogsStream(
 			...(filter ? { filter } : {}),
 		},
 		signal,
-	);
+	)) {
+		yield {
+			kind: "event",
+			event,
+		};
+	}
 }
 
 function buildActivityFilter(scope: ActivityScope) {
