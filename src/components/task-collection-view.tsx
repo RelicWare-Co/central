@@ -18,14 +18,8 @@ import {
 	SelectValue,
 } from "#/components/ui/select";
 import { Separator } from "#/components/ui/separator";
-import { formatDueDateLabel } from "#/lib/formatting";
-import { getRichTextPreview } from "#/lib/rich-text";
-import type {
-	TaskCollectionData,
-	TaskPriority,
-	TaskRecord,
-	TaskStatus,
-} from "#/lib/tasks";
+import { TaskCard } from "#/components/ui/task-card";
+import type { TaskCollectionData, TaskRecord } from "#/lib/tasks";
 import { cn } from "#/lib/utils";
 
 type FilterOption = {
@@ -436,98 +430,21 @@ export function TaskCollectionView({
 						</EmptyHeader>
 					</Empty>
 				) : (
-					<div className="flex flex-col rounded-xl border border-border bg-card">
+					<div className="flex flex-col gap-3">
 						{filteredTasks.map((task, index) => (
-							<article
+							<TaskCard
 								key={task.id}
-								className={cn(
-									"group relative px-4 py-4 transition-colors duration-150 hover:bg-secondary/50 sm:px-5",
-									index !== 0 && "border-t border-border",
-								)}
-							>
-								<span
-									className={cn(
-										"absolute inset-y-0 left-0 w-0.5",
-										getTaskAccentClass(task),
-									)}
-								/>
-								<div className="grid gap-3 lg:grid-cols-[minmax(0,2.2fr)_minmax(7rem,0.8fr)_minmax(8rem,0.9fr)_minmax(9rem,1fr)_auto] lg:items-start lg:gap-4">
-									<div className="min-w-0">
-										<p className="text-xs text-muted-foreground">
-											{getTaskScopeLabel(task)}
-										</p>
-										<h4 className="mt-1 text-pretty text-sm font-semibold tracking-[-0.01em] text-foreground">
-											{task.title}
-										</h4>
-										<p className="mt-1 max-w-xl text-sm text-muted-foreground">
-											{getDescription(task.description)}
-										</p>
-
-										{task.status === "blocked" && task.blockedReason ? (
-											<p className="mt-2 max-w-xl text-sm text-destructive">
-												{task.blockedReason}
-											</p>
-										) : null}
-									</div>
-
-									<div className="flex flex-wrap gap-1.5 lg:flex-col lg:items-start">
-										<PriorityBadge priority={task.priority} />
-										<StatusBadge status={task.status} />
-									</div>
-
-									<MetaItem
-										label="Assignee"
-										value={getUserLabel(task.expand?.assignee)}
-										secondaryValue={`Created by ${getUserLabel(task.expand?.createdBy)}`}
-									/>
-
-									<MetaItem
-										label="Deadline"
-										value={formatDueDateLabel(task.dueDate)}
-										valueClassName="tabular-nums"
-									/>
-
-									<div className="flex flex-wrap gap-2 lg:justify-self-end">
-										{renderTaskActions ? renderTaskActions(task) : null}
-									</div>
-								</div>
-							</article>
+								task={task}
+								variant="default"
+								size="md"
+								index={index}
+								renderActions={renderTaskActions}
+							/>
 						))}
 					</div>
 				)}
 			</div>
 		</section>
-	);
-}
-
-function MetaItem({
-	label,
-	secondaryValue,
-	value,
-	valueClassName,
-}: {
-	label: string;
-	secondaryValue?: string;
-	value: string;
-	valueClassName?: string;
-}) {
-	return (
-		<div className="min-w-0">
-			<dt className="text-xs text-muted-foreground">{label}</dt>
-			<dd
-				className={cn(
-					"mt-0.5 break-words text-sm font-medium text-foreground",
-					valueClassName,
-				)}
-			>
-				{value}
-			</dd>
-			{secondaryValue ? (
-				<dd className="mt-0.5 break-words text-xs text-muted-foreground">
-					{secondaryValue}
-				</dd>
-			) : null}
-		</div>
 	);
 }
 
@@ -561,64 +478,6 @@ function SummaryBadge({
 			{label}
 		</div>
 	);
-}
-
-function StatusBadge({ status }: { status: TaskStatus }) {
-	const palette = {
-		blocked:
-			"border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
-		canceled: "border-border bg-secondary text-muted-foreground",
-		completed:
-			"border-[oklch(0.87_0.035_148)] bg-[oklch(0.955_0.02_148)] text-[oklch(0.40_0.10_148)]",
-		in_progress:
-			"border-[oklch(0.85_0.04_230)] bg-[oklch(0.95_0.025_230)] text-[oklch(0.42_0.10_230)]",
-		pending:
-			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
-	} satisfies Record<TaskStatus, string>;
-
-	return (
-		<Badge variant="outline" className={palette[status]}>
-			{status.replace("_", " ")}
-		</Badge>
-	);
-}
-
-function PriorityBadge({ priority }: { priority: TaskPriority }) {
-	const palette = {
-		high: "border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)] text-[oklch(0.42_0.13_18)]",
-		low: "border-border bg-secondary text-muted-foreground",
-		medium:
-			"border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)] text-[oklch(0.45_0.12_80)]",
-	} satisfies Record<TaskPriority, string>;
-
-	return (
-		<Badge variant="outline" className={palette[priority]}>
-			{priority}
-		</Badge>
-	);
-}
-
-function getTaskAccentClass(task: TaskRecord) {
-	if (task.status === "blocked") return "bg-[oklch(0.50_0.155_15)]";
-	if (task.status === "completed") return "bg-[oklch(0.50_0.13_148)]";
-	if (task.status === "canceled") return "bg-[oklch(0.75_0.005_80)]";
-	if (task.priority === "high") return "bg-[oklch(0.50_0.155_15)]";
-	if (task.status === "in_progress") return "bg-[oklch(0.55_0.12_230)]";
-	return "bg-border";
-}
-
-function getTaskScopeLabel(task: TaskRecord) {
-	const project = task.expand?.project;
-
-	if (!project) {
-		return "Inbox";
-	}
-
-	return `${project.slug} · ${project.name}`;
-}
-
-function getDescription(value?: string) {
-	return getRichTextPreview(value, "No description yet.");
 }
 
 function getUserLabel(user?: {
