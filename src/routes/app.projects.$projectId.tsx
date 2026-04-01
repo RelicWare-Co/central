@@ -1,3 +1,4 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ActivityPanel } from "#/components/activity-panel";
 import { RichTextContent } from "#/components/rich-text-content";
@@ -12,54 +13,53 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
-import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
+import { activityLogsSnapshotQueryOptions } from "#/lib/activity.queries";
 import { formatDateLabel, formatDueDateLabel } from "#/lib/formatting";
+import type { ProjectRecord, ProjectStatus } from "#/lib/projects";
 import {
-	getProjectById,
-	type ProjectRecord,
-	type ProjectStatus,
-} from "#/lib/projects";
-import { listProjectTasks } from "#/lib/tasks";
+	projectDetailLiveQueryOptions,
+	projectDetailSnapshotQueryOptions,
+} from "#/lib/projects.queries";
+import {
+	projectTasksLiveQueryOptions,
+	projectTasksSnapshotQueryOptions,
+} from "#/lib/tasks.queries";
 
 export const Route = createFileRoute("/app/projects/$projectId")({
 	loader: async ({ context, params }) => {
-		const [project, tasks] = await Promise.all([
-			getProjectById(
-				context.auth,
-				params.projectId,
-				`/app/projects/${params.projectId}`,
-			),
-			listProjectTasks(
-				context.auth,
-				params.projectId,
-				`/app/projects/${params.projectId}`,
-			),
+		await Promise.all([
+			context.queryClient.ensureQueryData({
+				...projectDetailSnapshotQueryOptions(context.auth, params.projectId),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...projectTasksSnapshotQueryOptions(context.auth, params.projectId),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...activityLogsSnapshotQueryOptions({
+					projectId: params.projectId,
+				}),
+				revalidateIfStale: true,
+			}),
 		]);
-
-		return {
-			project,
-			tasks,
-		};
 	},
 	component: ProjectDetailRoute,
 	notFoundComponent: MissingProjectRoute,
 });
 
 function ProjectDetailRoute() {
-	const { project, tasks } = Route.useLoaderData();
+	const { auth } = Route.useRouteContext();
+	const { projectId } = Route.useParams();
+	const { data: project } = useSuspenseQuery(
+		projectDetailLiveQueryOptions(auth, projectId),
+	);
+	const { data: tasks } = useSuspenseQuery(
+		projectTasksLiveQueryOptions(auth, projectId),
+	);
 	const openTasks = tasks.items.filter(
 		(task) => task.status !== "completed" && task.status !== "canceled",
 	).length;
-
-	usePocketBaseRealtimeInvalidate({
-		collection: "projects",
-		topic: project.id,
-	});
-
-	usePocketBaseRealtimeInvalidate({
-		collection: "tasks",
-		topic: "*",
-	});
 
 	return (
 		<div className="flex flex-col gap-5">

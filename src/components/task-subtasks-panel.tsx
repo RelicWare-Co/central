@@ -1,66 +1,83 @@
-import { type FormEvent, useEffect, useEffectEvent, useState } from "react";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { type FormEvent, useState } from "react";
 import { Button } from "#/components/ui/button";
 import { Checkbox } from "#/components/ui/checkbox";
 import { Input } from "#/components/ui/input";
-import { usePocketBaseRealtimeSubscription } from "#/hooks/use-pocketbase-realtime";
 import type { AuthContext } from "#/lib/auth";
 import { formatDateLabel } from "#/lib/formatting";
-import { pb } from "#/lib/pocketbase";
+import { queryKeys } from "#/lib/query-keys";
 import {
 	createSubtask,
 	deleteSubtask,
 	type SubtaskRecord,
 	updateSubtaskCompletion,
 } from "#/lib/tasks";
+import { taskSubtasksLiveQueryOptions } from "#/lib/tasks.queries";
 
 type TaskSubtasksPanelProps = {
 	auth: AuthContext;
-	initialSubtasks: SubtaskRecord[];
 	taskId: string;
 };
 
-export function TaskSubtasksPanel({
-	auth,
-	initialSubtasks,
-	taskId,
-}: TaskSubtasksPanelProps) {
-	const [subtasks, setSubtasks] = useState(initialSubtasks);
+export function TaskSubtasksPanel({ auth, taskId }: TaskSubtasksPanelProps) {
+	const queryClient = useQueryClient();
+	const { data: subtasks } = useSuspenseQuery(
+		taskSubtasksLiveQueryOptions(auth, taskId),
+	);
 	const [title, setTitle] = useState("");
 	const [error, setError] = useState<string | null>(null);
-	const [isCreating, setIsCreating] = useState(false);
 	const [activeSubtaskId, setActiveSubtaskId] = useState<string | null>(null);
 	const completedCount = subtasks.filter(
 		(subtask) => subtask.isCompleted,
 	).length;
-	const handleRealtimeEvent = useEffectEvent(
-		({ action, record }: { action: string; record: SubtaskRecord }) => {
-			setSubtasks((current) => {
-				if (action === "delete") {
-					return current.filter((item) => item.id !== record.id);
-				}
 
-				const nextSubtasks = current.some((item) => item.id === record.id)
-					? current.map((item) => (item.id === record.id ? record : item))
-					: [...current, record];
-
-				return sortSubtasks(nextSubtasks);
-			});
+	const createMutation = useMutation({
+		mutationFn: async ({
+			position,
+			title: nextTitle,
+		}: {
+			position: number;
+			title: string;
+		}) => createSubtask(auth, taskId, nextTitle, position),
+		onSuccess: (record) => {
+			queryClient.setQueryData<SubtaskRecord[]>(
+				queryKeys.tasks.subtasks(taskId),
+				(current = []) => sortSubtasks([...current, record]),
+			);
 		},
-	);
+	});
 
-	useEffect(() => {
-		setSubtasks(initialSubtasks);
-		setTitle("");
-		setError(null);
-		setIsCreating(false);
-		setActiveSubtaskId(null);
-	}, [initialSubtasks]);
+	const toggleMutation = useMutation({
+		mutationFn: async ({
+			isCompleted,
+			subtaskId,
+		}: {
+			isCompleted: boolean;
+			subtaskId: string;
+		}) => updateSubtaskCompletion(auth, subtaskId, isCompleted),
+		onSuccess: (updated) => {
+			queryClient.setQueryData<SubtaskRecord[]>(
+				queryKeys.tasks.subtasks(taskId),
+				(current = []) =>
+					sortSubtasks(
+						current.map((item) => (item.id === updated.id ? updated : item)),
+					),
+			);
+		},
+	});
 
-	usePocketBaseRealtimeSubscription<SubtaskRecord>({
-		collection: "subtasks",
-		filter: pb.filter("task = {:task}", { task: taskId }),
-		onEvent: handleRealtimeEvent,
-		topic: "*",
+	const deleteMutation = useMutation({
+		mutationFn: async (subtaskId: string) => deleteSubtask(auth, subtaskId),
+		onSuccess: (_result, subtaskId) => {
+			queryClient.setQueryData<SubtaskRecord[]>(
+				queryKeys.tasks.subtasks(taskId),
+				(current = []) => current.filter((item) => item.id !== subtaskId),
+			);
+		},
 	});
 
 	async function handleCreate(event: FormEvent<HTMLFormElement>) {
@@ -73,22 +90,15 @@ export function TaskSubtasksPanel({
 		}
 
 		setError(null);
-		setIsCreating(true);
 
 		try {
-			const record = await createSubtask(
-				auth,
-				taskId,
-				nextTitle,
-				getNextPosition(subtasks),
-			);
-
-			setSubtasks((current) => sortSubtasks([...current, record]));
+			await createMutation.mutateAsync({
+				position: getNextPosition(subtasks),
+				title: nextTitle,
+			});
 			setTitle("");
 		} catch (caughtError) {
 			setError(getErrorMessage(caughtError));
-		} finally {
-			setIsCreating(false);
 		}
 	}
 
@@ -97,15 +107,10 @@ export function TaskSubtasksPanel({
 		setActiveSubtaskId(subtask.id);
 
 		try {
-			const updated = await updateSubtaskCompletion(
-				auth,
-				subtask.id,
+			await toggleMutation.mutateAsync({
 				isCompleted,
-			);
-
-			setSubtasks((current) =>
-				current.map((item) => (item.id === updated.id ? updated : item)),
-			);
+				subtaskId: subtask.id,
+			});
 		} catch (caughtError) {
 			setError(getErrorMessage(caughtError));
 		} finally {
@@ -118,8 +123,7 @@ export function TaskSubtasksPanel({
 		setActiveSubtaskId(subtaskId);
 
 		try {
-			await deleteSubtask(auth, subtaskId);
-			setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
+			await deleteMutation.mutateAsync(subtaskId);
 		} catch (caughtError) {
 			setError(getErrorMessage(caughtError));
 		} finally {
@@ -158,11 +162,11 @@ export function TaskSubtasksPanel({
 						/>
 						<Button
 							className="sm:shrink-0"
-							disabled={isCreating}
+							disabled={createMutation.isPending}
 							size="sm"
 							type="submit"
 						>
-							{isCreating ? "Adding…" : "Add"}
+							{createMutation.isPending ? "Adding…" : "Add"}
 						</Button>
 					</div>
 				</form>

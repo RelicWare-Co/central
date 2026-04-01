@@ -1,9 +1,9 @@
 import {
-	createFileRoute,
-	Link,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router";
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import { DatePickerField } from "#/components/date-picker-field";
 import { RichTextEditor } from "#/components/rich-text-editor";
@@ -34,33 +34,37 @@ import {
 import {
 	createProject,
 	getDefaultProjectFormValues,
-	getProjectFormOptions,
 	type ProjectFormValues,
 } from "#/lib/projects";
+import { projectFormOptionsSnapshotQueryOptions } from "#/lib/projects.queries";
+import { queryKeys } from "#/lib/query-keys";
 
 export const Route = createFileRoute("/app/projects/new")({
 	loader: async ({ context }) => {
-		const options = await getProjectFormOptions(
-			context.auth,
-			"/app/projects/new",
-		);
-
-		return {
-			defaults: getDefaultProjectFormValues(options.currentUserId),
-			options,
-			auth: context.auth,
-		};
+		await context.queryClient.ensureQueryData({
+			...projectFormOptionsSnapshotQueryOptions(context.auth),
+			revalidateIfStale: true,
+		});
 	},
 	component: NewProjectRoute,
 });
 
 function NewProjectRoute() {
 	const navigate = useNavigate({ from: Route.fullPath });
-	const router = useRouter();
-	const { auth, defaults, options } = Route.useLoaderData();
-	const [values, setValues] = useState<ProjectFormValues>(defaults);
+	const queryClient = useQueryClient();
+	const { auth } = Route.useRouteContext();
+	const { data: options } = useSuspenseQuery(
+		projectFormOptionsSnapshotQueryOptions(auth),
+	);
+	const [values, setValues] = useState<ProjectFormValues>(() =>
+		getDefaultProjectFormValues(options.currentUserId),
+	);
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const createProjectMutation = useMutation({
+		mutationFn: async (nextValues: ProjectFormValues) =>
+			createProject(auth, nextValues),
+	});
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -68,9 +72,9 @@ function NewProjectRoute() {
 		setIsSubmitting(true);
 
 		try {
-			const project = await createProject(auth, values);
+			const project = await createProjectMutation.mutateAsync(values);
 
-			await router.invalidate();
+			queryClient.setQueryData(queryKeys.projects.detail(project.id), project);
 			await navigate({
 				params: {
 					projectId: project.id,

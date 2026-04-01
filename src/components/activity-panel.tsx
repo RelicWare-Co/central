@@ -1,6 +1,6 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { formatRelative } from "date-fns";
-import { useEffect, useState } from "react";
-import { type ActivityLogRecord, getActivityLogs } from "#/lib/activity";
+import { activityLogsLiveQueryOptions } from "#/lib/activity.queries";
 
 export function ActivityPanel({
 	projectId,
@@ -9,33 +9,8 @@ export function ActivityPanel({
 	projectId?: string;
 	taskId?: string;
 }) {
-	const [logs, setLogs] = useState<ActivityLogRecord[]>([]);
-	const [loading, setLoading] = useState(true);
-
-	useEffect(() => {
-		let isMounted = true;
-		getActivityLogs({ projectId, taskId })
-			.then((res) => {
-				if (isMounted) {
-					setLogs(res.items);
-					setLoading(false);
-				}
-			})
-			.catch(() => {
-				if (isMounted) setLoading(false);
-			});
-		return () => {
-			isMounted = false;
-		};
-	}, [projectId, taskId]);
-
-	if (loading) {
-		return (
-			<p className="px-4 py-3 text-sm text-muted-foreground">
-				Loading history...
-			</p>
-		);
-	}
+	const scope = taskId ? { taskId } : projectId ? { projectId } : {};
+	const { data: logs } = useSuspenseQuery(activityLogsLiveQueryOptions(scope));
 
 	if (logs.length === 0) {
 		return (

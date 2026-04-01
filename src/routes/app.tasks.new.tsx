@@ -1,45 +1,47 @@
 import {
-	createFileRoute,
-	Link,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router";
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { startTransition } from "react";
 import { TaskEditorForm } from "#/components/task-editor-form";
 import { Button } from "#/components/ui/button";
+import { queryKeys } from "#/lib/query-keys";
 import {
 	getTaskEditorReturnLink,
 	validateTaskEditorSearch,
 } from "#/lib/task-editor-routing";
-import {
-	createTask,
-	getDefaultTaskFormValues,
-	getTaskFormOptions,
-} from "#/lib/tasks";
+import { createTask, getDefaultTaskFormValues } from "#/lib/tasks";
+import { taskFormOptionsSnapshotQueryOptions } from "#/lib/tasks.queries";
 
 export const Route = createFileRoute("/app/tasks/new")({
 	validateSearch: validateTaskEditorSearch,
-	loader: async ({ context, location }) => {
-		const normalizedSearch = validateTaskEditorSearch(location.search);
-		const options = await getTaskFormOptions(context.auth, "/app/tasks/new");
-
-		return {
-			defaults: getDefaultTaskFormValues(options.currentUserId, {
-				project: normalizedSearch.projectId ?? "",
-			}),
-			options,
-			search: normalizedSearch,
-			auth: context.auth,
-		};
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData({
+			...taskFormOptionsSnapshotQueryOptions(context.auth),
+			revalidateIfStale: true,
+		});
 	},
 	component: NewTaskRoute,
 });
 
 function NewTaskRoute() {
 	const navigate = useNavigate({ from: Route.fullPath });
-	const router = useRouter();
-	const { auth, defaults, options, search } = Route.useLoaderData();
+	const queryClient = useQueryClient();
+	const { auth } = Route.useRouteContext();
+	const search = Route.useSearch();
+	const { data: options } = useSuspenseQuery(
+		taskFormOptionsSnapshotQueryOptions(auth),
+	);
+	const defaults = getDefaultTaskFormValues(options.currentUserId, {
+		project: search.projectId ?? "",
+	});
 	const cancelLink = getTaskEditorReturnLink(search, search.projectId);
+	const createTaskMutation = useMutation({
+		mutationFn: async (values: Parameters<typeof createTask>[2]) =>
+			createTask(auth, options.currentUserId, values),
+	});
 
 	return (
 		<TaskEditorForm
@@ -68,9 +70,8 @@ function NewTaskRoute() {
 				});
 			}}
 			onSubmit={async (values) => {
-				const task = await createTask(auth, options.currentUserId, values);
-
-				await router.invalidate();
+				const task = await createTaskMutation.mutateAsync(values);
+				queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
 				await navigate(
 					getTaskEditorReturnLink(search, values.project || task.project),
 				);

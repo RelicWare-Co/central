@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Link,
@@ -24,27 +25,37 @@ import {
 	SelectValue,
 } from "#/components/ui/select";
 import { Separator } from "#/components/ui/separator";
-import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
 import { formatDueDateLabel } from "#/lib/formatting";
+import type { ProjectRecord, ProjectStatus } from "#/lib/projects";
 import {
-	listProjects,
-	type ProjectRecord,
-	type ProjectStatus,
-} from "#/lib/projects";
+	projectsListLiveQueryOptions,
+	projectsListSnapshotQueryOptions,
+} from "#/lib/projects.queries";
 import { getRichTextPreview } from "#/lib/rich-text";
 import { cn } from "#/lib/utils";
 
 export const Route = createFileRoute("/app/projects")({
-	loader: async ({ context }) => listProjects(context.auth),
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData({
+			...projectsListSnapshotQueryOptions(context.auth),
+			revalidateIfStale: true,
+		});
+	},
 	component: ProjectsRoute,
 });
 
 function ProjectsRoute() {
+	const { auth } = Route.useRouteContext();
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
 	const isProjectDetailRoute = pathname.startsWith("/app/projects/");
-	const { items, summary } = Route.useLoaderData();
+	const {
+		data: { items, summary },
+	} = useSuspenseQuery({
+		...projectsListLiveQueryOptions(auth),
+		enabled: !isProjectDetailRoute,
+	});
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
@@ -109,12 +120,6 @@ function ProjectsRoute() {
 		setStatusFilter("all");
 		setOwnerFilter("all");
 	}
-
-	usePocketBaseRealtimeInvalidate({
-		collection: "projects",
-		enabled: !isProjectDetailRoute,
-		topic: "*",
-	});
 
 	if (isProjectDetailRoute) {
 		return <Outlet />;

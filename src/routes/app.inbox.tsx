@@ -1,21 +1,27 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TaskCollectionView } from "#/components/task-collection-view";
 import { Button } from "#/components/ui/button";
-import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
-import { listInboxTasks } from "#/lib/tasks";
+import {
+	inboxTasksLiveQueryOptions,
+	inboxTasksSnapshotQueryOptions,
+} from "#/lib/tasks.queries";
 
 export const Route = createFileRoute("/app/inbox")({
-	loader: async ({ context }) => listInboxTasks(context.auth),
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData({
+			...inboxTasksSnapshotQueryOptions(context.auth),
+			revalidateIfStale: true,
+		});
+	},
 	component: InboxRoute,
 });
 
 function InboxRoute() {
-	const { items, summary } = Route.useLoaderData();
-
-	usePocketBaseRealtimeInvalidate({
-		collection: "tasks",
-		topic: "*",
-	});
+	const { auth } = Route.useRouteContext();
+	const {
+		data: { items, summary },
+	} = useSuspenseQuery(inboxTasksLiveQueryOptions(auth));
 
 	return (
 		<TaskCollectionView

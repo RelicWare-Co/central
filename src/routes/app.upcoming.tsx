@@ -1,21 +1,27 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TaskCollectionView } from "#/components/task-collection-view";
 import { Button } from "#/components/ui/button";
-import { usePocketBaseRealtimeInvalidate } from "#/hooks/use-pocketbase-realtime";
-import { listUpcomingTasks } from "#/lib/tasks";
+import {
+	upcomingTasksLiveQueryOptions,
+	upcomingTasksSnapshotQueryOptions,
+} from "#/lib/tasks.queries";
 
 export const Route = createFileRoute("/app/upcoming")({
-	loader: async ({ context }) => listUpcomingTasks(context.auth),
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData({
+			...upcomingTasksSnapshotQueryOptions(context.auth),
+			revalidateIfStale: true,
+		});
+	},
 	component: UpcomingRoute,
 });
 
 function UpcomingRoute() {
-	const { items, summary } = Route.useLoaderData();
-
-	usePocketBaseRealtimeInvalidate({
-		collection: "tasks",
-		topic: "*",
-	});
+	const { auth } = Route.useRouteContext();
+	const {
+		data: { items, summary },
+	} = useSuspenseQuery(upcomingTasksLiveQueryOptions(auth));
 
 	return (
 		<TaskCollectionView
