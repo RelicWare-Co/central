@@ -74,6 +74,31 @@ describe("rich-text helpers", () => {
 		);
 	});
 
+	it("preserves non-text nodes introduced by the editor", () => {
+		const document = JSON.stringify({
+			type: "doc",
+			content: [
+				{
+					type: "image",
+					attrs: {
+						src: "https://example.com/editor.png",
+						alt: "Editor screenshot",
+					},
+				},
+				{
+					type: "divider",
+				},
+				{
+					type: "callout",
+					attrs: { type: "warning" },
+				},
+			],
+		});
+
+		expect(isRichTextEmptyValue(document)).toBe(false);
+		expect(serializeRichTextValue(document)).toBe(document);
+	});
+
 	it("preserves line breaks when needed", () => {
 		expect(
 			getRichTextPlainText("Line one\nLine two", {

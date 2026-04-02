@@ -5,6 +5,17 @@ const EMPTY_DOCUMENT: JSONContent = {
 	content: [{ type: "paragraph" }],
 };
 
+const NON_TEXTUAL_CONTENT_NODE_TYPES = new Set([
+	"bulletList",
+	"orderedList",
+	"taskList",
+	"callout",
+	"table",
+	"divider",
+	"horizontalRule",
+	"image",
+]);
+
 type PlainTextOptions = {
 	collapseWhitespace?: boolean;
 };
@@ -194,6 +205,10 @@ function isRichTextDocumentEmpty(
 		return !node.text?.trim();
 	}
 
+	if (node.type && NON_TEXTUAL_CONTENT_NODE_TYPES.has(node.type)) {
+		return false;
+	}
+
 	if (!Array.isArray(node.content) || node.content.length === 0) {
 		return true;
 	}
@@ -224,7 +239,9 @@ function extractPlainText(node: JSONContent | null | undefined): string {
 		node.type === "blockquote" ||
 		node.type === "codeBlock" ||
 		node.type === "listItem" ||
-		node.type === "taskItem"
+		node.type === "taskItem" ||
+		node.type === "enhancedTaskItem" ||
+		node.type === "callout"
 	) {
 		return `${childText}\n`;
 	}
