@@ -97,7 +97,9 @@ export function TableDialog({
 						>
 							Cancelar
 						</Button>
-						<Button type="submit">Insertar tabla</Button>
+						<Button type="button" onClick={handleSubmit}>
+							Insertar tabla
+						</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>
