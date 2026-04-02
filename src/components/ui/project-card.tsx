@@ -103,9 +103,11 @@ export function ProjectCard({
 		  })
 		: "No deadline";
 
+	const deadlineApproachingMs = 7 * 24 * 60 * 60 * 1000;
+
 	// Check if deadline is approaching (within 7 days)
 	const isDeadlineApproaching = project.dueDate
-		? new Date(project.dueDate).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000 &&
+		? new Date(project.dueDate).getTime() - Date.now() < deadlineApproachingMs &&
 		  new Date(project.dueDate).getTime() > Date.now()
 		: false;
 
@@ -160,6 +162,7 @@ export function ProjectCard({
 								"opacity-70"
 							)}
 							weight="duotone"
+							aria-label="Project"
 						/>
 					</div>
 
@@ -219,7 +222,7 @@ export function ProjectCard({
 						{/* Owner */}
 						<div className="flex items-center gap-2 min-w-[140px]">
 							<div className="w-6 h-6 rounded-full bg-secondary border border-border/50 flex items-center justify-center flex-shrink-0">
-								<User className="w-3.5 h-3.5 text-muted-foreground/60" weight="fill" />
+								<User className="w-3.5 h-3.5 text-muted-foreground/60" weight="fill" aria-label="Owner" />
 							</div>
 							<div className="min-w-0">
 								<p className="text-[10px] uppercase tracking-[0.05em] text-muted-foreground/60 leading-none">
@@ -253,6 +256,7 @@ export function ProjectCard({
 												: "text-muted-foreground/60"
 									)}
 									weight="duotone"
+									aria-label="Deadline"
 								/>
 							</div>
 							<div className="min-w-0">

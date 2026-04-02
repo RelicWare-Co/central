@@ -4,6 +4,7 @@ import type { AuthContext } from "#/lib/auth";
 import { formatDateForPocketBase } from "#/lib/formatting";
 import { pb } from "#/lib/pocketbase";
 import { serializeRichTextValue } from "#/lib/rich-text";
+import { isNotFoundError, isUnauthorizedError } from "#/lib/utils";
 
 export type ProjectStatus =
 	| "active"
@@ -254,22 +255,4 @@ function normalizeSlug(value: string) {
 		.replace(/\s+/g, "-")
 		.replace(/-+/g, "-")
 		.replace(/^-|-$/g, "");
-}
-
-function isUnauthorizedError(error: unknown) {
-	return (
-		typeof error === "object" &&
-		error !== null &&
-		"status" in error &&
-		error.status === 401
-	);
-}
-
-function isNotFoundError(error: unknown) {
-	return (
-		typeof error === "object" &&
-		error !== null &&
-		"status" in error &&
-		error.status === 404
-	);
 }

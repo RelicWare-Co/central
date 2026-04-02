@@ -6,6 +6,7 @@ import { formatDateForPocketBase } from "#/lib/formatting";
 import { pb } from "#/lib/pocketbase";
 import type { ProjectRecord } from "#/lib/projects";
 import { serializeRichTextValue } from "#/lib/rich-text";
+import { isNotFoundError, isUnauthorizedError } from "#/lib/utils";
 
 export type TaskStatus =
 	| "pending"
@@ -467,6 +468,64 @@ export function getDefaultTaskFormValues(
 	} satisfies TaskFormValues;
 }
 
+export function formatTaskStatusLabel(value: TaskFormValues["status"]): string {
+	switch (value) {
+		case "in_progress":
+			return "In Progress";
+		case "blocked":
+			return "Blocked";
+		case "completed":
+			return "Completed";
+		case "canceled":
+			return "Canceled";
+		default:
+			return "Pending";
+	}
+}
+
+export function formatTaskPriorityLabel(
+	value: TaskFormValues["priority"],
+): string {
+	switch (value) {
+		case "high":
+			return "High";
+		case "low":
+			return "Low";
+		default:
+			return "Medium";
+	}
+}
+
+export function getTaskProjectLabel(
+	projectId: string,
+	projects: Pick<ProjectRecord, "id" | "name" | "slug" | "status">[],
+): string {
+	if (!projectId) {
+		return "Inbox";
+	}
+
+	const project = projects.find((item) => item.id === projectId);
+
+	if (!project) {
+		return "Unknown project";
+	}
+
+	return project.slug ? `${project.name} · ${project.slug}` : project.name;
+}
+
+export function getTaskAssigneeLabel(
+	assigneeId: string,
+	users: Pick<TaskUser, "email" | "id" | "name" | "role">[],
+): string {
+	if (!assigneeId) {
+		return "Unassigned";
+	}
+
+	const user = users.find((item) => item.id === assigneeId);
+
+	return user?.name || user?.email || user?.id || "Unknown user";
+}
+
 export function getTaskFormValues(task: TaskRecord) {
 	return {
 		assignee: task.assignee ?? "",
@@ -604,22 +663,4 @@ function formatDateInputValue(value: string) {
 	}
 
 	return date.toISOString().slice(0, 10);
-}
-
-function isUnauthorizedError(error: unknown) {
-	return (
-		typeof error === "object" &&
-		error !== null &&
-		"status" in error &&
-		error.status === 401
-	);
-}
-
-function isNotFoundError(error: unknown) {
-	return (
-		typeof error === "object" &&
-		error !== null &&
-		"status" in error &&
-		error.status === 404
-	);
 }
