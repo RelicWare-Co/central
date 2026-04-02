@@ -28,7 +28,15 @@ import {
 	SelectValue,
 } from "#/components/ui/select";
 import { formatDateLabel, formatDueDateLabel } from "#/lib/formatting";
-import type { TaskFormOptions, TaskFormValues } from "#/lib/tasks";
+import {
+	formatTaskPriorityLabel,
+	formatTaskStatusLabel,
+	getTaskAssigneeLabel,
+	getTaskProjectLabel,
+	type TaskFormOptions,
+	type TaskFormValues,
+} from "#/lib/tasks";
+import { getErrorMessage } from "#/lib/utils";
 
 type TaskEditorFormProps = {
 	cancelAction: ReactNode;
@@ -162,11 +170,11 @@ export function TaskEditorForm({
 							<SummaryItem label="Assignee" value={assigneeLabel} />
 							<SummaryItem
 								label="Status"
-								value={formatStatusLabel(values.status)}
+								value={formatTaskStatusLabel(values.status)}
 							/>
 							<SummaryItem
 								label="Priority"
-								value={formatPriorityLabel(values.priority)}
+								value={formatTaskPriorityLabel(values.priority)}
 							/>
 							<SummaryItem label="Start date" value={startDateLabel} />
 							<SummaryItem label="Due date" value={dueDateLabel} />
@@ -438,64 +446,9 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
 }
 
 function getProjectLabel(projectId: string, options: TaskFormOptions) {
-	if (!projectId) {
-		return "Inbox";
-	}
-
-	const project = options.projects.find((item) => item.id === projectId);
-
-	if (!project) {
-		return "Unknown project";
-	}
-
-	return project.slug ? `${project.name} · ${project.slug}` : project.name;
+	return getTaskProjectLabel(projectId, options.projects);
 }
 
 function getAssigneeLabel(assigneeId: string, options: TaskFormOptions) {
-	if (!assigneeId) {
-		return "Unassigned";
-	}
-
-	const user = options.users.find((item) => item.id === assigneeId);
-
-	return user?.name || user?.email || user?.id || "Unknown user";
-}
-
-function formatStatusLabel(value: TaskFormValues["status"]) {
-	switch (value) {
-		case "in_progress":
-			return "In Progress";
-		case "blocked":
-			return "Blocked";
-		case "completed":
-			return "Completed";
-		case "canceled":
-			return "Canceled";
-		default:
-			return "Pending";
-	}
-}
-
-function formatPriorityLabel(value: TaskFormValues["priority"]) {
-	switch (value) {
-		case "high":
-			return "High";
-		case "low":
-			return "Low";
-		default:
-			return "Medium";
-	}
-}
-
-function getErrorMessage(error: unknown) {
-	if (
-		typeof error === "object" &&
-		error !== null &&
-		"message" in error &&
-		typeof error.message === "string"
-	) {
-		return error.message;
-	}
-
-	return "Task save failed. Verify the fields and try again.";
+	return getTaskAssigneeLabel(assigneeId, options.users);
 }

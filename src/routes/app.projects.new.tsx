@@ -38,6 +38,7 @@ import {
 } from "#/lib/projects";
 import { projectFormOptionsSnapshotQueryOptions } from "#/lib/projects.queries";
 import { queryKeys } from "#/lib/query-keys";
+import { getErrorMessage } from "#/lib/utils";
 
 export const Route = createFileRoute("/app/projects/new")({
 	loader: async ({ context }) => {
@@ -277,17 +278,4 @@ function NewProjectRoute() {
 			</Card>
 		</div>
 	);
-}
-
-function getErrorMessage(error: unknown) {
-	if (
-		typeof error === "object" &&
-		error !== null &&
-		"message" in error &&
-		typeof error.message === "string"
-	) {
-		return error.message;
-	}
-
-	return "Project creation failed. Verify the fields and try again.";
 }

@@ -17,6 +17,7 @@ import {
 	updateSubtaskCompletion,
 } from "#/lib/tasks";
 import { taskSubtasksLiveQueryOptions } from "#/lib/tasks.queries";
+import { getErrorMessage } from "#/lib/utils";
 
 type TaskSubtasksPanelProps = {
 	auth: AuthContext;
@@ -270,17 +271,4 @@ function sortSubtasks(subtasks: SubtaskRecord[]) {
 
 		return left.id.localeCompare(right.id);
 	});
-}
-
-function getErrorMessage(error: unknown) {
-	if (
-		typeof error === "object" &&
-		error !== null &&
-		"message" in error &&
-		typeof error.message === "string"
-	) {
-		return error.message;
-	}
-
-	return "Subtask update failed. Try again.";
 }

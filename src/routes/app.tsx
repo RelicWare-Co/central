@@ -102,7 +102,7 @@ function AppRoute() {
 
 	return (
 		<main className="min-h-screen bg-background text-foreground">
-			<div className="mx-auto flex min-h-screen max-w-[1440px] flex-col md:flex-row">
+			<div className="flex min-h-screen flex-col md:flex-row">
 				<aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex md:sticky md:top-0 md:h-screen">
 					<div className="flex items-center gap-3 px-5 py-6">
 						<div className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background">

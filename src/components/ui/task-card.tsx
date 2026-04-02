@@ -131,9 +131,11 @@ export function TaskCard({
 		  })
 		: "No deadline";
 
+	const deadlineApproachingMs = 7 * 24 * 60 * 60 * 1000;
+
 	// Check if deadline is approaching (within 7 days)
 	const isDeadlineApproaching = task.dueDate
-		? new Date(task.dueDate).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000 &&
+		? new Date(task.dueDate).getTime() - Date.now() < deadlineApproachingMs &&
 		  new Date(task.dueDate).getTime() > Date.now()
 		: false;
 
@@ -197,6 +199,7 @@ export function TaskCard({
 							"opacity-70"
 						)}
 						weight="duotone"
+						aria-label="Task"
 					/>
 					</div>
 
@@ -231,7 +234,7 @@ export function TaskCard({
 						{/* Blocked Reason */}
 						{task.status === "blocked" && task.blockedReason && (
 							<p className="text-xs text-destructive mt-1 flex items-center gap-1">
-								<Warning className="w-3 h-3" weight="fill" />
+								<Warning className="w-3 h-3" weight="fill" aria-label="Blocked" />
 								<span className="truncate">{task.blockedReason}</span>
 							</p>
 						)}
@@ -267,7 +270,7 @@ export function TaskCard({
 						{/* Assignee */}
 						<div className="flex items-center gap-2 min-w-[140px]">
 							<div className="w-6 h-6 rounded-full bg-secondary border border-border/50 flex items-center justify-center flex-shrink-0">
-								<User className="w-3.5 h-3.5 text-muted-foreground/60" weight="fill" />
+								<User className="w-3.5 h-3.5 text-muted-foreground/60" weight="fill" aria-label="Assignee" />
 							</div>
 							<div className="min-w-0">
 								<p className="text-[10px] uppercase tracking-[0.05em] text-muted-foreground/60 leading-none">
@@ -306,6 +309,7 @@ export function TaskCard({
 												: "text-muted-foreground/60"
 									)}
 									weight="duotone"
+									aria-label="Deadline"
 								/>
 							</div>
 							<div className="min-w-0">

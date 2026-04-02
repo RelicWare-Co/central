@@ -72,7 +72,8 @@ function reduceActivityLogs(
 		? current.map((item) => (item.id === record.id ? record : item))
 		: [record, ...current];
 
-	return sortActivityLogs(nextItems).slice(0, 20);
+	const maxActivityLogs = 20;
+	return sortActivityLogs(nextItems).slice(0, maxActivityLogs);
 }
 
 function sortActivityLogs(items: ActivityLogRecord[]) {
