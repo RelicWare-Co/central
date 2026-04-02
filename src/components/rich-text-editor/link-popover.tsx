@@ -52,6 +52,7 @@ export function LinkPopover({ open, onOpenChange, editor }: LinkPopoverProps) {
 							onChange={(e) => setUrl(e.target.value)}
 							onKeyDown={(e) => {
 								if (e.key === "Enter") {
+									e.preventDefault();
 									handleSetLink();
 								}
 							}}

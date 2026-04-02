@@ -90,7 +90,7 @@ export function ImageDialog({
 						>
 							Cancelar
 						</Button>
-						<Button type="submit" disabled={!src}>
+						<Button type="button" onClick={handleSubmit} disabled={!src}>
 							Insertar
 						</Button>
 					</DialogFooter>

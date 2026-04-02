@@ -119,11 +119,15 @@ export function EnhancedToolbar({
 							<HeadingIcon />
 						</ToolbarButton>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start">
+					<DropdownMenuContent
+						align="start"
+						onCloseAutoFocus={(e) => e.preventDefault()}
+					>
 						<DropdownMenuItem
-							onClick={() =>
-								editor.chain().focus().toggleHeading({ level: 1 }).run()
-							}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().toggleHeading({ level: 1 }).run();
+							}}
 							className={cn(state.isH1 && "bg-secondary")}
 						>
 							<span className="font-semibold">H1</span>
@@ -132,9 +136,10 @@ export function EnhancedToolbar({
 							</span>
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() =>
-								editor.chain().focus().toggleHeading({ level: 2 }).run()
-							}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().toggleHeading({ level: 2 }).run();
+							}}
 							className={cn(state.isH2 && "bg-secondary")}
 						>
 							<span className="font-semibold">H2</span>
@@ -143,9 +148,10 @@ export function EnhancedToolbar({
 							</span>
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() =>
-								editor.chain().focus().toggleHeading({ level: 3 }).run()
-							}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().toggleHeading({ level: 3 }).run();
+							}}
 							className={cn(state.isH3 && "bg-secondary")}
 						>
 							<span className="font-semibold">H3</span>
@@ -162,16 +168,25 @@ export function EnhancedToolbar({
 							<QuoteIcon />
 						</ToolbarButton>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start">
+					<DropdownMenuContent
+						align="start"
+						onCloseAutoFocus={(e) => e.preventDefault()}
+					>
 						<DropdownMenuItem
-							onClick={() => editor.chain().focus().toggleBlockquote().run()}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().toggleBlockquote().run();
+							}}
 							className={cn(state.isBlockquote && "bg-secondary")}
 						>
 							<QuoteIcon className="mr-2" />
 							Cita
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().toggleCodeBlock().run();
+							}}
 							className={cn(state.isCodeBlock && "bg-secondary")}
 						>
 							<CodeIcon className="mr-2" />
@@ -249,29 +264,37 @@ export function EnhancedToolbar({
 							<PlusIcon />
 						</ToolbarButton>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start">
+					<DropdownMenuContent
+						align="start"
+						onCloseAutoFocus={(e) => e.preventDefault()}
+					>
 						<DropdownMenuItem
-							onClick={() =>
+							onClick={(e) => {
+								e.stopPropagation();
 								editor
 									.chain()
 									.focus()
 									.insertContent({ type: "callout", attrs: { type: "info" } })
-									.run()
-							}
+									.run();
+							}}
 						>
 							<CalloutIcon className="mr-2" />
 							Nota destacada
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() =>
-								editor.chain().focus().insertContent({ type: "divider" }).run()
-							}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().insertContent({ type: "divider" }).run();
+							}}
 						>
 							<DividerIcon className="mr-2" />
 							Divididor
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() => editor.chain().focus().setHorizontalRule().run()}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().setHorizontalRule().run();
+							}}
 						>
 							<MinusIcon className="mr-2" />
 							Línea horizontal
@@ -288,25 +311,35 @@ export function EnhancedToolbar({
 							<AlignLeftIcon />
 						</ToolbarButton>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start">
+					<DropdownMenuContent
+						align="start"
+						onCloseAutoFocus={(e) => e.preventDefault()}
+					>
 						<DropdownMenuItem
-							onClick={() => editor.chain().focus().setTextAlign("left").run()}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().setTextAlign("left").run();
+							}}
 							className={cn(state.textAlign === "left" && "bg-secondary")}
 						>
 							<AlignLeftIcon className="mr-2" />
 							Izquierda
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() =>
-								editor.chain().focus().setTextAlign("center").run()
-							}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().setTextAlign("center").run();
+							}}
 							className={cn(state.textAlign === "center" && "bg-secondary")}
 						>
 							<AlignCenterIcon className="mr-2" />
 							Centro
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={() => editor.chain().focus().setTextAlign("right").run()}
+							onClick={(e) => {
+								e.stopPropagation();
+								editor.chain().focus().setTextAlign("right").run();
+							}}
 							className={cn(state.textAlign === "right" && "bg-secondary")}
 						>
 							<AlignRightIcon className="mr-2" />
@@ -368,7 +401,7 @@ function ToolbarButton({
 			variant={active ? "secondary" : "ghost"}
 			title={label}
 			onClick={onClick}
-			onMouseDown={(e) => {
+			onPointerDown={(e) => {
 				e.preventDefault();
 			}}
 		>
