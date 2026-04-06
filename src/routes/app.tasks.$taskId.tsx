@@ -1,3 +1,4 @@
+import { XIcon } from "@phosphor-icons/react";
 import {
 	useMutation,
 	useQueryClient,
@@ -6,10 +7,9 @@ import {
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { startTransition } from "react";
 import { ActivityPanel } from "#/components/activity-panel";
-import { TaskCommentsPanel } from "#/components/task-comments-panel";
+import { TaskCommentsSidebar } from "#/components/task-comments-sidebar";
 import { TaskEditorForm } from "#/components/task-editor-form";
 import { TaskSubtasksPanel } from "#/components/task-subtasks-panel";
-import { Button } from "#/components/ui/button";
 import { activityLogsSnapshotQueryOptions } from "#/lib/activity.queries";
 import { taskCommentsSnapshotQueryOptions } from "#/lib/comments.queries";
 import { queryKeys } from "#/lib/query-keys";
@@ -95,13 +95,20 @@ function EditTaskRoute() {
 	});
 
 	return (
-		<div className="grid gap-6 lg:grid-cols-[1fr,320px] xl:grid-cols-[1fr,380px]">
-			<div>
+		<div className="relative">
+			<div className="mx-auto max-w-3xl">
 				<TaskEditorForm
 					cancelAction={
-						<Button asChild size="sm" variant="outline">
-							<Link {...cancelLink}>Cancel</Link>
-						</Button>
+						<div className="flex items-center gap-2">
+							<Link
+								{...cancelLink}
+								className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md active:scale-[0.98]"
+							>
+								<XIcon className="size-4" weight="bold" />
+								Cancel
+							</Link>
+							<TaskCommentsSidebar auth={auth} taskId={taskId} />
+						</div>
 					}
 					editorOpen={search.editor === "open"}
 					eyebrow="Task detail"
@@ -142,10 +149,6 @@ function EditTaskRoute() {
 					</div>
 				</TaskEditorForm>
 			</div>
-
-			<div className="h-fit lg:sticky lg:top-4">
-				<TaskCommentsPanel auth={auth} taskId={taskId} />
-			</div>
 		</div>
 	);
 }
@@ -162,9 +165,12 @@ function MissingTaskRoute() {
 			<p className="mt-1.5 max-w-md text-sm text-muted-foreground">
 				This task no longer exists or your session cannot access it.
 			</p>
-			<Button asChild className="mt-4" size="sm" variant="outline">
-				<Link to="/app/my-tasks">Back to My Tasks</Link>
-			</Button>
+			<Link
+				to="/app/my-tasks"
+				className="mt-4 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md active:scale-[0.98]"
+			>
+				Back to My Tasks
+			</Link>
 		</section>
 	);
 }

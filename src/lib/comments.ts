@@ -51,7 +51,7 @@ export async function listTaskComments(
 	try {
 		return await pb.collection("task_comments").getFullList<TaskCommentRecord>({
 			filter: pb.filter("task = {:task}", { task: taskId }),
-			sort: "+createdAt",
+			sort: "-createdAt",
 			expand: "author,quotedComment.author",
 		});
 	} catch (error) {

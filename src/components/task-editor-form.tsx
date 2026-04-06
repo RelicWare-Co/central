@@ -1,9 +1,8 @@
-import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
+import { CheckIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { useBlocker } from "@tanstack/react-router";
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { DatePickerField } from "#/components/date-picker-field";
 import { RichTextEditor } from "#/components/rich-text-editor";
-import { Button } from "#/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -147,20 +146,15 @@ export function TaskEditorForm({
 							</div>
 
 							<div className="flex shrink-0 items-center gap-2">
-								<Button
+								<button
 									aria-expanded={isEditorOpen}
 									onClick={() => handleToggleEditor(!isEditorOpen)}
-									size="sm"
 									type="button"
-									variant={isEditorOpen ? "ghost" : "outline"}
+									className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md active:scale-[0.98]"
 								>
-									{isEditorOpen ? (
-										<CaretUpIcon data-icon="inline-start" />
-									) : (
-										<CaretDownIcon data-icon="inline-start" />
-									)}
+									<PencilSimpleIcon className="size-4" weight="duotone" />
 									{toggleLabel}
-								</Button>
+								</button>
 								{cancelAction}
 							</div>
 						</div>
@@ -417,9 +411,14 @@ export function TaskEditorForm({
 								reason.
 							</p>
 
-							<Button disabled={isSubmitting} size="lg" type="submit">
+							<button
+								disabled={isSubmitting}
+								type="submit"
+								className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-2 text-sm font-medium text-white shadow-sm transition-all hover:-translate-y-[1px] hover:bg-zinc-800 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0"
+							>
+								<CheckIcon className="size-4" weight="bold" />
 								{isSubmitting ? "Saving..." : submitLabel}
-							</Button>
+							</button>
 						</div>
 					</form>
 				</CardContent>

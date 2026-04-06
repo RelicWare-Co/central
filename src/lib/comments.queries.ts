@@ -83,15 +83,15 @@ function reduceComments(
 
 function sortComments(items: TaskCommentRecord[]) {
 	return [...items].sort((left, right) => {
-		// Sort by createdAt ascending (oldest first)
+		// Sort by createdAt descending (newest first)
 		const leftDate = left.createdAt ?? "";
 		const rightDate = right.createdAt ?? "";
 
 		if (leftDate !== rightDate) {
-			return leftDate.localeCompare(rightDate);
+			return rightDate.localeCompare(leftDate);
 		}
 
-		return left.id.localeCompare(right.id);
+		return right.id.localeCompare(left.id);
 	});
 }
 
