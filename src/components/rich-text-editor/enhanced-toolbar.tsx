@@ -1,4 +1,5 @@
 import type { Editor } from "@tiptap/react";
+import { forwardRef } from "react";
 import { Button } from "#/components/ui/button";
 import {
 	DropdownMenu,
@@ -54,6 +55,10 @@ export function EnhancedToolbar({
 	onInsertLink,
 	onInsertTable,
 }: EnhancedToolbarProps) {
+	const runAfterMenuClose = (command: () => void) => {
+		window.setTimeout(command, 0);
+	};
+
 	return (
 		<div className="central-rich-editor__toolbar flex flex-wrap items-center gap-1 border-b border-border/70 bg-background/30 px-3 py-2">
 			<ToolbarGroup>
@@ -110,23 +115,26 @@ export function EnhancedToolbar({
 			<ToolbarDivider />
 
 			<ToolbarGroup>
-				<DropdownMenu>
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
 						<ToolbarButton
 							active={state.isH1 || state.isH2 || state.isH3}
 							label="Encabezado"
+							preserveEditorSelection={false}
 						>
 							<HeadingIcon />
 						</ToolbarButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="start"
+						className="w-44 rounded-md p-1"
 						onCloseAutoFocus={(e) => e.preventDefault()}
 					>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().toggleHeading({ level: 1 }).run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().toggleHeading({ level: 1 }).run();
+								});
 							}}
 							className={cn(state.isH1 && "bg-secondary")}
 						>
@@ -136,9 +144,10 @@ export function EnhancedToolbar({
 							</span>
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().toggleHeading({ level: 2 }).run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().toggleHeading({ level: 2 }).run();
+								});
 							}}
 							className={cn(state.isH2 && "bg-secondary")}
 						>
@@ -148,9 +157,10 @@ export function EnhancedToolbar({
 							</span>
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().toggleHeading({ level: 3 }).run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().toggleHeading({ level: 3 }).run();
+								});
 							}}
 							className={cn(state.isH3 && "bg-secondary")}
 						>
@@ -162,20 +172,26 @@ export function EnhancedToolbar({
 					</DropdownMenuContent>
 				</DropdownMenu>
 
-				<DropdownMenu>
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
-						<ToolbarButton active={state.isBlockquote} label="Cita">
+						<ToolbarButton
+							active={state.isBlockquote}
+							label="Cita"
+							preserveEditorSelection={false}
+						>
 							<QuoteIcon />
 						</ToolbarButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="start"
+						className="w-44 rounded-md p-1"
 						onCloseAutoFocus={(e) => e.preventDefault()}
 					>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().toggleBlockquote().run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().toggleBlockquote().run();
+								});
 							}}
 							className={cn(state.isBlockquote && "bg-secondary")}
 						>
@@ -183,9 +199,10 @@ export function EnhancedToolbar({
 							Cita
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().toggleCodeBlock().run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().toggleCodeBlock().run();
+								});
 							}}
 							className={cn(state.isCodeBlock && "bg-secondary")}
 						>
@@ -258,42 +275,50 @@ export function EnhancedToolbar({
 			<ToolbarDivider />
 
 			<ToolbarGroup>
-				<DropdownMenu>
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
-						<ToolbarButton label="Insertar">
+						<ToolbarButton label="Insertar" preserveEditorSelection={false}>
 							<PlusIcon />
 						</ToolbarButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="start"
+						className="w-48 rounded-md p-1"
 						onCloseAutoFocus={(e) => e.preventDefault()}
 					>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor
-									.chain()
-									.focus()
-									.insertContent({ type: "callout", attrs: { type: "info" } })
-									.run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor
+										.chain()
+										.focus()
+										.insertContent({ type: "callout", attrs: { type: "info" } })
+										.run();
+								});
 							}}
 						>
 							<CalloutIcon className="mr-2" />
 							Nota destacada
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().insertContent({ type: "divider" }).run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor
+										.chain()
+										.focus()
+										.insertContent({ type: "divider" })
+										.run();
+								});
 							}}
 						>
 							<DividerIcon className="mr-2" />
 							Divididor
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().setHorizontalRule().run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().setHorizontalRule().run();
+								});
 							}}
 						>
 							<MinusIcon className="mr-2" />
@@ -302,23 +327,26 @@ export function EnhancedToolbar({
 					</DropdownMenuContent>
 				</DropdownMenu>
 
-				<DropdownMenu>
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
 						<ToolbarButton
 							active={state.textAlign !== "left"}
 							label="Alineación"
+							preserveEditorSelection={false}
 						>
 							<AlignLeftIcon />
 						</ToolbarButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="start"
+						className="w-40 rounded-md p-1"
 						onCloseAutoFocus={(e) => e.preventDefault()}
 					>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().setTextAlign("left").run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().setTextAlign("left").run();
+								});
 							}}
 							className={cn(state.textAlign === "left" && "bg-secondary")}
 						>
@@ -326,9 +354,10 @@ export function EnhancedToolbar({
 							Izquierda
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().setTextAlign("center").run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().setTextAlign("center").run();
+								});
 							}}
 							className={cn(state.textAlign === "center" && "bg-secondary")}
 						>
@@ -336,9 +365,10 @@ export function EnhancedToolbar({
 							Centro
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							onClick={(e) => {
-								e.stopPropagation();
-								editor.chain().focus().setTextAlign("right").run();
+							onSelect={() => {
+								runAfterMenuClose(() => {
+									editor.chain().focus().setTextAlign("right").run();
+								});
 							}}
 							className={cn(state.textAlign === "right" && "bg-secondary")}
 						>
@@ -382,34 +412,50 @@ type ToolbarButtonProps = {
 	children?: React.ReactNode;
 	disabled?: boolean;
 	label: string;
-	onClick?: () => void;
-};
+	preserveEditorSelection?: boolean;
+} & Omit<React.ComponentPropsWithoutRef<"button">, "children">;
 
-function ToolbarButton({
-	active = false,
-	children,
-	disabled = false,
-	label,
-	onClick,
-}: ToolbarButtonProps) {
-	return (
-		<Button
-			className="min-w-0 size-7 p-0"
-			disabled={disabled}
-			size="icon-xs"
-			type="button"
-			variant={active ? "secondary" : "ghost"}
-			title={label}
-			onClick={onClick}
-			onPointerDown={(e) => {
-				e.preventDefault();
-			}}
-		>
-			{children}
-			<span className="sr-only">{label}</span>
-		</Button>
-	);
-}
+const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
+	(
+		{
+			active = false,
+			children,
+			className,
+			disabled = false,
+			label,
+			onPointerDown,
+			preserveEditorSelection = true,
+			type = "button",
+			...props
+		},
+		ref,
+	) => {
+		return (
+			<Button
+				ref={ref}
+				className={cn("min-w-0 size-7 p-0", className)}
+				disabled={disabled}
+				size="icon-xs"
+				type={type}
+				variant={active ? "secondary" : "ghost"}
+				title={label}
+				onPointerDown={(e) => {
+					onPointerDown?.(e);
+
+					if (!e.defaultPrevented && preserveEditorSelection) {
+						e.preventDefault();
+					}
+				}}
+				{...props}
+			>
+				{children}
+				<span className="sr-only">{label}</span>
+			</Button>
+		);
+	},
+);
+
+ToolbarButton.displayName = "ToolbarButton";
 
 function BoldIcon() {
 	return <strong className="text-xs font-bold">B</strong>;

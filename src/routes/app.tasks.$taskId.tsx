@@ -6,10 +6,12 @@ import {
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { startTransition } from "react";
 import { ActivityPanel } from "#/components/activity-panel";
+import { TaskCommentsPanel } from "#/components/task-comments-panel";
 import { TaskEditorForm } from "#/components/task-editor-form";
 import { TaskSubtasksPanel } from "#/components/task-subtasks-panel";
 import { Button } from "#/components/ui/button";
 import { activityLogsSnapshotQueryOptions } from "#/lib/activity.queries";
+import { taskCommentsSnapshotQueryOptions } from "#/lib/comments.queries";
 import { queryKeys } from "#/lib/query-keys";
 import {
 	getTaskEditorReturnLink,
@@ -48,6 +50,10 @@ export const Route = createFileRoute("/app/tasks/$taskId")({
 				...activityLogsSnapshotQueryOptions({
 					taskId: params.taskId,
 				}),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...taskCommentsSnapshotQueryOptions(context.auth, params.taskId),
 				revalidateIfStale: true,
 			}),
 		]);
@@ -89,45 +95,58 @@ function EditTaskRoute() {
 	});
 
 	return (
-		<TaskEditorForm
-			cancelAction={
-				<Button asChild size="sm" variant="outline">
-					<Link {...cancelLink}>Cancel</Link>
-				</Button>
-			}
-			editorOpen={search.editor === "open"}
-			eyebrow="Task detail"
-			initialValues={getTaskFormValues(task)}
-			options={options}
-			submitLabel="Save task"
-			title="Edit task"
-			onToggleEditor={(open) => {
-				startTransition(() => {
-					void navigate({
-						replace: true,
-						search: {
-							...search,
-							editor: open ? "open" : "closed",
-						},
-					});
-				});
-			}}
-			onSubmit={async (values) => {
-				const updatedTask = await updateTaskMutation.mutateAsync(values);
-				queryClient.setQueryData(queryKeys.tasks.detail(task.id), updatedTask);
-				await navigate(
-					getTaskEditorReturnLink(search, values.project || task.project),
-				);
-			}}
-		>
-			<TaskSubtasksPanel key={task.id} auth={auth} taskId={task.id} />
-			<div className="mt-6 rounded-xl border border-border bg-card">
-				<div className="border-b border-border px-4 py-3">
-					<p className="text-sm font-medium text-foreground">Activity Log</p>
-				</div>
-				<ActivityPanel taskId={task.id} />
+		<div className="grid gap-6 lg:grid-cols-[1fr,320px] xl:grid-cols-[1fr,380px]">
+			<div>
+				<TaskEditorForm
+					cancelAction={
+						<Button asChild size="sm" variant="outline">
+							<Link {...cancelLink}>Cancel</Link>
+						</Button>
+					}
+					editorOpen={search.editor === "open"}
+					eyebrow="Task detail"
+					initialValues={getTaskFormValues(task)}
+					options={options}
+					submitLabel="Save task"
+					title="Edit task"
+					onToggleEditor={(open) => {
+						startTransition(() => {
+							void navigate({
+								replace: true,
+								search: {
+									...search,
+									editor: open ? "open" : "closed",
+								},
+							});
+						});
+					}}
+					onSubmit={async (values) => {
+						const updatedTask = await updateTaskMutation.mutateAsync(values);
+						queryClient.setQueryData(
+							queryKeys.tasks.detail(task.id),
+							updatedTask,
+						);
+						await navigate(
+							getTaskEditorReturnLink(search, values.project || task.project),
+						);
+					}}
+				>
+					<TaskSubtasksPanel key={task.id} auth={auth} taskId={task.id} />
+					<div className="mt-6 rounded-xl border border-border bg-card">
+						<div className="border-b border-border px-4 py-3">
+							<p className="text-sm font-medium text-foreground">
+								Activity Log
+							</p>
+						</div>
+						<ActivityPanel taskId={task.id} />
+					</div>
+				</TaskEditorForm>
 			</div>
-		</TaskEditorForm>
+
+			<div className="h-fit lg:sticky lg:top-4">
+				<TaskCommentsPanel auth={auth} taskId={taskId} />
+			</div>
+		</div>
 	);
 }
 
