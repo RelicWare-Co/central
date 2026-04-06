@@ -1,3 +1,4 @@
+import { XIcon } from "@phosphor-icons/react";
 import {
 	useMutation,
 	useQueryClient,
@@ -6,10 +7,11 @@ import {
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { startTransition } from "react";
 import { ActivityPanel } from "#/components/activity-panel";
+import { TaskCommentsSidebar } from "#/components/task-comments-sidebar";
 import { TaskEditorForm } from "#/components/task-editor-form";
 import { TaskSubtasksPanel } from "#/components/task-subtasks-panel";
-import { Button } from "#/components/ui/button";
 import { activityLogsSnapshotQueryOptions } from "#/lib/activity.queries";
+import { taskCommentsSnapshotQueryOptions } from "#/lib/comments.queries";
 import { queryKeys } from "#/lib/query-keys";
 import {
 	getTaskEditorReturnLink,
@@ -48,6 +50,10 @@ export const Route = createFileRoute("/app/tasks/$taskId")({
 				...activityLogsSnapshotQueryOptions({
 					taskId: params.taskId,
 				}),
+				revalidateIfStale: true,
+			}),
+			context.queryClient.ensureQueryData({
+				...taskCommentsSnapshotQueryOptions(context.auth, params.taskId),
 				revalidateIfStale: true,
 			}),
 		]);
@@ -89,45 +95,61 @@ function EditTaskRoute() {
 	});
 
 	return (
-		<TaskEditorForm
-			cancelAction={
-				<Button asChild size="sm" variant="outline">
-					<Link {...cancelLink}>Cancel</Link>
-				</Button>
-			}
-			editorOpen={search.editor === "open"}
-			eyebrow="Task detail"
-			initialValues={getTaskFormValues(task)}
-			options={options}
-			submitLabel="Save task"
-			title="Edit task"
-			onToggleEditor={(open) => {
-				startTransition(() => {
-					void navigate({
-						replace: true,
-						search: {
-							...search,
-							editor: open ? "open" : "closed",
-						},
-					});
-				});
-			}}
-			onSubmit={async (values) => {
-				const updatedTask = await updateTaskMutation.mutateAsync(values);
-				queryClient.setQueryData(queryKeys.tasks.detail(task.id), updatedTask);
-				await navigate(
-					getTaskEditorReturnLink(search, values.project || task.project),
-				);
-			}}
-		>
-			<TaskSubtasksPanel key={task.id} auth={auth} taskId={task.id} />
-			<div className="mt-6 rounded-xl border border-border bg-card">
-				<div className="border-b border-border px-4 py-3">
-					<p className="text-sm font-medium text-foreground">Activity Log</p>
-				</div>
-				<ActivityPanel taskId={task.id} />
+		<div className="relative">
+			<div className="mx-auto max-w-3xl">
+				<TaskEditorForm
+					cancelAction={
+						<div className="flex items-center gap-2">
+							<Link
+								{...cancelLink}
+								className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md active:scale-[0.98]"
+							>
+								<XIcon className="size-4" weight="bold" />
+								Cancel
+							</Link>
+							<TaskCommentsSidebar auth={auth} taskId={taskId} />
+						</div>
+					}
+					editorOpen={search.editor === "open"}
+					eyebrow="Task detail"
+					initialValues={getTaskFormValues(task)}
+					options={options}
+					submitLabel="Save task"
+					title="Edit task"
+					onToggleEditor={(open) => {
+						startTransition(() => {
+							void navigate({
+								replace: true,
+								search: {
+									...search,
+									editor: open ? "open" : "closed",
+								},
+							});
+						});
+					}}
+					onSubmit={async (values) => {
+						const updatedTask = await updateTaskMutation.mutateAsync(values);
+						queryClient.setQueryData(
+							queryKeys.tasks.detail(task.id),
+							updatedTask,
+						);
+						await navigate(
+							getTaskEditorReturnLink(search, values.project || task.project),
+						);
+					}}
+				>
+					<TaskSubtasksPanel key={task.id} auth={auth} taskId={task.id} />
+					<div className="mt-6 rounded-xl border border-border bg-card">
+						<div className="border-b border-border px-4 py-3">
+							<p className="text-sm font-medium text-foreground">
+								Activity Log
+							</p>
+						</div>
+						<ActivityPanel taskId={task.id} />
+					</div>
+				</TaskEditorForm>
 			</div>
-		</TaskEditorForm>
+		</div>
 	);
 }
 
@@ -143,9 +165,12 @@ function MissingTaskRoute() {
 			<p className="mt-1.5 max-w-md text-sm text-muted-foreground">
 				This task no longer exists or your session cannot access it.
 			</p>
-			<Button asChild className="mt-4" size="sm" variant="outline">
-				<Link to="/app/my-tasks">Back to My Tasks</Link>
-			</Button>
+			<Link
+				to="/app/my-tasks"
+				className="mt-4 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md active:scale-[0.98]"
+			>
+				Back to My Tasks
+			</Link>
 		</section>
 	);
 }

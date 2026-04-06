@@ -318,4 +318,110 @@
   .central-rich-text hr {
     @apply border-border;
   }
+
+  .central-rich-editor__input img,
+  .central-rich-text img {
+    @apply rounded-lg max-w-full;
+    height: auto;
+  }
+
+  .central-rich-editor__input a,
+  .central-rich-text a {
+    @apply text-primary underline underline-offset-4 hover:text-primary/80;
+  }
+
+  .central-rich-editor__input mark,
+  .central-rich-text mark {
+    @apply bg-yellow-200 text-foreground rounded-sm px-0.5;
+  }
+
+  .central-rich-editor__input u,
+  .central-rich-text u {
+    @apply underline underline-offset-4;
+  }
+
+  .central-rich-editor__input table,
+  .central-rich-text table {
+    @apply w-full border-collapse;
+  }
+
+  .central-rich-editor__input table th,
+  .central-rich-text table th {
+    @apply border border-border bg-secondary px-3 py-2 text-left text-sm font-semibold;
+  }
+
+  .central-rich-editor__input table td,
+  .central-rich-text table td {
+    @apply border border-border px-3 py-2 text-sm;
+  }
+
+  .central-rich-editor__input table .selectedCell,
+  .central-rich-text table .selectedCell {
+    @apply bg-secondary;
+  }
+
+  .central-rich-editor__input [data-type="callout"],
+  .central-rich-text [data-type="callout"] {
+    @apply my-3 rounded-lg border p-3 flex items-start gap-2;
+  }
+
+  .central-rich-editor__input [data-type="callout"][data-callout-type="info"],
+  .central-rich-text [data-type="callout"][data-callout-type="info"] {
+    @apply bg-blue-50 border-blue-200;
+  }
+
+  .central-rich-editor__input [data-type="callout"][data-callout-type="success"],
+  .central-rich-text [data-type="callout"][data-callout-type="success"] {
+    @apply bg-green-50 border-green-200;
+  }
+
+  .central-rich-editor__input [data-type="callout"][data-callout-type="warning"],
+  .central-rich-text [data-type="callout"][data-callout-type="warning"] {
+    @apply bg-amber-50 border-amber-200;
+  }
+
+  .central-rich-editor__input [data-type="callout"][data-callout-type="error"],
+  .central-rich-text [data-type="callout"][data-callout-type="error"] {
+    @apply bg-red-50 border-red-200;
+  }
+
+  .central-rich-editor__input [data-type="divider"],
+  .central-rich-text [data-type="divider"] {
+    @apply my-4 flex items-center gap-2 text-muted-foreground/60;
+  }
+
+  .central-rich-editor__input [data-type="divider"]::before,
+  .central-rich-text [data-type="divider"]::before,
+  .central-rich-editor__input [data-type="divider"]::after,
+  .central-rich-text [data-type="divider"]::after {
+    content: "";
+    @apply size-1 rounded-full bg-muted-foreground/40;
+  }
+
+  .central-rich-editor__input [data-type="divider"] > div,
+  .central-rich-text [data-type="divider"] > div {
+    @apply h-px flex-1 bg-border;
+  }
+
+  .central-rich-editor__input [data-type="enhancedTaskItem"],
+  .central-rich-text [data-type="enhancedTaskItem"] {
+    @apply flex items-start gap-2 py-1;
+  }
+
+  .central-rich-editor__input [data-type="enhancedTaskItem"][data-checked="true"],
+  .central-rich-text [data-type="enhancedTaskItem"][data-checked="true"] {
+    @apply opacity-60;
+  }
+
+  .central-rich-editor__input sub,
+  .central-rich-text sub {
+    @apply text-xs;
+    vertical-align: sub;
+  }
+
+  .central-rich-editor__input sup,
+  .central-rich-text sup {
+    @apply text-xs;
+    vertical-align: super;
+  }
 }

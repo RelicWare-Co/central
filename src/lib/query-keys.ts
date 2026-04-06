@@ -2,6 +2,9 @@ export const queryKeys = {
 	activity: {
 		list: (scope: ActivityScope) => ["activity", "list", scope] as const,
 	},
+	comments: {
+		list: (scope: CommentsScope) => ["comments", "list", scope] as const,
+	},
 	projects: {
 		detail: (projectId: string) => ["projects", "detail", projectId] as const,
 		formOptions: ["projects", "form-options"] as const,
@@ -51,3 +54,7 @@ export type TaskListScope =
 			userId: string;
 			dayKey: string;
 	  };
+
+export type CommentsScope = {
+	taskId: string;
+};
