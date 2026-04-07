@@ -10,6 +10,12 @@ export type AuthState = {
 export type AuthContext = {
 	getState: () => AuthState;
 	login: (identity: string, password: string) => Promise<RecordModel>;
+	register: (
+		email: string,
+		password: string,
+		passwordConfirm: string,
+		name?: string,
+	) => Promise<RecordModel>;
 	logout: () => void;
 	subscribe: (callback: () => void) => () => void;
 	refresh: () => Promise<void>;
@@ -60,6 +66,28 @@ export function createAuthContext(): AuthContext {
 			emit();
 
 			return authResponse.record;
+		},
+		async register(email, password, passwordConfirm, name) {
+			const userData: Record<string, unknown> = {
+				email,
+				password,
+				passwordConfirm,
+				role: "member",
+				isActive: true,
+			};
+
+			if (name) {
+				userData.name = name;
+			}
+
+			const record = await pb.collection("users").create(userData);
+
+			// Automatically log in the user after registration
+			await pb.collection("users").authWithPassword(email, password);
+
+			emit();
+
+			return record;
 		},
 		logout() {
 			pb.authStore.clear();

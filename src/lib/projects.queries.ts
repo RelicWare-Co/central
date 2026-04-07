@@ -1,7 +1,3 @@
-import {
-	queryOptions,
-	experimental_streamedQuery as streamedQuery,
-} from "@tanstack/react-query";
 import type { AuthContext } from "#/lib/auth";
 import type { PocketBaseRealtimeEvent } from "#/lib/pocketbase";
 import {
@@ -13,6 +9,11 @@ import {
 	type ProjectsSummary,
 } from "#/lib/projects";
 import { queryKeys } from "#/lib/query-keys";
+import { applyRealtimeCollectionEvent } from "#/lib/realtime-collections";
+import {
+	createLiveStreamQueryOptions,
+	createSnapshotQueryOptions,
+} from "#/lib/realtime-query";
 import { createPocketBaseRealtimeStream } from "#/lib/realtime-stream";
 
 export type ProjectCollectionData = Awaited<ReturnType<typeof listProjects>>;
@@ -37,40 +38,21 @@ type ProjectEventStreamChunk = {
 };
 
 export function projectsListSnapshotQueryOptions(auth: AuthContext) {
-	return queryOptions({
-		queryKey: queryKeys.projects.list,
-		queryFn: async () => listProjects(auth),
-	});
+	return createSnapshotQueryOptions(queryKeys.projects.list, async () =>
+		listProjects(auth),
+	);
 }
 
 export function projectsListLiveQueryOptions(auth: AuthContext) {
-	return queryOptions({
+	return createLiveStreamQueryOptions<
+		ProjectEventStreamChunk,
+		ProjectCollectionData
+	>({
+		initialValue: getEmptyProjectCollectionData(),
 		queryKey: queryKeys.projects.list,
-		refetchOnMount: "always",
-		queryFn: streamedQuery<ProjectCollectionStreamChunk, ProjectCollectionData>(
-			{
-				initialValue: getEmptyProjectCollectionData(),
-				refetchMode: "append",
-				reducer: reduceProjectCollection,
-				streamFn: async ({ client, queryKey, signal }) => {
-					async function* stream() {
-						const existing =
-							client.getQueryData<ProjectCollectionData>(queryKey);
-
-						if (!existing) {
-							yield {
-								kind: "snapshot",
-								data: await listProjects(auth),
-							} satisfies ProjectCollectionStreamChunk;
-						}
-
-						yield* createProjectEventsStream(signal, "*");
-					}
-
-					return stream();
-				},
-			},
-		),
+		reducer: reduceProjectCollection,
+		loadSnapshot: async () => listProjects(auth),
+		streamEvents: (signal) => createProjectEventsStream(signal, "*"),
 	});
 }
 
@@ -78,49 +60,30 @@ export function projectDetailSnapshotQueryOptions(
 	auth: AuthContext,
 	projectId: string,
 ) {
-	return queryOptions({
-		queryKey: queryKeys.projects.detail(projectId),
-		queryFn: async () => getProjectById(auth, projectId),
-	});
+	return createSnapshotQueryOptions(
+		queryKeys.projects.detail(projectId),
+		async () => getProjectById(auth, projectId),
+	);
 }
 
 export function projectDetailLiveQueryOptions(
 	auth: AuthContext,
 	projectId: string,
 ) {
-	return queryOptions({
+	return createLiveStreamQueryOptions<ProjectEventStreamChunk, ProjectRecord>({
+		initialValue: {} as ProjectRecord,
 		queryKey: queryKeys.projects.detail(projectId),
-		refetchOnMount: "always",
-		queryFn: streamedQuery<ProjectRecordStreamChunk, ProjectRecord>({
-			initialValue: {} as ProjectRecord,
-			refetchMode: "append",
-			reducer: reduceProjectRecord,
-			streamFn: async ({ client, queryKey, signal }) => {
-				async function* stream() {
-					const existing = client.getQueryData<ProjectRecord>(queryKey);
-
-					if (!existing) {
-						yield {
-							kind: "snapshot",
-							data: await getProjectById(auth, projectId),
-						} satisfies ProjectRecordStreamChunk;
-					}
-
-					yield* createProjectEventsStream(signal, projectId);
-				}
-
-				return stream();
-			},
-		}),
+		reducer: reduceProjectRecord,
+		loadSnapshot: async () => getProjectById(auth, projectId),
+		streamEvents: (signal) => createProjectEventsStream(signal, projectId),
 	});
 }
 
 export function projectFormOptionsSnapshotQueryOptions(auth: AuthContext) {
-	return queryOptions({
-		queryKey: queryKeys.projects.formOptions,
-		queryFn: async (): Promise<ProjectFormOptions> =>
-			getProjectFormOptions(auth),
-	});
+	return createSnapshotQueryOptions(
+		queryKeys.projects.formOptions,
+		async (): Promise<ProjectFormOptions> => getProjectFormOptions(auth),
+	);
 }
 
 function getEmptyProjectCollectionData(): ProjectCollectionData {
@@ -181,18 +144,10 @@ function applyProjectEvent(
 	items: ProjectRecord[],
 	event: PocketBaseRealtimeEvent<ProjectRecord>,
 ) {
-	if (event.action === "delete" || event.record.isArchived === true) {
-		return items.filter((project) => project.id !== event.record.id);
-	}
-
-	const hasRecord = items.some((project) => project.id === event.record.id);
-	const nextItems = hasRecord
-		? items.map((project) =>
-				project.id === event.record.id ? event.record : project,
-			)
-		: [...items, event.record];
-
-	return sortProjects(nextItems);
+	return applyRealtimeCollectionEvent(items, event, {
+		includeRecord: (record) => record.isArchived !== true,
+		sort: sortProjects,
+	});
 }
 
 function summarizeProjects(items: ProjectRecord[]): ProjectsSummary {

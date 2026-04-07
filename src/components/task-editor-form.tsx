@@ -27,6 +27,7 @@ import {
 	SelectValue,
 } from "#/components/ui/select";
 import { formatDateLabel, formatDueDateLabel } from "#/lib/formatting";
+import { getRichTextPreview } from "#/lib/rich-text";
 import {
 	formatTaskPriorityLabel,
 	formatTaskStatusLabel,
@@ -69,12 +70,14 @@ export function TaskEditorForm({
 	const [values, setValues] = useState(initialValues);
 	const [error, setError] = useState<string | null>(null);
 	const [isEditorOpen, setIsEditorOpen] = useState(editorOpen);
+	const [isDescriptionEditorOpen, setIsDescriptionEditorOpen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
 
 	useEffect(() => {
 		setValues(initialValues);
 		setError(null);
+		setIsDescriptionEditorOpen(false);
 		setIsSubmitting(false);
 	}, [initialValues]);
 
@@ -130,7 +133,7 @@ export function TaskEditorForm({
 			<Card>
 				<CardHeader className="border-b border-border">
 					<div className="flex flex-col gap-4">
-						<div className="flex items-start justify-between gap-4">
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
 							<div className="min-w-0">
 								<p className="text-xs font-medium uppercase tracking-[0.05em] text-muted-foreground">
 									{eyebrow}
@@ -145,17 +148,19 @@ export function TaskEditorForm({
 								) : null}
 							</div>
 
-							<div className="flex shrink-0 items-center gap-2">
+							<div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
 								<button
 									aria-expanded={isEditorOpen}
 									onClick={() => handleToggleEditor(!isEditorOpen)}
 									type="button"
-									className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md active:scale-[0.98]"
+									className="inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md active:scale-[0.98] sm:w-auto sm:justify-start"
 								>
 									<PencilSimpleIcon className="size-4" weight="duotone" />
 									{toggleLabel}
 								</button>
-								{cancelAction}
+								<div className="flex flex-wrap items-stretch gap-2 sm:items-center">
+									{cancelAction}
+								</div>
 							</div>
 						</div>
 
@@ -384,18 +389,30 @@ export function TaskEditorForm({
 							<FieldDescription>
 								Add context, expected outcome or follow-up notes.
 							</FieldDescription>
-							<RichTextEditor
-								id="description"
-								minHeightClassName="min-h-56"
-								placeholder="Describe the work, expected outcome or next steps"
-								value={values.description}
-								onChange={(nextDescription) =>
-									setValues((current) => ({
-										...current,
-										description: nextDescription,
-									}))
-								}
-							/>
+							{isDescriptionEditorOpen ? (
+								<RichTextEditor
+									id="description"
+									minHeightClassName="min-h-56"
+									placeholder="Describe the work, expected outcome or next steps"
+									value={values.description}
+									onChange={(nextDescription) =>
+										setValues((current) => ({
+											...current,
+											description: nextDescription,
+										}))
+									}
+								/>
+							) : (
+								<button
+									type="button"
+									className="w-full rounded-sm border border-border bg-card p-3 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary/30"
+									onClick={() => setIsDescriptionEditorOpen(true)}
+								>
+									{values.description.trim()
+										? getRichTextPreview(values.description, "Edit description")
+										: "Add context, expected outcome or follow-up notes."}
+								</button>
+							)}
 						</Field>
 
 						<div

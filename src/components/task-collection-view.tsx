@@ -85,7 +85,7 @@ function TaskFilterBar({
 	}
 
 	return (
-		<div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+		<div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
 			{/* Search Input */}
 			<div className="relative min-w-0 flex-1">
 				<MagnifyingGlassIcon
@@ -103,11 +103,11 @@ function TaskFilterBar({
 			<Separator orientation="vertical" className="hidden h-8 sm:block" />
 
 			{/* Filter Dropdowns */}
-			<div className="flex flex-wrap items-center gap-2">
+			<div className="flex w-full min-w-0 flex-col gap-2 sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center">
 				<Select value={statusValue} onValueChange={onStatusChange}>
 					<SelectTrigger
 						aria-label="Filter by status"
-						className="h-10 w-auto min-w-[140px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+						className="h-10 w-full min-w-0 gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background sm:w-auto sm:min-w-[140px]"
 					>
 						<SelectValue placeholder="All statuses" />
 					</SelectTrigger>
@@ -126,7 +126,7 @@ function TaskFilterBar({
 				<Select value={priorityValue} onValueChange={onPriorityChange}>
 					<SelectTrigger
 						aria-label="Filter by priority"
-						className="h-10 w-auto min-w-[130px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+						className="h-10 w-full min-w-0 gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background sm:w-auto sm:min-w-[130px]"
 					>
 						<SelectValue placeholder="All priorities" />
 					</SelectTrigger>
@@ -146,7 +146,7 @@ function TaskFilterBar({
 					<Select value={projectValue} onValueChange={onProjectChange}>
 						<SelectTrigger
 							aria-label="Filter by project"
-							className="h-10 w-auto min-w-[140px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+							className="h-10 w-full min-w-0 gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background sm:w-auto sm:min-w-[140px]"
 						>
 							<SelectValue placeholder="All projects" />
 						</SelectTrigger>
@@ -167,7 +167,7 @@ function TaskFilterBar({
 					<Select value={assigneeValue} onValueChange={onAssigneeChange}>
 						<SelectTrigger
 							aria-label="Filter by assignee"
-							className="h-10 w-auto min-w-[150px] gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background"
+							className="h-10 w-full min-w-0 gap-2 rounded-xl border-border bg-secondary/50 px-3 text-sm font-medium hover:bg-secondary data-[state=open]:bg-background sm:w-auto sm:min-w-[150px]"
 						>
 							<SelectValue placeholder="All assignees" />
 						</SelectTrigger>
@@ -194,7 +194,7 @@ function TaskFilterBar({
 							onClick={handleClearFilters}
 							variant="ghost"
 							size="sm"
-							className="h-10 gap-2 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
+							className="h-10 w-full gap-2 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:text-foreground sm:w-auto"
 						>
 							<XIcon data-icon="inline-start" className="size-4" />
 							Clear

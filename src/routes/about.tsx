@@ -6,7 +6,7 @@ export const Route = createFileRoute("/about")({
 
 function About() {
 	return (
-		<main className="min-h-screen bg-[linear-gradient(180deg,#090909_0%,#101113_100%)] px-6 py-10 text-white">
+		<main className="min-h-[100dvh] bg-[linear-gradient(180deg,#090909_0%,#101113_100%)] px-4 py-10 text-white sm:px-6">
 			<section className="mx-auto max-w-3xl border border-[rgba(255,111,60,0.24)] bg-[rgba(17,17,18,0.82)] p-6 sm:p-8">
 				<p className="text-[0.68rem] uppercase tracking-[0.32em] text-[var(--accent-foreground)]">
 					About Central

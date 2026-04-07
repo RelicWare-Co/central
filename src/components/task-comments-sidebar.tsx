@@ -651,7 +651,7 @@ export function TaskCommentsSidebar({
 			{/* Sidebar panel */}
 			<div
 				className={cn(
-					"fixed right-0 top-0 z-40 h-screen w-[380px] border-l border-zinc-200 bg-white shadow-xl transition-transform duration-300 ease-in-out",
+					"fixed right-0 top-0 z-40 h-[100dvh] max-h-[100dvh] w-[min(100vw-1rem,380px)] border-l border-zinc-200 bg-white shadow-xl transition-transform duration-300 ease-in-out",
 					isOpen ? "translate-x-0" : "translate-x-full",
 				)}
 			>
@@ -684,7 +684,7 @@ export function TaskCommentsSidebar({
 				</div>
 
 				{/* Content */}
-				<div className="flex h-[calc(100vh-52px)] min-h-0 flex-col overflow-hidden">
+				<div className="flex h-[calc(100dvh-52px)] min-h-0 flex-col overflow-hidden">
 					<TaskCommentsContent
 						activeCommentId={activeCommentId}
 						comments={comments}

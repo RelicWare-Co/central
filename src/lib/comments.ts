@@ -1,8 +1,8 @@
-import { redirect } from "@tanstack/react-router";
 import type { RecordModel } from "pocketbase";
-import type { AuthContext } from "./auth";
-import { pb } from "./pocketbase";
-import { isNotFoundError, isUnauthorizedError } from "./utils";
+import type { AuthContext } from "#/lib/auth";
+import { requireAuthUser, runWithAuthRedirect } from "#/lib/data-access";
+import { pb } from "#/lib/pocketbase";
+import { isNotFoundError } from "#/lib/utils";
 
 export type TaskCommentRecord = RecordModel & {
 	task: string;
@@ -48,22 +48,13 @@ export async function listTaskComments(
 	taskId: string,
 	redirectTo = `/app/tasks/${taskId}`,
 ) {
-	try {
-		return await pb.collection("task_comments").getFullList<TaskCommentRecord>({
+	return runWithAuthRedirect(auth, redirectTo, async () =>
+		pb.collection("task_comments").getFullList<TaskCommentRecord>({
 			filter: pb.filter("task = {:task}", { task: taskId }),
 			sort: "-createdAt",
 			expand: "author,quotedComment.author",
-		});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-			throw redirect({
-				to: "/login",
-				search: { redirect: redirectTo },
-			});
-		}
-		throw error;
-	}
+		}),
+	);
 }
 
 export async function createTaskComment(
@@ -71,34 +62,17 @@ export async function createTaskComment(
 	input: CreateCommentInput,
 	redirectTo = `/app/tasks/${input.taskId}`,
 ) {
-	const authorId = auth.getState().user?.id;
+	const authorId = requireAuthUser(auth, redirectTo);
 
-	if (!authorId) {
-		auth.logout();
-		throw redirect({
-			to: "/login",
-			search: { redirect: redirectTo },
-		});
-	}
-
-	try {
-		return await pb.collection("task_comments").create<TaskCommentRecord>({
+	return runWithAuthRedirect(auth, redirectTo, async () =>
+		pb.collection("task_comments").create<TaskCommentRecord>({
 			task: input.taskId,
 			author: authorId,
 			body: input.body.trim(),
 			quotedComment: input.quotedCommentId || null,
 			createdAt: new Date().toISOString(),
-		});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-			throw redirect({
-				to: "/login",
-				search: { redirect: redirectTo },
-			});
-		}
-		throw error;
-	}
+		}),
+	);
 }
 
 export async function updateTaskComment(
@@ -107,26 +81,21 @@ export async function updateTaskComment(
 	input: UpdateCommentInput,
 	redirectTo = "/app/tasks",
 ) {
-	try {
-		return await pb
-			.collection("task_comments")
-			.update<TaskCommentRecord>(commentId, {
-				body: input.body.trim(),
-				updatedAt: new Date().toISOString(),
-			});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-			throw redirect({
-				to: "/login",
-				search: { redirect: redirectTo },
-			});
+	return runWithAuthRedirect(auth, redirectTo, async () => {
+		try {
+			return await pb
+				.collection("task_comments")
+				.update<TaskCommentRecord>(commentId, {
+					body: input.body.trim(),
+					updatedAt: new Date().toISOString(),
+				});
+		} catch (error) {
+			if (isNotFoundError(error)) {
+				throw new Error("Comment not found");
+			}
+			throw error;
 		}
-		if (isNotFoundError(error)) {
-			throw new Error("Comment not found");
-		}
-		throw error;
-	}
+	});
 }
 
 export async function deleteTaskComment(
@@ -134,19 +103,14 @@ export async function deleteTaskComment(
 	commentId: string,
 	redirectTo = "/app/tasks",
 ) {
-	try {
-		return await pb.collection("task_comments").delete(commentId);
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-			throw redirect({
-				to: "/login",
-				search: { redirect: redirectTo },
-			});
+	return runWithAuthRedirect(auth, redirectTo, async () => {
+		try {
+			return await pb.collection("task_comments").delete(commentId);
+		} catch (error) {
+			if (isNotFoundError(error)) {
+				throw new Error("Comment not found");
+			}
+			throw error;
 		}
-		if (isNotFoundError(error)) {
-			throw new Error("Comment not found");
-		}
-		throw error;
-	}
+	});
 }

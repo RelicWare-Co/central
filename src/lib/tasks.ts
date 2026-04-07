@@ -1,12 +1,11 @@
-import { notFound, redirect } from "@tanstack/react-router";
 import { isPast, isToday, parseISO } from "date-fns";
 import type { RecordModel } from "pocketbase";
 import type { AuthContext } from "#/lib/auth";
+import { requireAuthUser, runWithAuthRedirect } from "#/lib/data-access";
 import { formatDateForPocketBase } from "#/lib/formatting";
 import { pb } from "#/lib/pocketbase";
 import type { ProjectRecord } from "#/lib/projects";
 import { serializeRichTextValue } from "#/lib/rich-text";
-import { isNotFoundError, isUnauthorizedError } from "#/lib/utils";
 
 export type TaskStatus =
 	| "pending"
@@ -90,18 +89,7 @@ export async function listInboxTasks(auth: AuthContext) {
 }
 
 export async function listMyTasks(auth: AuthContext) {
-	const userId = auth.getState().user?.id;
-
-	if (!userId) {
-		auth.logout();
-
-		throw redirect({
-			to: "/login",
-			search: {
-				redirect: "/app/my-tasks",
-			},
-		});
-	}
+	const userId = requireAuthUser(auth, "/app/my-tasks");
 
 	return listTasks(auth, {
 		filter: pb.filter("assignee = {:assignee}", { assignee: userId }),
@@ -110,18 +98,7 @@ export async function listMyTasks(auth: AuthContext) {
 }
 
 export async function listTodayTasks(auth: AuthContext) {
-	const userId = auth.getState().user?.id;
-
-	if (!userId) {
-		auth.logout();
-
-		throw redirect({
-			to: "/login",
-			search: {
-				redirect: "/app/today",
-			},
-		});
-	}
+	const userId = requireAuthUser(auth, "/app/today");
 
 	const now = new Date();
 	const endOfDay = new Date(
@@ -146,18 +123,7 @@ export async function listTodayTasks(auth: AuthContext) {
 }
 
 export async function listUpcomingTasks(auth: AuthContext) {
-	const userId = auth.getState().user?.id;
-
-	if (!userId) {
-		auth.logout();
-
-		throw redirect({
-			to: "/login",
-			search: {
-				redirect: "/app/upcoming",
-			},
-		});
-	}
+	const userId = requireAuthUser(auth, "/app/upcoming");
 
 	const now = new Date();
 	const endOfDay = new Date(
@@ -197,48 +163,26 @@ export async function getTaskById(
 	taskId: string,
 	redirectTo = `/app/tasks/${taskId}`,
 ) {
-	try {
-		return await pb.collection("tasks").getOne<TaskRecord>(taskId, {
-			expand: "project,assignee,createdBy",
-		});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		if (isNotFoundError(error)) {
-			throw notFound();
-		}
-
-		throw error;
-	}
+	return runWithAuthRedirect(
+		auth,
+		redirectTo,
+		async () =>
+			pb.collection("tasks").getOne<TaskRecord>(taskId, {
+				expand: "project,assignee,createdBy",
+			}),
+		{
+			notFoundOn404: true,
+		},
+	);
 }
 
 export async function getTaskFormOptions(
 	auth: AuthContext,
 	redirectTo = "/app/tasks/new",
 ) {
-	const userId = auth.getState().user?.id;
+	const userId = requireAuthUser(auth, redirectTo);
 
-	if (!userId) {
-		auth.logout();
-
-		throw redirect({
-			to: "/login",
-			search: {
-				redirect: redirectTo,
-			},
-		});
-	}
-
-	try {
+	return runWithAuthRedirect(auth, redirectTo, async () => {
 		const [projects, users] = await Promise.all([
 			pb
 				.collection("projects")
@@ -259,20 +203,7 @@ export async function getTaskFormOptions(
 			projects,
 			users,
 		} satisfies TaskFormOptions;
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		throw error;
-	}
+	});
 }
 
 export async function listSubtasksForTask(
@@ -280,25 +211,12 @@ export async function listSubtasksForTask(
 	taskId: string,
 	redirectTo = `/app/tasks/${taskId}`,
 ) {
-	try {
-		return await pb.collection("subtasks").getFullList<SubtaskRecord>({
+	return runWithAuthRedirect(auth, redirectTo, async () =>
+		pb.collection("subtasks").getFullList<SubtaskRecord>({
 			filter: pb.filter("task = {:task}", { task: taskId }),
 			sort: "+position",
-		});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		throw error;
-	}
+		}),
+	);
 }
 
 export async function createTask(
@@ -307,25 +225,12 @@ export async function createTask(
 	values: TaskFormValues,
 	redirectTo = "/app/tasks/new",
 ) {
-	try {
-		return await pb.collection("tasks").create<TaskRecord>({
+	return runWithAuthRedirect(auth, redirectTo, async () =>
+		pb.collection("tasks").create<TaskRecord>({
 			...buildTaskPayload(values),
 			createdBy: currentUserId,
-		});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		throw error;
-	}
+		}),
+	);
 }
 
 export async function updateTask(
@@ -335,31 +240,20 @@ export async function updateTask(
 	existingCompletedAt?: string,
 	redirectTo = `/app/tasks/${taskId}`,
 ) {
-	try {
-		return await pb
-			.collection("tasks")
-			.update<TaskRecord>(
-				taskId,
-				buildTaskPayload(values, existingCompletedAt),
-			);
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		if (isNotFoundError(error)) {
-			throw notFound();
-		}
-
-		throw error;
-	}
+	return runWithAuthRedirect(
+		auth,
+		redirectTo,
+		async () =>
+			pb
+				.collection("tasks")
+				.update<TaskRecord>(
+					taskId,
+					buildTaskPayload(values, existingCompletedAt),
+				),
+		{
+			notFoundOn404: true,
+		},
+	);
 }
 
 export async function createSubtask(
@@ -369,27 +263,14 @@ export async function createSubtask(
 	position: number,
 	redirectTo = `/app/tasks/${taskId}`,
 ) {
-	try {
-		return await pb.collection("subtasks").create<SubtaskRecord>({
+	return runWithAuthRedirect(auth, redirectTo, async () =>
+		pb.collection("subtasks").create<SubtaskRecord>({
 			isCompleted: false,
 			position,
 			task: taskId,
 			title: title.trim(),
-		});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		throw error;
-	}
+		}),
+	);
 }
 
 export async function updateSubtaskCompletion(
@@ -398,29 +279,18 @@ export async function updateSubtaskCompletion(
 	isCompleted: boolean,
 	redirectTo = "/app/tasks",
 ) {
-	try {
-		return await pb.collection("subtasks").update<SubtaskRecord>(subtaskId, {
-			completedAt: isCompleted ? new Date().toISOString() : null,
-			isCompleted,
-		});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		if (isNotFoundError(error)) {
-			throw notFound();
-		}
-
-		throw error;
-	}
+	return runWithAuthRedirect(
+		auth,
+		redirectTo,
+		async () =>
+			pb.collection("subtasks").update<SubtaskRecord>(subtaskId, {
+				completedAt: isCompleted ? new Date().toISOString() : null,
+				isCompleted,
+			}),
+		{
+			notFoundOn404: true,
+		},
+	);
 }
 
 export async function deleteSubtask(
@@ -428,26 +298,14 @@ export async function deleteSubtask(
 	subtaskId: string,
 	redirectTo = "/app/tasks",
 ) {
-	try {
-		return await pb.collection("subtasks").delete(subtaskId);
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		if (isNotFoundError(error)) {
-			throw notFound();
-		}
-
-		throw error;
-	}
+	return runWithAuthRedirect(
+		auth,
+		redirectTo,
+		async () => pb.collection("subtasks").delete(subtaskId),
+		{
+			notFoundOn404: true,
+		},
+	);
 }
 
 export function getDefaultTaskFormValues(
@@ -547,7 +405,7 @@ async function listTasks(
 		redirectTo: string;
 	},
 ) {
-	try {
+	return runWithAuthRedirect(auth, options.redirectTo, async () => {
 		const items = await pb.collection("tasks").getFullList<TaskRecord>({
 			expand: "project,assignee,createdBy",
 			filter: [
@@ -561,20 +419,7 @@ async function listTasks(
 			items,
 			summary: summarizeTasks(items),
 		};
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: options.redirectTo,
-				},
-			});
-		}
-
-		throw error;
-	}
+	});
 }
 
 export function summarizeTasks(
