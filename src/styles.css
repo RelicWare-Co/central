@@ -98,14 +98,16 @@
     color-scheme: light;
     scrollbar-gutter: stable;
     @apply font-sans antialiased;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground;
-    min-height: 100vh;
+    min-height: 100dvh;
     position: relative;
     line-height: 1.6;
     color: oklch(0.205 0.006 260);
+    overflow-x: hidden;
   }
 
   ::selection {
@@ -141,7 +143,8 @@
   }
 
   .central-rich-editor__body {
-    @apply bg-transparent;
+    @apply min-w-0 max-w-full overflow-x-auto bg-transparent;
+    -webkit-overflow-scrolling: touch;
   }
 
   .central-rich-editor__input {
@@ -150,7 +153,12 @@
 
   .central-rich-editor__input,
   .central-rich-text {
-    @apply font-sans leading-7;
+    @apply min-w-0 max-w-full font-sans leading-7;
+  }
+
+  .central-rich-text {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .central-rich-editor__input > * + *,
@@ -343,6 +351,8 @@
   .central-rich-editor__input table,
   .central-rich-text table {
     @apply w-full border-collapse;
+    max-width: 100%;
+    table-layout: auto;
   }
 
   .central-rich-editor__input table th,

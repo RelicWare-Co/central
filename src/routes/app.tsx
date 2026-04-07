@@ -101,9 +101,9 @@ function AppRoute() {
 	}
 
 	return (
-		<main className="min-h-screen bg-background text-foreground">
-			<div className="flex min-h-screen flex-col md:flex-row">
-				<aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex md:sticky md:top-0 md:h-screen">
+		<main className="min-h-[100dvh] bg-background text-foreground">
+			<div className="flex min-h-[100dvh] flex-col md:min-h-[100dvh] md:flex-row">
+				<aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex md:sticky md:top-0 md:h-[100dvh] md:max-h-[100dvh]">
 					<div className="flex items-center gap-3 px-5 py-6">
 						<div className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background">
 							<StackIcon className="size-4" weight="bold" />
@@ -158,11 +158,11 @@ function AppRoute() {
 					</div>
 				</aside>
 
-				<section className="flex min-w-0 flex-1 flex-col">
+				<section className="flex min-h-0 min-w-0 flex-1 flex-col">
 					<header className="border-b border-border bg-card px-4 py-5 sm:px-8">
 						<div className={`${contentContainerClassName} flex flex-col gap-4`}>
-							<div className="flex items-center justify-between gap-4">
-								<div className="min-w-0">
+							<div className="flex flex-wrap items-start justify-between gap-3 sm:items-center sm:gap-4">
+								<div className="min-w-0 flex-1">
 									<h2 className="font-serif text-[1.65rem] font-normal tracking-[-0.02em] leading-[1.15] text-foreground sm:text-[1.85rem]">
 										{currentView.label}
 									</h2>
@@ -182,7 +182,7 @@ function AppRoute() {
 
 							<nav
 								aria-label="Primary mobile"
-								className="flex gap-1.5 overflow-x-auto md:hidden"
+								className="-mx-1 flex gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin] md:hidden"
 							>
 								{navigationItems.map((item) => (
 									<NavLink key={item.to} compact item={item} />
@@ -191,12 +191,39 @@ function AppRoute() {
 						</div>
 					</header>
 
-					<div className="flex-1 px-4 py-6 sm:px-8">
+					<div className="flex-1 px-4 py-6 pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] sm:px-8 md:pb-6">
 						<div className={contentContainerClassName}>
 							<Outlet />
 						</div>
 					</div>
 				</section>
+
+				<div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-border bg-card/95 px-4 py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] backdrop-blur-sm supports-[backdrop-filter]:bg-card/80 md:hidden pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3">
+					<div className="flex min-w-0 flex-1 items-center gap-2">
+						<div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
+							<StackIcon className="size-4" weight="bold" />
+						</div>
+						<div className="min-w-0">
+							<p className="truncate text-xs font-medium text-foreground">
+								{authState.user?.name ||
+									authState.user?.email ||
+									authState.user?.username ||
+									"Signed in"}
+							</p>
+							<p className="truncate text-[0.65rem] text-muted-foreground">
+								Central
+							</p>
+						</div>
+					</div>
+					<Button
+						aria-label="Sign Out"
+						onClick={handleLogout}
+						size="icon-sm"
+						variant="outline"
+					>
+						<SignOutIcon />
+					</Button>
+				</div>
 			</div>
 		</main>
 	);

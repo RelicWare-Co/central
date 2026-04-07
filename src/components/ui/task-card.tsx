@@ -241,133 +241,134 @@ export function TaskCard({
 					</div>
 				</div>
 
-				{/* Badges - Priority & Status */}
-				<div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
-					<div className="flex sm:flex-col gap-1.5 flex-shrink-0 flex-row">
+				<div className="mt-2 flex w-full min-w-0 flex-col gap-3 sm:mt-0 sm:w-auto sm:flex-1 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+					<div className="flex flex-row flex-wrap items-center gap-2 sm:flex-col sm:flex-nowrap sm:items-end">
 						<Badge
-						variant="outline"
-						className={cn(
-							priorityColors.badge,
-							"text-[10px] tracking-[0.06em] font-semibold px-2.5 py-0.5 uppercase"
-						)}
-					>
-						{task.priority}
-					</Badge>
-					<Badge
-						variant="outline"
-						className={cn(
-							statusColors.badge,
-							"text-[10px] tracking-[0.06em] font-semibold px-2.5 py-0.5"
-						)}
-					>
-						{task.status.replace("_", " ")}
-					</Badge>
-				</div>
-
-				{/* Metadata Row - Assignee & Deadline */}
-				{size !== "sm" && (
-					<div className="hidden md:flex items-center gap-6 flex-shrink-0">
-						{/* Assignee */}
-						<div className="flex items-center gap-2 min-w-[140px]">
-							<div className="w-6 h-6 rounded-full bg-secondary border border-border/50 flex items-center justify-center flex-shrink-0">
-								<User className="w-3.5 h-3.5 text-muted-foreground/60" weight="fill" aria-label="Assignee" />
-							</div>
-							<div className="min-w-0">
-								<p className="text-[10px] uppercase tracking-[0.05em] text-muted-foreground/60 leading-none">
-									Assignee
-								</p>
-								<p className="text-xs font-medium text-foreground truncate mt-0.5">
-									{assigneeLabel}
-								</p>
-								{createdBy && createdBy.id !== assignee?.id && (
-									<p className="text-[10px] text-muted-foreground/50 truncate">
-										by {createdByLabel}
-									</p>
-								)}
-							</div>
-						</div>
-
-						{/* Deadline */}
-						<div className="flex items-center gap-2 min-w-[100px]">
-							<div
-								className={cn(
-									"w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border",
-									isDeadlineOverdue
-										? "bg-[oklch(0.955_0.02_15)] border-[oklch(0.87_0.04_15)]"
-										: isDeadlineApproaching
-											? "bg-[oklch(0.955_0.03_85)] border-[oklch(0.87_0.05_85)]"
-											: "bg-secondary border-border/50"
-								)}
-							>
-								<Calendar
-									className={cn(
-										"w-3.5 h-3.5",
-										isDeadlineOverdue
-											? "text-[oklch(0.42_0.13_18)]"
-											: isDeadlineApproaching
-												? "text-[oklch(0.45_0.12_80)]"
-												: "text-muted-foreground/60"
-									)}
-									weight="duotone"
-									aria-label="Deadline"
-								/>
-							</div>
-							<div className="min-w-0">
-								<p className="text-[10px] uppercase tracking-[0.05em] text-muted-foreground/60 leading-none">
-									Deadline
-								</p>
-								<p
-									className={cn(
-										"text-xs font-medium tabular-nums truncate mt-0.5",
-										isDeadlineOverdue
-											? "text-[oklch(0.42_0.13_18)]"
-											: isDeadlineApproaching
-												? "text-[oklch(0.45_0.12_80)]"
-												: "text-foreground"
-									)}
-								>
-									{deadlineLabel}
-								</p>
-							</div>
-						</div>
-					</div>
-				)}
-
-				{/* Action Button */}
-				<div className="flex-shrink-0">
-					{renderActions ? (
-						renderActions(task)
-					) : (
-						<Button
-							asChild
 							variant="outline"
-							size={size === "sm" ? "sm" : "default"}
 							className={cn(
-								"group/btn relative overflow-hidden rounded-lg border-border bg-background hover:bg-secondary/80 hover:border-border/60 transition-all duration-200",
-								size === "sm" ? "h-8 px-2.5" : "h-9 px-3.5",
-								"active:scale-[0.98] active:translate-y-[1px]"
+								priorityColors.badge,
+								"text-[10px] font-semibold uppercase tracking-[0.06em] px-2.5 py-0.5",
 							)}
 						>
-							<Link
-								params={{ taskId: task.id }}
-								to="/app/tasks/$taskId"
-								className="flex items-center gap-1.5"
-							>
-								<span className="text-xs font-medium">Edit</span>
-								<div className="relative w-4 h-4 overflow-hidden">
-									<ArrowRight
-										className="w-4 h-4 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-x-5"
-										weight="bold"
-									/>
-									<ArrowRight
-										className="w-4 h-4 absolute left-0 top-0 -translate-x-5 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-x-0"
-										weight="bold"
+							{task.priority}
+						</Badge>
+						<Badge
+							variant="outline"
+							className={cn(
+								statusColors.badge,
+								"text-[10px] font-semibold tracking-[0.06em] px-2.5 py-0.5",
+							)}
+						>
+							{task.status.replace("_", " ")}
+						</Badge>
+					</div>
+
+					{size !== "sm" ? (
+						<div className="flex w-full min-w-0 flex-wrap items-start gap-x-6 gap-y-2 sm:w-auto sm:flex-nowrap sm:justify-end">
+							<div className="flex min-w-0 max-w-full flex-1 items-center gap-2 sm:min-w-[120px] sm:flex-initial sm:max-w-none md:min-w-[140px]">
+								<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border/50 bg-secondary">
+									<User
+										className="h-3.5 w-3.5 text-muted-foreground/60"
+										weight="fill"
+										aria-label="Assignee"
 									/>
 								</div>
-							</Link>
-						</Button>
-					)}
-				</div>
+								<div className="min-w-0">
+									<p className="text-[10px] uppercase leading-none tracking-[0.05em] text-muted-foreground/60">
+										Assignee
+									</p>
+									<p className="mt-0.5 truncate text-xs font-medium text-foreground">
+										{assigneeLabel}
+									</p>
+									{createdBy && createdBy.id !== assignee?.id ? (
+										<p className="truncate text-[10px] text-muted-foreground/50">
+											by {createdByLabel}
+										</p>
+									) : null}
+								</div>
+							</div>
+
+							<div className="flex min-w-0 max-w-full flex-1 items-center gap-2 sm:min-w-[100px] sm:flex-initial sm:max-w-none">
+								<div
+									className={cn(
+										"flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
+										isDeadlineOverdue
+											? "border-[oklch(0.87_0.04_15)] bg-[oklch(0.955_0.02_15)]"
+											: isDeadlineApproaching
+												? "border-[oklch(0.87_0.05_85)] bg-[oklch(0.955_0.03_85)]"
+												: "border-border/50 bg-secondary",
+									)}
+								>
+									<Calendar
+										className={cn(
+											"h-3.5 w-3.5",
+											isDeadlineOverdue
+												? "text-[oklch(0.42_0.13_18)]"
+												: isDeadlineApproaching
+													? "text-[oklch(0.45_0.12_80)]"
+													: "text-muted-foreground/60",
+										)}
+										weight="duotone"
+										aria-label="Deadline"
+									/>
+								</div>
+								<div className="min-w-0">
+									<p className="text-[10px] uppercase leading-none tracking-[0.05em] text-muted-foreground/60">
+										Deadline
+									</p>
+									<p
+										className={cn(
+											"mt-0.5 truncate text-xs font-medium tabular-nums",
+											isDeadlineOverdue
+												? "text-[oklch(0.42_0.13_18)]"
+												: isDeadlineApproaching
+													? "text-[oklch(0.45_0.12_80)]"
+													: "text-foreground",
+										)}
+									>
+										{deadlineLabel}
+									</p>
+								</div>
+							</div>
+						</div>
+					) : null}
+
+					<div className="w-full shrink-0 sm:w-auto">
+						{renderActions ? (
+							<div className="[&_a]:w-full [&_a]:justify-center [&_button]:w-full sm:[&_a]:w-auto sm:[&_button]:w-auto">
+								{renderActions(task)}
+							</div>
+						) : (
+							<Button
+								asChild
+								variant="outline"
+								size={size === "sm" ? "sm" : "default"}
+								className={cn(
+									"group/btn relative w-full overflow-hidden rounded-lg border-border bg-background transition-all duration-200 hover:border-border/60 hover:bg-secondary/80 sm:w-auto",
+									size === "sm" ? "h-8 px-2.5" : "h-9 px-3.5",
+									"active:translate-y-[1px] active:scale-[0.98]",
+								)}
+							>
+								<Link
+									params={{ taskId: task.id }}
+									to="/app/tasks/$taskId"
+									className="flex items-center justify-center gap-1.5 sm:justify-start"
+								>
+									<span className="text-xs font-medium">Edit</span>
+									<div className="relative h-4 w-4 overflow-hidden">
+										<ArrowRight
+											className="h-4 w-4 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-x-5"
+											weight="bold"
+										/>
+										<ArrowRight
+											className="absolute left-0 top-0 h-4 w-4 -translate-x-5 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-x-0"
+											weight="bold"
+										/>
+									</div>
+								</Link>
+							</Button>
+						)}
+					</div>
 				</div>
 			</div>
 		</article>
