@@ -201,3 +201,53 @@ skills:
   - task: "Working with PocketBase collections, auth, API rules, file storage, or JS hooks"
     # To load this skill, run: npx @tanstack/intent@latest list | grep pocketbase
 <!-- intent-skills:end -->
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Command | Port |
+|---------|---------|------|
+| PocketBase (backend + auth + DB) | `./pocketbase/pocketbase serve --http=127.0.0.1:8090 --dir=./pocketbase/pb_data --migrationsDir=./pocketbase/pb_migrations --hooksDir=./pocketbase/pb_hooks` | 8090 |
+| Vite dev server (frontend SPA) | `bun --bun run dev` | 3000 |
+
+Start PocketBase **before** the frontend — all data and auth calls go to PocketBase.
+
+### PocketBase binary
+
+The committed binary is a macOS arm64 Mach-O executable. On Linux x86_64 (Cloud Agent VMs), it will not run. Download the correct Linux amd64 binary on first use:
+
+```bash
+cd /workspace/pocketbase
+curl -L -o pb.zip "https://github.com/pocketbase/pocketbase/releases/download/v0.36.7/pocketbase_0.36.7_linux_amd64.zip"
+unzip -o pb.zip -d . && rm pb.zip && chmod +x pocketbase
+```
+
+The `bun run pb start` script (via `pocketbase/pb.ts`) will also auto-download, but it requires Bun and uses `Bun.write` / `$` shell — running the binary directly is more reliable in Cloud Agent environments.
+
+### First-run setup
+
+On a fresh `pb_data`, PocketBase auto-applies migrations. Create a superuser for the admin dashboard:
+
+```bash
+./pocketbase/pocketbase superuser upsert admin@central.dev admin123456 --dir=./pocketbase/pb_data
+```
+
+Then create a regular user for testing the app (the frontend requires a `users` collection auth record):
+
+```bash
+curl -s http://127.0.0.1:8090/api/collections/users/records -H "Content-Type: application/json" -X POST \
+  -d '{"email":"testuser@central.dev","password":"testpass123","passwordConfirm":"testpass123","name":"Test User","role":"admin","isActive":true}'
+```
+
+### Hooks warning
+
+`pocketbase/pb_hooks/activity.pb.js` uses a legacy PocketBase JSVM API (`onRecordAfterCreateRequest`). On PocketBase v0.36.x this logs a non-fatal error at startup. It does not prevent the server from running.
+
+### Lint / test / build
+
+See `package.json` scripts. All use `bun --bun run <script>`:
+
+- **Lint/format**: `bun --bun run check` (Biome)
+- **Tests**: `bun --bun run test` (Vitest, 2 test files / 9 tests)
+- **Build**: `bun --bun run build` (Vite production build)
