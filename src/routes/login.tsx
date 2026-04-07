@@ -57,7 +57,7 @@ function LoginRoute() {
 	}
 
 	return (
-		<main className="flex min-h-screen items-center justify-center bg-background text-foreground">
+		<main className="flex min-h-[100dvh] items-center justify-center bg-background px-4 text-foreground">
 			<section className="mx-auto w-full max-w-[400px] px-5 py-12">
 				<div className="mb-10 text-center">
 					<p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
