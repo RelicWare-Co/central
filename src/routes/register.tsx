@@ -10,7 +10,7 @@ import { Button } from "#/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 
-type LoginSearch = {
+type RegisterSearch = {
 	redirect?: string;
 };
 
@@ -22,8 +22,8 @@ function validateRedirect(value: unknown) {
 	return value.startsWith("/") ? value : undefined;
 }
 
-export const Route = createFileRoute("/login")({
-	validateSearch: (search): LoginSearch => ({
+export const Route = createFileRoute("/register")({
+	validateSearch: (search): RegisterSearch => ({
 		redirect: validateRedirect(search.redirect),
 	}),
 	beforeLoad: ({ context, search }) => {
@@ -33,15 +33,17 @@ export const Route = createFileRoute("/login")({
 			});
 		}
 	},
-	component: LoginRoute,
+	component: RegisterRoute,
 });
 
-function LoginRoute() {
+function RegisterRoute() {
 	const { auth } = Route.useRouteContext();
 	const search = Route.useSearch();
 	const navigate = useNavigate();
-	const [identity, setIdentity] = useState("");
+	const [name, setName] = useState("");
+	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [passwordConfirm, setPasswordConfirm] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,11 +53,25 @@ function LoginRoute() {
 		setError(null);
 		setIsSubmitting(true);
 
+		// Validate passwords match
+		if (password !== passwordConfirm) {
+			setError("Passwords do not match");
+			setIsSubmitting(false);
+			return;
+		}
+
+		// Validate password strength
+		if (password.length < 8) {
+			setError("Password must be at least 8 characters long");
+			setIsSubmitting(false);
+			return;
+		}
+
 		try {
-			await auth.login(identity, password);
+			await auth.register(email, password, passwordConfirm, name || undefined);
 			await navigate({ replace: true, to: search.redirect ?? "/app" });
 		} catch (caughtError) {
-			setError(getLoginErrorMessage(caughtError));
+			setError(getRegisterErrorMessage(caughtError));
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -69,10 +85,10 @@ function LoginRoute() {
 						Central
 					</p>
 					<h1 className="mt-3 font-serif text-3xl font-normal tracking-[-0.02em] leading-[1.15] text-foreground">
-						Sign in to your workspace
+						Create your account
 					</h1>
 					<p className="mt-2 text-sm text-muted-foreground">
-						Projects, tasks and team coordination in one place.
+						Join your team and start organizing projects.
 					</p>
 				</div>
 
@@ -84,32 +100,62 @@ function LoginRoute() {
 					>
 						<FieldGroup>
 							<Field>
-								<FieldLabel htmlFor="identity">Email</FieldLabel>
+								<FieldLabel htmlFor="name">Name (optional)</FieldLabel>
+								<Input
+									autoComplete="name"
+									id="name"
+									name="name"
+									placeholder="Your name"
+									spellCheck={false}
+									type="text"
+									value={name}
+									onChange={(event) => setName(event.target.value)}
+								/>
+							</Field>
+
+							<Field>
+								<FieldLabel htmlFor="email">Email</FieldLabel>
 								<Input
 									autoComplete="email"
-									id="identity"
+									id="email"
 									inputMode="email"
-									name="identity"
+									name="email"
 									placeholder="you@company.com"
 									required
 									spellCheck={false}
 									type="email"
-									value={identity}
-									onChange={(event) => setIdentity(event.target.value)}
+									value={email}
+									onChange={(event) => setEmail(event.target.value)}
 								/>
 							</Field>
 
 							<Field>
 								<FieldLabel htmlFor="password">Password</FieldLabel>
 								<Input
-									autoComplete="current-password"
+									autoComplete="new-password"
 									id="password"
 									name="password"
-									placeholder="Enter your password"
+									placeholder="At least 8 characters"
 									required
 									type="password"
 									value={password}
 									onChange={(event) => setPassword(event.target.value)}
+								/>
+							</Field>
+
+							<Field>
+								<FieldLabel htmlFor="passwordConfirm">
+									Confirm password
+								</FieldLabel>
+								<Input
+									autoComplete="new-password"
+									id="passwordConfirm"
+									name="passwordConfirm"
+									placeholder="Confirm your password"
+									required
+									type="password"
+									value={passwordConfirm}
+									onChange={(event) => setPasswordConfirm(event.target.value)}
 								/>
 							</Field>
 						</FieldGroup>
@@ -131,10 +177,10 @@ function LoginRoute() {
 
 						<Button disabled={isSubmitting} size="lg" type="submit">
 							{isSubmitting ? (
-								"Signing in..."
+								"Creating account..."
 							) : (
 								<>
-									Sign in
+									Create account
 									<ArrowRightIcon data-icon="inline-end" />
 								</>
 							)}
@@ -142,34 +188,37 @@ function LoginRoute() {
 					</form>
 				</div>
 
-				<p className="mt-4 text-center text-sm text-muted-foreground">
-					Don't have an account?{" "}
+				<p className="mt-6 text-center text-sm text-muted-foreground">
+					Already have an account?{" "}
 					<Link
 						className="text-foreground underline underline-offset-4 hover:text-foreground/80"
-						to="/register"
+						to="/login"
 						search={{ redirect: search.redirect }}
 					>
-						Create one
+						Sign in
 					</Link>
-				</p>
-
-				<p className="mt-2 text-center text-xs text-muted-foreground">
-					Use your credentials from the PocketBase users collection.
 				</p>
 			</section>
 		</main>
 	);
 }
 
-function getLoginErrorMessage(error: unknown) {
+function getRegisterErrorMessage(error: unknown) {
 	if (
 		typeof error === "object" &&
 		error !== null &&
 		"message" in error &&
 		typeof error.message === "string"
 	) {
+		// Handle common PocketBase errors
+		if (
+			error.message.includes("already exists") ||
+			error.message.includes("unique")
+		) {
+			return "An account with this email already exists.";
+		}
 		return error.message;
 	}
 
-	return "Sign in failed. Verify your credentials and try again.";
+	return "Registration failed. Please try again.";
 }

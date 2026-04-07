@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AboutRouteImport } from './routes/about'
@@ -24,6 +25,11 @@ import { Route as AppTasksTaskIdRouteImport } from './routes/app.tasks.$taskId'
 import { Route as AppProjectsNewRouteImport } from './routes/app.projects.new'
 import { Route as AppProjectsProjectIdRouteImport } from './routes/app.projects.$projectId'
 
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/app/inbox': typeof AppInboxRoute
   '/app/my-tasks': typeof AppMyTasksRoute
   '/app/projects': typeof AppProjectsRouteWithChildren
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/app/inbox': typeof AppInboxRoute
   '/app/my-tasks': typeof AppMyTasksRoute
   '/app/projects': typeof AppProjectsRouteWithChildren
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/app/inbox': typeof AppInboxRoute
   '/app/my-tasks': typeof AppMyTasksRoute
   '/app/projects': typeof AppProjectsRouteWithChildren
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/app'
     | '/login'
+    | '/register'
     | '/app/inbox'
     | '/app/my-tasks'
     | '/app/projects'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/login'
+    | '/register'
     | '/app/inbox'
     | '/app/my-tasks'
     | '/app/projects'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/app'
     | '/login'
+    | '/register'
     | '/app/inbox'
     | '/app/my-tasks'
     | '/app/projects'
@@ -198,10 +210,18 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -346,6 +366,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
