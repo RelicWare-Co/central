@@ -27,6 +27,7 @@ import {
 	SelectValue,
 } from "#/components/ui/select";
 import { formatDateLabel, formatDueDateLabel } from "#/lib/formatting";
+import { getRichTextPreview } from "#/lib/rich-text";
 import {
 	formatTaskPriorityLabel,
 	formatTaskStatusLabel,
@@ -69,12 +70,14 @@ export function TaskEditorForm({
 	const [values, setValues] = useState(initialValues);
 	const [error, setError] = useState<string | null>(null);
 	const [isEditorOpen, setIsEditorOpen] = useState(editorOpen);
+	const [isDescriptionEditorOpen, setIsDescriptionEditorOpen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
 
 	useEffect(() => {
 		setValues(initialValues);
 		setError(null);
+		setIsDescriptionEditorOpen(false);
 		setIsSubmitting(false);
 	}, [initialValues]);
 
@@ -384,18 +387,30 @@ export function TaskEditorForm({
 							<FieldDescription>
 								Add context, expected outcome or follow-up notes.
 							</FieldDescription>
-							<RichTextEditor
-								id="description"
-								minHeightClassName="min-h-56"
-								placeholder="Describe the work, expected outcome or next steps"
-								value={values.description}
-								onChange={(nextDescription) =>
-									setValues((current) => ({
-										...current,
-										description: nextDescription,
-									}))
-								}
-							/>
+							{isDescriptionEditorOpen ? (
+								<RichTextEditor
+									id="description"
+									minHeightClassName="min-h-56"
+									placeholder="Describe the work, expected outcome or next steps"
+									value={values.description}
+									onChange={(nextDescription) =>
+										setValues((current) => ({
+											...current,
+											description: nextDescription,
+										}))
+									}
+								/>
+							) : (
+								<button
+									type="button"
+									className="w-full rounded-sm border border-border bg-card p-3 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary/30"
+									onClick={() => setIsDescriptionEditorOpen(true)}
+								>
+									{values.description.trim()
+										? getRichTextPreview(values.description, "Edit description")
+										: "Add context, expected outcome or follow-up notes."}
+								</button>
+							)}
 						</Field>
 
 						<div

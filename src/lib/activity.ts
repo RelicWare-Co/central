@@ -1,4 +1,4 @@
-import { pb } from "./pocketbase";
+import { pb } from "#/lib/pocketbase";
 
 export type ActivityAction =
 	| "created"
@@ -32,37 +32,34 @@ export type ActivityLogRecord = {
 	};
 };
 
-export async function logActivity({
-	action,
-	actorId,
-	entityType,
-	message,
-	projectId,
-	targetUserId,
-	taskId,
-}: {
-	action: ActivityAction;
-	actorId: string;
-	entityType: "project" | "task" | "subtask";
-	message?: string;
+type ActivityFilterParams = {
 	projectId?: string;
 	targetUserId?: string;
 	taskId?: string;
-}) {
-	try {
-		await pb.collection("activity_logs").create({
-			action,
-			actor: actorId,
-			entityType,
-			eventAt: new Date().toISOString(),
-			message,
-			project: projectId || null,
-			targetUser: targetUserId || null,
-			task: taskId || null,
-		});
-	} catch (error) {
-		console.error("Failed to log activity", error);
+};
+
+export function buildActivityFilter({
+	projectId,
+	targetUserId,
+	taskId,
+}: ActivityFilterParams) {
+	const filters: string[] = [];
+
+	if (projectId) {
+		filters.push(pb.filter("project = {:project}", { project: projectId }));
 	}
+
+	if (taskId) {
+		filters.push(pb.filter("task = {:task}", { task: taskId }));
+	}
+
+	if (targetUserId) {
+		filters.push(
+			pb.filter("targetUser = {:targetUser}", { targetUser: targetUserId }),
+		);
+	}
+
+	return filters.length > 0 ? filters.join(" && ") : undefined;
 }
 
 export async function getActivityLogs(options?: {
@@ -72,23 +69,17 @@ export async function getActivityLogs(options?: {
 	taskId?: string;
 }) {
 	try {
-		const filters = [];
-
-		if (options?.projectId) {
-			filters.push(`project = "${options.projectId}"`);
-		}
-		if (options?.taskId) {
-			filters.push(`task = "${options.taskId}"`);
-		}
-		if (options?.targetUserId) {
-			filters.push(`targetUser = "${options.targetUserId}"`);
-		}
+		const filter = buildActivityFilter({
+			projectId: options?.projectId,
+			targetUserId: options?.targetUserId,
+			taskId: options?.taskId,
+		});
 
 		return await pb
 			.collection("activity_logs")
 			.getList<ActivityLogRecord>(1, options?.limit || 20, {
 				sort: "-eventAt",
-				filter: filters.join(" && "),
+				...(filter ? { filter } : {}),
 				expand: "actor,targetUser,task,project",
 			});
 	} catch (error) {

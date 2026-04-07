@@ -38,6 +38,7 @@ import {
 } from "#/lib/projects";
 import { projectFormOptionsSnapshotQueryOptions } from "#/lib/projects.queries";
 import { queryKeys } from "#/lib/query-keys";
+import { getRichTextPreview } from "#/lib/rich-text";
 import { getErrorMessage } from "#/lib/utils";
 
 export const Route = createFileRoute("/app/projects/new")({
@@ -60,6 +61,7 @@ function NewProjectRoute() {
 	const [values, setValues] = useState<ProjectFormValues>(() =>
 		getDefaultProjectFormValues(options.currentUserId),
 	);
+	const [isDescriptionEditorOpen, setIsDescriptionEditorOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const createProjectMutation = useMutation({
@@ -246,18 +248,33 @@ function NewProjectRoute() {
 								<FieldDescription>
 									Describe the scope, outcome and boundaries.
 								</FieldDescription>
-								<RichTextEditor
-									id="description"
-									minHeightClassName="min-h-40"
-									placeholder="Add scope, expected outcome and boundaries"
-									value={values.description}
-									onChange={(nextDescription) =>
-										setValues((current) => ({
-											...current,
-											description: nextDescription,
-										}))
-									}
-								/>
+								{isDescriptionEditorOpen ? (
+									<RichTextEditor
+										id="description"
+										minHeightClassName="min-h-40"
+										placeholder="Add scope, expected outcome and boundaries"
+										value={values.description}
+										onChange={(nextDescription) =>
+											setValues((current) => ({
+												...current,
+												description: nextDescription,
+											}))
+										}
+									/>
+								) : (
+									<button
+										type="button"
+										className="w-full rounded-sm border border-border bg-card p-3 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary/30"
+										onClick={() => setIsDescriptionEditorOpen(true)}
+									>
+										{values.description.trim()
+											? getRichTextPreview(
+													values.description,
+													"Edit description",
+												)
+											: "Add scope, expected outcome and boundaries"}
+									</button>
+								)}
 							</Field>
 						</FieldGroup>
 

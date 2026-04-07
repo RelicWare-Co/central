@@ -1,11 +1,12 @@
-import {
-	queryOptions,
-	experimental_streamedQuery as streamedQuery,
-} from "@tanstack/react-query";
 import { format } from "date-fns";
 import type { AuthContext } from "#/lib/auth";
 import { type PocketBaseRealtimeEvent, pb } from "#/lib/pocketbase";
-import { queryKeys } from "#/lib/query-keys";
+import { queryKeys, type TaskListScope } from "#/lib/query-keys";
+import { applyRealtimeCollectionEvent } from "#/lib/realtime-collections";
+import {
+	createLiveStreamQueryOptions,
+	createSnapshotQueryOptions,
+} from "#/lib/realtime-query";
 import { createPocketBaseRealtimeStream } from "#/lib/realtime-stream";
 import {
 	getTaskById,
@@ -23,26 +24,10 @@ import {
 	type TaskRecord,
 } from "#/lib/tasks";
 
-type TaskCollectionStreamChunk =
-	| {
-			kind: "snapshot";
-			data: TaskCollectionData;
-	  }
-	| TaskEventStreamChunk;
-
-type TaskRecordStreamChunk =
-	| {
-			kind: "snapshot";
-			data: TaskRecord;
-	  }
-	| TaskEventStreamChunk;
-
-type SubtaskStreamChunk =
-	| {
-			kind: "snapshot";
-			data: SubtaskRecord[];
-	  }
-	| SubtaskEventStreamChunk;
+type SnapshotChunk<TData> = {
+	kind: "snapshot";
+	data: TData;
+};
 
 type TaskEventStreamChunk = {
 	kind: "event";
@@ -53,6 +38,16 @@ type SubtaskEventStreamChunk = {
 	kind: "event";
 	event: PocketBaseRealtimeEvent<SubtaskRecord>;
 };
+
+type TaskCollectionStreamChunk =
+	| SnapshotChunk<TaskCollectionData>
+	| TaskEventStreamChunk;
+
+type TaskRecordStreamChunk = SnapshotChunk<TaskRecord> | TaskEventStreamChunk;
+
+type SubtaskStreamChunk =
+	| SnapshotChunk<SubtaskRecord[]>
+	| SubtaskEventStreamChunk;
 
 export function inboxTasksSnapshotQueryOptions(auth: AuthContext) {
 	return taskListSnapshotQueryOptions(auth, {
@@ -152,196 +147,78 @@ export function taskDetailSnapshotQueryOptions(
 	auth: AuthContext,
 	taskId: string,
 ) {
-	return queryOptions({
-		queryKey: queryKeys.tasks.detail(taskId),
-		queryFn: async () => getTaskById(auth, taskId),
-	});
+	return createSnapshotQueryOptions(queryKeys.tasks.detail(taskId), async () =>
+		getTaskById(auth, taskId),
+	);
 }
 
 export function taskDetailLiveQueryOptions(auth: AuthContext, taskId: string) {
-	return queryOptions({
+	return createLiveStreamQueryOptions<TaskEventStreamChunk, TaskRecord>({
+		initialValue: {} as TaskRecord,
 		queryKey: queryKeys.tasks.detail(taskId),
-		refetchOnMount: "always",
-		queryFn: streamedQuery<TaskRecordStreamChunk, TaskRecord>({
-			initialValue: {} as TaskRecord,
-			refetchMode: "append",
-			reducer: reduceTaskRecord,
-			streamFn: async ({ client, queryKey, signal }) => {
-				async function* stream() {
-					const existing = client.getQueryData<TaskRecord>(queryKey);
-
-					if (!existing) {
-						yield {
-							kind: "snapshot",
-							data: await getTaskById(auth, taskId),
-						} satisfies TaskRecordStreamChunk;
-					}
-
-					yield* createTaskEventsStream(signal, taskId);
-				}
-
-				return stream();
-			},
-		}),
+		reducer: reduceTaskRecord,
+		loadSnapshot: async () => getTaskById(auth, taskId),
+		streamEvents: (signal) =>
+			createTaskEventsStream(signal, {
+				topic: taskId,
+			}),
 	});
 }
 
 export function taskFormOptionsSnapshotQueryOptions(auth: AuthContext) {
-	return queryOptions({
-		queryKey: queryKeys.tasks.formOptions,
-		queryFn: async (): Promise<TaskFormOptions> => getTaskFormOptions(auth),
-	});
+	return createSnapshotQueryOptions(
+		queryKeys.tasks.formOptions,
+		async (): Promise<TaskFormOptions> => getTaskFormOptions(auth),
+	);
 }
 
 export function taskSubtasksSnapshotQueryOptions(
 	auth: AuthContext,
 	taskId: string,
 ) {
-	return queryOptions({
-		queryKey: queryKeys.tasks.subtasks(taskId),
-		queryFn: async () => listSubtasksForTask(auth, taskId),
-	});
+	return createSnapshotQueryOptions(
+		queryKeys.tasks.subtasks(taskId),
+		async () => listSubtasksForTask(auth, taskId),
+	);
 }
 
 export function taskSubtasksLiveQueryOptions(
 	auth: AuthContext,
 	taskId: string,
 ) {
-	return queryOptions({
-		queryKey: queryKeys.tasks.subtasks(taskId),
-		refetchOnMount: "always",
-		queryFn: streamedQuery<SubtaskStreamChunk, SubtaskRecord[]>({
+	return createLiveStreamQueryOptions<SubtaskEventStreamChunk, SubtaskRecord[]>(
+		{
 			initialValue: [],
-			refetchMode: "append",
+			queryKey: queryKeys.tasks.subtasks(taskId),
 			reducer: reduceSubtasks,
-			streamFn: async ({ client, queryKey, signal }) => {
-				async function* stream() {
-					const existing = client.getQueryData<SubtaskRecord[]>(queryKey);
-
-					if (!existing) {
-						yield {
-							kind: "snapshot",
-							data: await listSubtasksForTask(auth, taskId),
-						} satisfies SubtaskStreamChunk;
-					}
-
-					yield* createSubtaskEventsStream(signal, taskId);
-				}
-
-				return stream();
-			},
-		}),
-	});
+			loadSnapshot: async () => listSubtasksForTask(auth, taskId),
+			streamEvents: (signal) => createSubtaskEventsStream(signal, taskId),
+		},
+	);
 }
 
-function taskListSnapshotQueryOptions(
-	auth: AuthContext,
-	scope:
-		| {
-				kind: "inbox";
-		  }
-		| {
-				kind: "my-tasks";
-				userId: string;
-		  }
-		| {
-				kind: "today";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "upcoming";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "project";
-				projectId: string;
-		  },
-) {
-	return queryOptions({
-		queryKey: queryKeys.tasks.list(scope),
-		queryFn: async () => loadTasksForScope(auth, scope),
-	});
+function taskListSnapshotQueryOptions(auth: AuthContext, scope: TaskListScope) {
+	return createSnapshotQueryOptions(queryKeys.tasks.list(scope), async () =>
+		loadTasksForScope(auth, scope),
+	);
 }
 
-function taskListLiveQueryOptions(
-	auth: AuthContext,
-	scope:
-		| {
-				kind: "inbox";
-		  }
-		| {
-				kind: "my-tasks";
-				userId: string;
-		  }
-		| {
-				kind: "today";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "upcoming";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "project";
-				projectId: string;
-		  },
-) {
-	return queryOptions({
-		queryKey: queryKeys.tasks.list(scope),
-		refetchOnMount: "always",
-		queryFn: streamedQuery<TaskCollectionStreamChunk, TaskCollectionData>({
+function taskListLiveQueryOptions(auth: AuthContext, scope: TaskListScope) {
+	return createLiveStreamQueryOptions<TaskEventStreamChunk, TaskCollectionData>(
+		{
 			initialValue: getEmptyTaskCollectionData(),
-			refetchMode: "append",
+			queryKey: queryKeys.tasks.list(scope),
 			reducer: (current, chunk) => reduceTaskCollection(current, chunk, scope),
-			streamFn: async ({ client, queryKey, signal }) => {
-				async function* stream() {
-					const existing = client.getQueryData<TaskCollectionData>(queryKey);
-
-					if (!existing) {
-						yield {
-							kind: "snapshot",
-							data: await loadTasksForScope(auth, scope),
-						} satisfies TaskCollectionStreamChunk;
-					}
-
-					yield* createTaskEventsStream(signal);
-				}
-
-				return stream();
-			},
-		}),
-	});
+			loadSnapshot: async () => loadTasksForScope(auth, scope),
+			streamEvents: (signal) =>
+				createTaskEventsStream(signal, {
+					filter: getTaskRealtimeFilter(scope),
+				}),
+		},
+	);
 }
 
-function loadTasksForScope(
-	auth: AuthContext,
-	scope:
-		| {
-				kind: "inbox";
-		  }
-		| {
-				kind: "my-tasks";
-				userId: string;
-		  }
-		| {
-				kind: "today";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "upcoming";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "project";
-				projectId: string;
-		  },
-) {
+function loadTasksForScope(auth: AuthContext, scope: TaskListScope) {
 	switch (scope.kind) {
 		case "inbox":
 			return listInboxTasks(auth);
@@ -359,28 +236,7 @@ function loadTasksForScope(
 function reduceTaskCollection(
 	current: TaskCollectionData,
 	chunk: TaskCollectionStreamChunk,
-	scope:
-		| {
-				kind: "inbox";
-		  }
-		| {
-				kind: "my-tasks";
-				userId: string;
-		  }
-		| {
-				kind: "today";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "upcoming";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "project";
-				projectId: string;
-		  },
+	scope: TaskListScope,
 ): TaskCollectionData {
 	if (chunk.kind === "snapshot") {
 		return normalizeTaskCollection(chunk.data.items);
@@ -414,17 +270,9 @@ function reduceSubtasks(
 		return sortSubtasks(chunk.data);
 	}
 
-	const record = chunk.event.record;
-
-	if (chunk.event.action === "delete") {
-		return current.filter((item) => item.id !== record.id);
-	}
-
-	const nextSubtasks = current.some((item) => item.id === record.id)
-		? current.map((item) => (item.id === record.id ? record : item))
-		: [...current, record];
-
-	return sortSubtasks(nextSubtasks);
+	return applyRealtimeCollectionEvent(current, chunk.event, {
+		sort: sortSubtasks,
+	});
 }
 
 function normalizeTaskCollection(items: TaskRecord[]): TaskCollectionData {
@@ -453,66 +301,15 @@ function getEmptyTaskCollectionData(): TaskCollectionData {
 function applyTaskEvent(
 	items: TaskRecord[],
 	event: PocketBaseRealtimeEvent<TaskRecord>,
-	scope:
-		| {
-				kind: "inbox";
-		  }
-		| {
-				kind: "my-tasks";
-				userId: string;
-		  }
-		| {
-				kind: "today";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "upcoming";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "project";
-				projectId: string;
-		  },
+	scope: TaskListScope,
 ) {
-	if (event.action === "delete" || !taskMatchesScope(event.record, scope)) {
-		return items.filter((task) => task.id !== event.record.id);
-	}
-
-	const hasRecord = items.some((task) => task.id === event.record.id);
-	const nextItems = hasRecord
-		? items.map((task) => (task.id === event.record.id ? event.record : task))
-		: [...items, event.record];
-
-	return sortTasks(nextItems);
+	return applyRealtimeCollectionEvent(items, event, {
+		includeRecord: (record) => taskMatchesScope(record, scope),
+		sort: sortTasks,
+	});
 }
 
-function taskMatchesScope(
-	task: TaskRecord,
-	scope:
-		| {
-				kind: "inbox";
-		  }
-		| {
-				kind: "my-tasks";
-				userId: string;
-		  }
-		| {
-				kind: "today";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "upcoming";
-				userId: string;
-				dayKey: string;
-		  }
-		| {
-				kind: "project";
-				projectId: string;
-		  },
-) {
+function taskMatchesScope(task: TaskRecord, scope: TaskListScope) {
 	if (task.isArchived) {
 		return false;
 	}
@@ -546,13 +343,13 @@ function isTaskTodayOrOverdue(
 
 	const endOfDay = getEndOfDay(dayKey);
 	const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-	const dueDateLabel =
+	const parsedDueDate =
 		dueDate && !Number.isNaN(dueDate.getTime()) ? dueDate : null;
 
 	return (
 		task.priority === "high" ||
 		task.status === "in_progress" ||
-		(Boolean(dueDateLabel) && dueDateLabel <= endOfDay)
+		(Boolean(parsedDueDate) && parsedDueDate <= endOfDay)
 	);
 }
 
@@ -609,15 +406,57 @@ function sortSubtasks(items: SubtaskRecord[]) {
 	});
 }
 
+function getTaskRealtimeFilter(scope: TaskListScope) {
+	const notArchivedFilter = "(isArchived = false || isArchived = null)";
+
+	switch (scope.kind) {
+		case "inbox":
+			return joinFilters(notArchivedFilter, "(project = '' || project = null)");
+		case "my-tasks":
+			return joinFilters(
+				notArchivedFilter,
+				pb.filter("assignee = {:assignee}", { assignee: scope.userId }),
+			);
+		case "today":
+		case "upcoming":
+			return joinFilters(
+				notArchivedFilter,
+				pb.filter(
+					"assignee = {:assignee} && status != 'completed' && status != 'canceled'",
+					{ assignee: scope.userId },
+				),
+			);
+		case "project":
+			return joinFilters(
+				notArchivedFilter,
+				pb.filter("project = {:project}", { project: scope.projectId }),
+			);
+	}
+}
+
+function joinFilters(...filters: Array<string | undefined>) {
+	const normalizedFilters = filters.filter((filter): filter is string =>
+		Boolean(filter && filter.trim().length > 0),
+	);
+
+	return normalizedFilters.length > 0
+		? normalizedFilters.map((filter) => `(${filter})`).join(" && ")
+		: undefined;
+}
+
 async function* createTaskEventsStream(
 	signal?: AbortSignal,
-	topic = "*",
+	options?: {
+		topic?: string;
+		filter?: string;
+	},
 ): AsyncIterable<TaskEventStreamChunk> {
 	for await (const event of createPocketBaseRealtimeStream<TaskRecord>(
 		"tasks",
-		topic,
+		options?.topic ?? "*",
 		{
 			expand: "project,assignee,createdBy",
+			...(options?.filter ? { filter: options.filter } : {}),
 		},
 		signal,
 	)) {

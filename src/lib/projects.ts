@@ -1,10 +1,9 @@
-import { notFound, redirect } from "@tanstack/react-router";
 import type { RecordModel } from "pocketbase";
 import type { AuthContext } from "#/lib/auth";
+import { requireAuthUser, runWithAuthRedirect } from "#/lib/data-access";
 import { formatDateForPocketBase } from "#/lib/formatting";
 import { pb } from "#/lib/pocketbase";
 import { serializeRichTextValue } from "#/lib/rich-text";
-import { isNotFoundError, isUnauthorizedError } from "#/lib/utils";
 
 export type ProjectStatus =
 	| "active"
@@ -58,7 +57,7 @@ export type ProjectFormOptions = {
 };
 
 export async function listProjects(auth: AuthContext) {
-	try {
+	return runWithAuthRedirect(auth, "/app/projects", async () => {
 		const items = await pb.collection("projects").getFullList<ProjectRecord>({
 			expand: "owner",
 			filter: "isArchived = false || isArchived = null",
@@ -98,20 +97,7 @@ export async function listProjects(auth: AuthContext) {
 				},
 			),
 		};
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: "/app/projects",
-				},
-			});
-		}
-
-		throw error;
-	}
+	});
 }
 
 export async function getProjectById(
@@ -119,48 +105,26 @@ export async function getProjectById(
 	projectId: string,
 	redirectTo = `/app/projects/${projectId}`,
 ) {
-	try {
-		return await pb.collection("projects").getOne<ProjectRecord>(projectId, {
-			expand: "owner",
-		});
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		if (isNotFoundError(error)) {
-			throw notFound();
-		}
-
-		throw error;
-	}
+	return runWithAuthRedirect(
+		auth,
+		redirectTo,
+		async () =>
+			pb.collection("projects").getOne<ProjectRecord>(projectId, {
+				expand: "owner",
+			}),
+		{
+			notFoundOn404: true,
+		},
+	);
 }
 
 export async function getProjectFormOptions(
 	auth: AuthContext,
 	redirectTo = "/app/projects/new",
 ) {
-	const userId = auth.getState().user?.id;
+	const userId = requireAuthUser(auth, redirectTo);
 
-	if (!userId) {
-		auth.logout();
-
-		throw redirect({
-			to: "/login",
-			search: {
-				redirect: redirectTo,
-			},
-		});
-	}
-
-	try {
+	return runWithAuthRedirect(auth, redirectTo, async () => {
 		const users = await pb
 			.collection("users")
 			.getFullList<Pick<ProjectOwner, "email" | "id" | "name" | "role">>({
@@ -172,20 +136,7 @@ export async function getProjectFormOptions(
 			currentUserId: userId,
 			users,
 		} satisfies ProjectFormOptions;
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		throw error;
-	}
+	});
 }
 
 export function getDefaultProjectFormValues(
@@ -209,24 +160,11 @@ export async function createProject(
 	values: ProjectFormValues,
 	redirectTo = "/app/projects/new",
 ) {
-	try {
-		return await pb
+	return runWithAuthRedirect(auth, redirectTo, async () =>
+		pb
 			.collection("projects")
-			.create<ProjectRecord>(buildProjectPayload(values));
-	} catch (error) {
-		if (isUnauthorizedError(error)) {
-			auth.logout();
-
-			throw redirect({
-				to: "/login",
-				search: {
-					redirect: redirectTo,
-				},
-			});
-		}
-
-		throw error;
-	}
+			.create<ProjectRecord>(buildProjectPayload(values)),
+	);
 }
 
 function buildProjectPayload(values: ProjectFormValues) {
